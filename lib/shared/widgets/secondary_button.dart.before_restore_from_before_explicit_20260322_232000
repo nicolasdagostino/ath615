@@ -1,0 +1,82 @@
+import 'package:flutter/material.dart';
+
+class SecondaryButton extends StatefulWidget {
+  final String text;
+  final VoidCallback? onPressed;
+  final IconData? icon;
+  final double height;
+  final double radius;
+  final bool compact;
+
+  const SecondaryButton({
+    super.key,
+    required this.text,
+    this.onPressed,
+    this.icon,
+    this.height = 52,
+    this.radius = 12,
+    this.compact = false,
+  });
+
+  @override
+  State<SecondaryButton> createState() => _SecondaryButtonState();
+}
+
+class _SecondaryButtonState extends State<SecondaryButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveHeight = widget.compact ? 48.0 : widget.height;
+    final effectiveRadius = widget.compact ? 10.0 : widget.radius;
+
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onPressed ?? () {},
+      child: AnimatedScale(
+        scale: _pressed ? 0.985 : 1,
+        duration: const Duration(milliseconds: 90),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 90),
+          height: effectiveHeight,
+          decoration: BoxDecoration(
+            color: _pressed ? const Color(0xFFDADDE3) : const Color(0xFFE5E7EB),
+            borderRadius: BorderRadius.circular(effectiveRadius),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0F0D0D12),
+                blurRadius: 2,
+                offset: Offset(0, 1),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              if (widget.icon != null) ...[
+                Icon(widget.icon, size: 20, color: Color(0xFF344054)),
+                const SizedBox(width: 8),
+              ],
+              Text(
+                widget.text,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Color(0xFF344054),
+                  fontSize: 16,
+                  height: 1.55,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.32,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

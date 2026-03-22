@@ -1,0 +1,32 @@
+name: ath615
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.8
+
+dependencies:
+  google_fonts: ^8.0.2
+  image_picker: ^1.1.2
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  supabase_flutter: ^2.12.0
+  intl: ^0.20.2
+  app_links: ^6.4.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+dependency_overrides:
+  path_provider_foundation: 2.5.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/logo_athlete_lab.jpg
+    - assets/images/auth/auth_no_account_hero.jpg
