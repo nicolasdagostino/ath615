@@ -233,8 +233,22 @@ class _AdminScreenState extends State<AdminScreen> {
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
     messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(content: Text(message)));
+    messenger.showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF111318),
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          message,
+          style: _font(
+            14,
+            weight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
   }
+
 
   String _friendlyAdminError(Object e) {
     final raw = e.toString().replaceFirst('Exception: ', '').toLowerCase();
@@ -1687,6 +1701,103 @@ class _AdminScreenState extends State<AdminScreen> {
       maxSpots: parsedMaxSpots,
       location: location.trim().isEmpty ? null : location.trim(),
     );
+  }
+
+
+  Future<void> _createRecurringClasses({
+    required String programId,
+    required String? coachId,
+    required String title,
+    required String description,
+    required String startDate,
+    required String endDate,
+    required List<int> weekdays,
+    required List<String> times,
+    required String duration,
+    required String maxSpots,
+    required String location,
+  }) async {
+    final gymId = await _resolvedGymIdForAdmin();
+    if (gymId == null || gymId.isEmpty) {
+      throw Exception('Could not determine gym id');
+    }
+
+    final parsedDuration = int.tryParse(duration.trim());
+    final parsedMaxSpots = int.tryParse(maxSpots.trim());
+
+    if (programId.trim().isEmpty) throw Exception('Program is required');
+    if (startDate.trim().isEmpty) throw Exception('Start date is required');
+    if (endDate.trim().isEmpty) throw Exception('Repeat until is required');
+    if (parsedDuration == null) throw Exception('Invalid duration');
+    if (parsedMaxSpots == null) throw Exception('Invalid max spots');
+
+    final start = DateTime.tryParse(startDate.trim());
+    final end = DateTime.tryParse(endDate.trim());
+
+    if (start == null) throw Exception('Invalid start date');
+    if (end == null) throw Exception('Invalid repeat until date');
+    if (end.isBefore(start)) {
+      throw Exception('Repeat until must be after start date');
+    }
+
+    final selectedWeekdays = weekdays.toSet().where((d) => d >= 1 && d <= 7).toList()..sort();
+    if (selectedWeekdays.isEmpty) {
+      throw Exception('Select at least one weekday');
+    }
+
+    final normalizedTimes = times
+        .map((t) => t.trim())
+        .where((t) => t.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    if (normalizedTimes.isEmpty) {
+      throw Exception('Add at least one time');
+    }
+
+    final timeRegex = RegExp(r'^([01]\d|2[0-3]):([0-5]\d)$');
+    for (final time in normalizedTimes) {
+      if (!timeRegex.hasMatch(time)) {
+        throw Exception('Invalid time: $time');
+      }
+    }
+
+    final dates = <String>[];
+    DateTime cursor = DateTime(start.year, start.month, start.day);
+    final last = DateTime(end.year, end.month, end.day);
+
+    while (!cursor.isAfter(last)) {
+      if (selectedWeekdays.contains(cursor.weekday)) {
+        final yyyy = cursor.year.toString().padLeft(4, '0');
+        final mm = cursor.month.toString().padLeft(2, '0');
+        final dd = cursor.day.toString().padLeft(2, '0');
+        dates.add('$yyyy-$mm-$dd');
+      }
+      cursor = cursor.add(const Duration(days: 1));
+    }
+
+    if (dates.isEmpty) {
+      throw Exception('No classes generated for the selected days/date range');
+    }
+
+    for (final date in dates) {
+      for (final time in normalizedTimes) {
+        final startsAtIso = _buildUtcIsoFromDateAndTime(date, time);
+
+        await _classRepo.createClass(
+          gymId: gymId,
+          programId: programId,
+          coachId: (coachId ?? '').trim().isEmpty ? null : coachId,
+          title: title.trim().isEmpty ? null : title.trim(),
+          description: description.trim().isEmpty ? null : description.trim(),
+          startsAtIso: startsAtIso,
+          durationMinutes: parsedDuration,
+          maxSpots: parsedMaxSpots,
+          location: location.trim().isEmpty ? null : location.trim(),
+        );
+      }
+    }
   }
 
   Future<void> _updateClass({
@@ -3346,11 +3457,12 @@ Widget _membersTab() {
                               const SizedBox(height: 6),
                               Text(
                                 description,
-                                style: const TextStyle(
-                                  fontSize: 13,
+                                style: _font(
+                                  14,
+                                  weight: FontWeight.w500,
+                                  color: const Color(0xFF6F7782),
                                   height: 1.35,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF8F96A3),
+                                  letterSpacing: 0.1,
                                 ),
                               ),
                             ],

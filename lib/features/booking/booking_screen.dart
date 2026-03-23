@@ -672,25 +672,15 @@ Widget _brandLogo() {
               Text(
                 overline,
                 style: _font(
-                  11,
+                  18,
                   weight: FontWeight.w700,
                   color: _programColor(programRaw),
-                  letterSpacing: 1.4,
+                  letterSpacing: 1.2,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 2),
             ],
-            Text(
-              title,
-              style: _font(
-                20,
-                weight: FontWeight.w800,
-                color: const Color(0xFF111318),
-                letterSpacing: -0.35,
-                height: 1.05,
-              ),
-            ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             Container(
               height: 0.8,
               color: const Color(0xFFEFF1F4),

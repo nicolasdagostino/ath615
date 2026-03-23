@@ -2,17 +2,23 @@ import 'supabase_bootstrap.dart';
 
 class ClassRepository {
   Future<List<Map<String, dynamic>>> listClassesAdmin() async {
-    final sinceIso = DateTime.now()
+    final now = DateTime.now();
+    final startIso = now
         .toUtc()
-        .subtract(const Duration(hours: 24))
+        .subtract(const Duration(days: 7))
+        .toIso8601String();
+    final endIso = now
+        .toUtc()
+        .add(const Duration(days: 7))
         .toIso8601String();
 
     final data = await sb
         .from('v_classes_with_spots')
         .select('*')
-        .gte('starts_at', sinceIso)
-        .order('starts_at', ascending: false)
-        .limit(200);
+        .gte('starts_at', startIso)
+        .lte('starts_at', endIso)
+        .order('starts_at', ascending: true)
+        .limit(300);
 
     return List<Map<String, dynamic>>.from(data);
   }
