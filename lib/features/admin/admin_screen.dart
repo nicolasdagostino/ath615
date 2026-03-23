@@ -15,19 +15,17 @@ import '../../core/supabase/program_repository.dart';
 import '../../core/supabase/storage_repository.dart';
 import '../../core/supabase/workout_repository.dart';
 import '../../shared/widgets/app_card.dart';
-import '../../shared/widgets/app_header.dart';
 import '../../shared/widgets/input_field.dart';
 import '../../shared/widgets/primary_button.dart';
 import '../../shared/widgets/search_field.dart';
 import '../../shared/widgets/secondary_button.dart';
-import '../../shared/widgets/tag_chip.dart';
 import 'class_attendance_screen.dart';
-part 'admin_plan_modal.dart';
-part 'admin_plan_actions.dart';
-part 'admin_assign_workout_modal.dart';
 part 'admin_program_modal.dart';
 part 'admin_class_modal.dart';
 part 'admin_workout_modal.dart';
+part 'admin_assign_workout_modal.dart';
+part 'admin_plan_actions.dart';
+part 'admin_plan_modal.dart';
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({super.key});
@@ -75,7 +73,6 @@ class _AdminScreenState extends State<AdminScreen> {
     super.initState();
     _loadAdminData();
   }
-
 
   TextStyle _font(
     double size, {
@@ -231,7 +228,6 @@ class _AdminScreenState extends State<AdminScreen> {
       ),
     );
   }
-
 
   void _toast(String message) {
     final messenger = ScaffoldMessenger.of(context);
@@ -827,9 +823,6 @@ class _AdminScreenState extends State<AdminScreen> {
     await _programRepo.deleteProgram(id);
   }
 
-
-
-
   void _showWorkoutActions(Map<String, dynamic> item) {
     final title = (item['title'] ?? 'Workout').toString().trim();
     final program = (item['program_name'] ?? 'Workout').toString().trim();
@@ -1034,7 +1027,6 @@ class _AdminScreenState extends State<AdminScreen> {
       },
     );
   }
-
 
   void _showClassActions(Map<String, dynamic> item) {
     final title =
@@ -1295,8 +1287,6 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
-
-
   void _showProgramActions(Map<String, dynamic> item) {
     final title = (item['name'] ?? 'Program').toString().trim();
     final subtitle = (item['description'] ?? '').toString().trim();
@@ -1518,8 +1508,6 @@ class _AdminScreenState extends State<AdminScreen> {
       },
     );
   }
-
-
 
   Future<void> _createPlan({
     required String name,
@@ -2226,8 +2214,6 @@ Widget _membersTab() {
     }
     return const Color(0xFF064BB3);
   }
-
-
 
   void _showAssignPlanModal(Map<String, dynamic> member) {
     if (_plans.isEmpty) return;
