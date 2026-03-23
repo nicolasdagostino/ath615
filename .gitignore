@@ -51,3 +51,12 @@ rollback_*.py
 *.pyc
 .metadata
 .vscode
+
+# Dev backups
+*.backup*
+*.bak_*
+*.broken*
+*.stable*
+*.before_restore*
+*.BACKUP*
+*.tmp
