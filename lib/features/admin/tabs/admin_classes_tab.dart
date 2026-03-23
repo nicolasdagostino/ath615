@@ -6,6 +6,7 @@ class AdminClassesTab extends StatelessWidget {
   final List classes;
   final bool adminActionBusy;
   final VoidCallback onAdd;
+  final VoidCallback? onRecurring;
   final Function(Map<String, dynamic>) onEdit;
   final Function(Map<String, dynamic>) onActions;
   final TextStyle Function(
@@ -22,6 +23,7 @@ class AdminClassesTab extends StatelessWidget {
     required this.classes,
     required this.adminActionBusy,
     required this.onAdd,
+    this.onRecurring,
     required this.onEdit,
     required this.onActions,
     required this.font,
@@ -44,6 +46,30 @@ class AdminClassesTab extends StatelessWidget {
                 ),
               ),
             ),
+            if (onRecurring != null) ...[
+              GestureDetector(
+                onTap: adminActionBusy ? null : onRecurring,
+                child: Container(
+                  height: 40,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFD0D5DD)),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Recurring',
+                    style: font(
+                      14,
+                      weight: FontWeight.w700,
+                      color: const Color(0xFF344054),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+            ],
             GestureDetector(
               onTap: adminActionBusy ? null : onAdd,
               child: Container(
