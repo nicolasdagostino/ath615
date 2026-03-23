@@ -5761,14 +5761,15 @@ class _AdminScreenState extends State<AdminScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
+                Text(
                   'Create your first training program to organize classes and workouts.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.45,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF8F96A3),
+                  style: _font(
+                    14,
+                    weight: FontWeight.w500,
+                    color: const Color(0xFF8F96A3),
+                    height: 1.4,
+                    letterSpacing: 0.1,
                   ),
                 ),
               ],
@@ -5923,14 +5924,15 @@ class _AdminScreenState extends State<AdminScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
+                Text(
                   'Create your first class to start managing bookings and attendance.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.45,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF8F96A3),
+                  style: _font(
+                    14,
+                    weight: FontWeight.w500,
+                    color: const Color(0xFF8F96A3),
+                    height: 1.4,
+                    letterSpacing: 0.1,
                   ),
                 ),
               ],

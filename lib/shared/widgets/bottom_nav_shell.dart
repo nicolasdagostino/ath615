@@ -24,6 +24,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
   bool? _resolvedIsAdmin;
   List<Widget>? _cachedScreens;
   List<_NavItemData>? _cachedItems;
+  int _bookingScreenSeed = 0;
 
   @override
   void initState() {
@@ -71,7 +72,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
   List<Widget> _screens(bool isAdmin) {
     final base = <Widget>[
       const WorkoutsScreen(),
-      const BookingScreen(),
+      BookingScreen(key: ValueKey('booking_$_bookingScreenSeed')),
       const ExploreScreen(),
     ];
 
@@ -216,7 +217,14 @@ class _BottomNavShellState extends State<BottomNavShell> {
                   selected: selected,
                   onTap: () {
                     if (index == i) return;
+
+                    final isBooking = items[i].label == 'Booking';
+
                     setState(() {
+                      if (isBooking) {
+                        _bookingScreenSeed++;
+                        _cachedScreens = _screens(_resolvedIsAdmin ?? false);
+                      }
                       index = i;
                     });
                   },

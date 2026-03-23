@@ -36,7 +36,25 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedDay = DateTime.now();
     _load();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final today = DateTime.now();
+    final currentIso = _dateIso(_selectedDay);
+    final todayIso = _dateIso(today);
+    if (currentIso != todayIso) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _selectedDay = today;
+        });
+        _load();
+      });
+    }
   }
 
   String _dateIso(DateTime d) {
