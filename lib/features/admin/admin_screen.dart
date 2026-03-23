@@ -1,3 +1,4 @@
+import 'modals/class_modal.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -2543,20 +2544,6 @@ class _AdminScreenState extends State<AdminScreen> {
                             ),
                             children: [
                               const SizedBox(height: 8),
-                              styledField(
-                                label: 'Title',
-                                controller: titleCtrl,
-                                hint: 'CrossFit PM',
-                                textInputAction: TextInputAction.next,
-                              ),
-                              const SizedBox(height: 12),
-                              styledField(
-                                label: 'Description',
-                                controller: descriptionCtrl,
-                                hint: 'Workout of the day',
-                                maxLines: 3,
-                                textInputAction: TextInputAction.done,
-                              ),
                               if (isEdit) ...[
                                 const SizedBox(height: 12),
                                 DropdownButtonFormField<String>(

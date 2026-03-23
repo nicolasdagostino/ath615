@@ -742,6 +742,13 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                     child: AbsorbPointer(
                                       child: InputField(
                                         label: 'Date',
+                                        textStyle: _font(
+                                          16,
+                                          weight: FontWeight.w600,
+                                          color: const Color(0xFF111318),
+                                        ),
+                                        readOnly: true,
+                                        suffixIcon: const Icon(Icons.calendar_today),
                                         controller: dateCtrl,
                                         hint: '2026-03-18',
                                         fillColor: Colors.white,
