@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/supabase/class_attendance_repository.dart';
+import '../../shared/widgets/app_card.dart';
 
 class ClassAttendanceScreen extends StatefulWidget {
   final Map<String, dynamic> classItem;
@@ -14,7 +15,6 @@ class ClassAttendanceScreen extends StatefulWidget {
 }
 
 class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
-
   TextStyle _font(
     double size, {
     FontWeight weight = FontWeight.w500,
@@ -100,19 +100,67 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
   Color _statusColor(String status) {
     switch (status) {
       case 'attended':
-        return const Color(0xFF16A34A);
+        return const Color(0xFF3D8D5C);
       case 'booked':
-        return const Color(0xFF245BEB);
+        return const Color(0xFFB59B6A);
       case 'cancelled':
-        return const Color(0xFFE11D48);
+        return const Color(0xFFC65F5F);
       default:
         return const Color(0xFF818898);
     }
   }
 
+  Color _statusBackground(String status) {
+    switch (status) {
+      case 'attended':
+        return const Color(0xFFEAF6EE);
+      case 'booked':
+        return const Color(0xFFF7F3EA);
+      case 'cancelled':
+        return const Color(0xFFFDECEC);
+      default:
+        return const Color(0xFFF2F4F7);
+    }
+  }
+
+  Widget _summaryChip({required IconData icon, required String label}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: const Color(0xFFE8ECF1)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: const Color(0xFF98A2B3)),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: _font(
+              12,
+              weight: FontWeight.w700,
+              color: const Color(0xFF344054),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final title = (widget.classItem['title'] ?? 'Class').toString();
+    final title = (widget.classItem['title'] ?? '').toString();
+    final program = (widget.classItem['program_name'] ?? 'Class').toString();
+    final coach = (widget.classItem['coach_name'] ?? 'TBD').toString();
+    final duration = (widget.classItem['duration_minutes'] ?? 60).toString();
+    final bookedCount = _items
+        .where((e) => (e['status'] ?? '').toString() == 'booked')
+        .length;
+    final attendedCount = _items
+        .where((e) => (e['status'] ?? '').toString() == 'attended')
+        .length;
 
     String subtitle = '';
     try {
@@ -183,38 +231,88 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
                 children: [
-                  Container(
-                    width: double.infinity,
+                  AppCard(
                     padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(color: const Color(0xFFEAECEF)),
-                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          title.toUpperCase(),
-                          style: _font(
-                            22,
-                            weight: FontWeight.w800,
-                            color: const Color(0xFF111318),
-                            letterSpacing: -0.2,
-                          ),
-                        ),
-                        if (subtitle.isNotEmpty) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            subtitle,
-                            style: _font(
-                              13,
-                              weight: FontWeight.w500,
-                              color: const Color(0xFF667085),
-                              height: 1.35,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 46,
+                              height: 46,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF7F3EA),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(
+                                Icons.groups_2_rounded,
+                                size: 22,
+                                color: Color(0xFFB59B6A),
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    program.toUpperCase(),
+                                    style: _font(
+                                      22,
+                                      weight: FontWeight.w800,
+                                      color: const Color(0xFF111318),
+                                      letterSpacing: -0.2,
+                                    ),
+                                  ),
+                                  if (subtitle.isNotEmpty ||
+                                      title.isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      [
+                                        if (title.isNotEmpty &&
+                                            title.toLowerCase() !=
+                                                program.toLowerCase())
+                                          title,
+                                        if (subtitle.isNotEmpty) subtitle,
+                                      ].join(' · '),
+                                      style: _font(
+                                        13,
+                                        weight: FontWeight.w500,
+                                        color: const Color(0xFF667085),
+                                        height: 1.35,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _summaryChip(
+                              icon: Icons.timer_outlined,
+                              label: '$duration min',
+                            ),
+                            _summaryChip(
+                              icon: Icons.person_outline_rounded,
+                              label: 'Coach: $coach',
+                            ),
+                            _summaryChip(
+                              icon: Icons.event_available_rounded,
+                              label: 'Booked: $bookedCount',
+                            ),
+                            _summaryChip(
+                              icon: Icons.check_circle_outline_rounded,
+                              label: 'Attended: $attendedCount',
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -234,15 +332,10 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                       ),
                     )
                   else if (_items.isEmpty)
-                    Container(
+                    AppCard(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 18,
                         vertical: 26,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: const Color(0xFFEAECEF)),
                       ),
                       child: Center(
                         child: Text(
@@ -259,40 +352,74 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                     ..._items.map((item) {
                       final bookingId = item['booking_id'].toString();
                       final status = (item['status'] ?? '').toString();
-                      final name = (item['member_name'] ?? 'Athlete').toString();
+                      final name = (item['member_name'] ?? 'Athlete')
+                          .toString();
                       final email = (item['member_email'] ?? '').toString();
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: Container(
+                        child: AppCard(
                           padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(22),
-                            border: Border.all(color: const Color(0xFFEAECEF)),
-                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF8FAFC),
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: const Icon(
+                                      Icons.person_rounded,
+                                      size: 20,
+                                      color: Color(0xFF98A2B3),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
                                   Expanded(
-                                    child: Text(
-                                      name.toUpperCase(),
-                                      style: _font(
-                                        18,
-                                        weight: FontWeight.w800,
-                                        color: const Color(0xFF111318),
-                                        letterSpacing: -0.15,
-                                      ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          name.toUpperCase(),
+                                          style: _font(
+                                            18,
+                                            weight: FontWeight.w800,
+                                            color: const Color(0xFF111318),
+                                            letterSpacing: -0.15,
+                                          ),
+                                        ),
+                                        if (email.isNotEmpty) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            email,
+                                            style: _font(
+                                              13,
+                                              weight: FontWeight.w500,
+                                              color: const Color(0xFF667085),
+                                              height: 1.35,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
                                     ),
                                   ),
                                   Container(
-                                    height: 22,
-                                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                                    height: 26,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: _statusColor(status).withOpacity(0.12),
+                                      color: _statusBackground(status),
                                       borderRadius: BorderRadius.circular(999),
+                                      border: Border.all(
+                                        color: _statusBackground(status),
+                                      ),
                                     ),
                                     alignment: Alignment.center,
                                     child: Text(
@@ -307,40 +434,41 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                                   ),
                                 ],
                               ),
-                              if (email.isNotEmpty) ...[
-                                const SizedBox(height: 6),
-                                Text(
-                                  email,
-                                  style: _font(
-                                    13,
-                                    weight: FontWeight.w500,
-                                    color: const Color(0xFF667085),
-                                    height: 1.35,
-                                  ),
-                                ),
-                              ],
                               const SizedBox(height: 14),
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 8,
                                 children: [
-                                  if (status != 'attended' && _canMarkAttended())
+                                  if (status != 'attended' &&
+                                      _canMarkAttended())
                                     _ActionButton(
                                       label: 'Mark attended',
-                                      color: const Color(0xFF16A34A),
-                                      onTap: () => _setStatus(bookingId, 'attended'),
+                                      backgroundColor: const Color(0xFFEAF6EE),
+                                      textColor: const Color(0xFF3D8D5C),
+                                      borderColor: const Color(0xFFD6ECDD),
+                                      icon: Icons.check_circle_outline_rounded,
+                                      onTap: () =>
+                                          _setStatus(bookingId, 'attended'),
                                     ),
                                   if (status != 'booked')
                                     _ActionButton(
                                       label: 'Set booked',
-                                      color: const Color(0xFF245BEB),
-                                      onTap: () => _setStatus(bookingId, 'booked'),
+                                      backgroundColor: const Color(0xFFF7F3EA),
+                                      textColor: const Color(0xFFB59B6A),
+                                      borderColor: const Color(0xFFE8DDC8),
+                                      icon: Icons.event_available_rounded,
+                                      onTap: () =>
+                                          _setStatus(bookingId, 'booked'),
                                     ),
                                   if (status != 'cancelled')
                                     _ActionButton(
                                       label: 'Cancel',
-                                      color: const Color(0xFFE11D48),
-                                      onTap: () => _setStatus(bookingId, 'cancelled'),
+                                      backgroundColor: const Color(0xFFFDECEC),
+                                      textColor: const Color(0xFFC65F5F),
+                                      borderColor: const Color(0xFFF3D6D6),
+                                      icon: Icons.close_rounded,
+                                      onTap: () =>
+                                          _setStatus(bookingId, 'cancelled'),
                                     ),
                                 ],
                               ),
@@ -357,38 +485,52 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
       ),
     );
   }
-
 }
 
 class _ActionButton extends StatelessWidget {
   final String label;
-  final Color color;
+  final Color backgroundColor;
+  final Color textColor;
+  final Color borderColor;
+  final IconData icon;
   final VoidCallback onTap;
 
   const _ActionButton({
     required this.label,
-    required this.color,
+    required this.backgroundColor,
+    required this.textColor,
+    required this.borderColor,
+    required this.icon,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(999),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(10),
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: borderColor),
         ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: textColor),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: GoogleFonts.barlowCondensed(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: textColor,
+                letterSpacing: -0.1,
+              ),
+            ),
+          ],
         ),
       ),
     );

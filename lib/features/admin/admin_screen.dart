@@ -239,16 +239,11 @@ class _AdminScreenState extends State<AdminScreen> {
         behavior: SnackBarBehavior.floating,
         content: Text(
           message,
-          style: _font(
-            14,
-            weight: FontWeight.w600,
-            color: Colors.white,
-          ),
+          style: _font(14, weight: FontWeight.w600, color: Colors.white),
         ),
       ),
     );
   }
-
 
   String _friendlyAdminError(Object e) {
     final raw = e.toString().replaceFirst('Exception: ', '').toLowerCase();
@@ -346,7 +341,10 @@ class _AdminScreenState extends State<AdminScreen> {
         hintText: hint,
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         labelStyle: _font(
           12,
           weight: FontWeight.w500,
@@ -435,14 +433,20 @@ class _AdminScreenState extends State<AdminScreen> {
                         const SizedBox(height: 16),
                         TextField(
                           controller: fullNameCtrl,
-                          decoration: inputDecoration('Full name', hint: 'John Doe'),
+                          decoration: inputDecoration(
+                            'Full name',
+                            hint: 'John Doe',
+                          ),
                           style: _font(14, weight: FontWeight.w500),
                           textInputAction: TextInputAction.next,
                         ),
                         const SizedBox(height: 12),
                         TextField(
                           controller: emailCtrl,
-                          decoration: inputDecoration('Email', hint: 'john@email.com'),
+                          decoration: inputDecoration(
+                            'Email',
+                            hint: 'john@email.com',
+                          ),
                           style: _font(14, weight: FontWeight.w500),
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
@@ -450,7 +454,10 @@ class _AdminScreenState extends State<AdminScreen> {
                         const SizedBox(height: 12),
                         TextField(
                           controller: phoneCtrl,
-                          decoration: inputDecoration('Phone', hint: '+34 600 000 000'),
+                          decoration: inputDecoration(
+                            'Phone',
+                            hint: '+34 600 000 000',
+                          ),
                           style: _font(14, weight: FontWeight.w500),
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.next,
@@ -458,7 +465,10 @@ class _AdminScreenState extends State<AdminScreen> {
                         const SizedBox(height: 12),
                         TextField(
                           controller: dobCtrl,
-                          decoration: inputDecoration('Date of birth', hint: '1986-12-11'),
+                          decoration: inputDecoration(
+                            'Date of birth',
+                            hint: '1986-12-11',
+                          ),
                           style: _font(14, weight: FontWeight.w500),
                           textInputAction: TextInputAction.next,
                         ),
@@ -475,8 +485,14 @@ class _AdminScreenState extends State<AdminScreen> {
                             color: const Color(0xFF111318),
                           ),
                           items: const [
-                            DropdownMenuItem(value: 'athlete', child: Text('Athlete')),
-                            DropdownMenuItem(value: 'admin', child: Text('Admin')),
+                            DropdownMenuItem(
+                              value: 'athlete',
+                              child: Text('Athlete'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'admin',
+                              child: Text('Admin'),
+                            ),
                           ],
                           onChanged: (value) {
                             if (value != null) {
@@ -491,12 +507,18 @@ class _AdminScreenState extends State<AdminScreen> {
                           controller: notesCtrl,
                           minLines: 3,
                           maxLines: 4,
-                          decoration: inputDecoration('Notes', hint: 'Optional notes'),
+                          decoration: inputDecoration(
+                            'Notes',
+                            hint: 'Optional notes',
+                          ),
                           style: _font(14, weight: FontWeight.w500),
                         ),
                         const SizedBox(height: 12),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
@@ -586,7 +608,9 @@ class _AdminScreenState extends State<AdminScreen> {
                                 boxShadow: const [],
                                 onPressed: () async {
                                   final fullName = fullNameCtrl.text.trim();
-                                  final email = emailCtrl.text.trim().toLowerCase();
+                                  final email = emailCtrl.text
+                                      .trim()
+                                      .toLowerCase();
                                   final phone = phoneCtrl.text.trim();
                                   final dob = dobCtrl.text.trim();
                                   final notes = notesCtrl.text.trim();
@@ -619,7 +643,8 @@ class _AdminScreenState extends State<AdminScreen> {
                                       notes: notes.isEmpty ? null : notes,
                                       isActive: isActive,
                                     ),
-                                    successMessage: 'Member created. Invitation email sent.',
+                                    successMessage:
+                                        'Member created. Invitation email sent.',
                                   );
 
                                   if (!mounted) return;
@@ -935,110 +960,114 @@ class _AdminScreenState extends State<AdminScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD7DBE1),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(color: const Color(0xFFEAECEF)),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 50,
-                          height: 50,
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 5,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF7F3EA),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(
-                            Icons.fitness_center_rounded,
-                            color: Color(0xFFB59B6A),
-                            size: 24,
+                            color: const Color(0xFFD7DBE1),
+                            borderRadius: BorderRadius.circular(999),
                           ),
                         ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title.isEmpty ? 'Workout' : title,
-                                style: _font(
-                                  18,
-                                  weight: FontWeight.w800,
-                                  color: const Color(0xFF111318),
-                                  letterSpacing: -0.2,
-                                ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(color: const Color(0xFFEAECEF)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF7F3EA),
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                              if (program.isNotEmpty || date.isNotEmpty) ...[
-                                const SizedBox(height: 2),
-                                Text(
-                                  [program, date].where((e) => e.isNotEmpty).join(' · '),
-                                  style: _font(
-                                    13,
-                                    weight: FontWeight.w500,
-                                    color: const Color(0xFF8F96A3),
+                              child: const Icon(
+                                Icons.fitness_center_rounded,
+                                color: Color(0xFFB59B6A),
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title.isEmpty ? 'Workout' : title,
+                                    style: _font(
+                                      18,
+                                      weight: FontWeight.w800,
+                                      color: const Color(0xFF111318),
+                                      letterSpacing: -0.2,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ],
-                          ),
+                                  if (program.isNotEmpty ||
+                                      date.isNotEmpty) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      [
+                                        program,
+                                        date,
+                                      ].where((e) => e.isNotEmpty).join(' · '),
+                                      style: _font(
+                                        13,
+                                        weight: FontWeight.w500,
+                                        color: const Color(0xFF8F96A3),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Workout actions',
-                    style: _font(
-                      14,
-                      weight: FontWeight.w700,
-                      color: const Color(0xFF8F96A3),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  actionTile(
-                    icon: Icons.edit_rounded,
-                    title: 'Edit workout',
-                    subtitle: 'Update title, type, date and image',
-                    iconBg: const Color(0xFFF7F3EA),
-                    iconColor: const Color(0xFFB59B6A),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showWorkoutModal(item: item);
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  actionTile(
-                    icon: Icons.delete_outline_rounded,
-                    title: 'Delete workout',
-                    subtitle: 'Remove this workout from the feed',
-                    iconBg: const Color(0xFFFEE4E2),
-                    iconColor: const Color(0xFFE11D48),
-                    titleColor: const Color(0xFFE11D48),
-                    onTap: _adminActionBusy
-                        ? null
-                        : () async {
-                            Navigator.pop(context);
-                            await _runAdminAction(
-                              () => _deleteWorkout(item['id'].toString()),
-                              successMessage: 'Workout deleted',
-                            );
-                          },
-                  ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Workout actions',
+                        style: _font(
+                          14,
+                          weight: FontWeight.w700,
+                          color: const Color(0xFF8F96A3),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      actionTile(
+                        icon: Icons.edit_rounded,
+                        title: 'Edit workout',
+                        subtitle: 'Update title, type, date and image',
+                        iconBg: const Color(0xFFF7F3EA),
+                        iconColor: const Color(0xFFB59B6A),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showWorkoutModal(item: item);
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      actionTile(
+                        icon: Icons.delete_outline_rounded,
+                        title: 'Delete workout',
+                        subtitle: 'Remove this workout from the feed',
+                        iconBg: const Color(0xFFFEE4E2),
+                        iconColor: const Color(0xFFE11D48),
+                        titleColor: const Color(0xFFE11D48),
+                        onTap: _adminActionBusy
+                            ? null
+                            : () async {
+                                Navigator.pop(context);
+                                await _runAdminAction(
+                                  () => _deleteWorkout(item['id'].toString()),
+                                  successMessage: 'Workout deleted',
+                                );
+                              },
+                      ),
                     ],
                   ),
                 ),
@@ -1051,11 +1080,13 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   void _showClassActions(Map<String, dynamic> item) {
-    final title =
-        (item['title'] ?? item['program_name'] ?? 'Class').toString().trim();
+    final title = (item['title'] ?? item['program_name'] ?? 'Class')
+        .toString()
+        .trim();
     final program = (item['program_name'] ?? '').toString().trim();
-    final startsAt =
-        DateTime.tryParse((item['starts_at'] ?? '').toString())?.toLocal();
+    final startsAt = DateTime.tryParse(
+      (item['starts_at'] ?? '').toString(),
+    )?.toLocal();
     final dateLabel = startsAt != null
         ? DateFormat('EEE, MMM d · HH:mm').format(startsAt)
         : '';
@@ -1197,12 +1228,14 @@ class _AdminScreenState extends State<AdminScreen> {
                                     letterSpacing: -0.2,
                                   ),
                                 ),
-                                if (program.isNotEmpty || dateLabel.isNotEmpty) ...[
+                                if (program.isNotEmpty ||
+                                    dateLabel.isNotEmpty) ...[
                                   const SizedBox(height: 2),
                                   Text(
-                                    [program, dateLabel]
-                                        .where((e) => e.isNotEmpty)
-                                        .join(' · '),
+                                    [
+                                      program,
+                                      dateLabel,
+                                    ].where((e) => e.isNotEmpty).join(' · '),
                                     style: _font(
                                       13,
                                       weight: FontWeight.w500,
@@ -1248,7 +1281,8 @@ class _AdminScreenState extends State<AdminScreen> {
                         Navigator.pop(context);
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => ClassAttendanceScreen(classItem: item),
+                            builder: (_) =>
+                                ClassAttendanceScreen(classItem: item),
                           ),
                         );
                       },
@@ -1406,128 +1440,128 @@ class _AdminScreenState extends State<AdminScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD7DBE1),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(color: const Color(0xFFEAECEF)),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 50,
-                          height: 50,
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 5,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF7F3EA),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(
-                            Icons.widgets_rounded,
-                            color: Color(0xFFB59B6A),
-                            size: 24,
+                            color: const Color(0xFFD7DBE1),
+                            borderRadius: BorderRadius.circular(999),
                           ),
                         ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title.isEmpty ? 'Program' : title,
-                                style: _font(
-                                  18,
-                                  weight: FontWeight.w800,
-                                  color: const Color(0xFF111318),
-                                  letterSpacing: -0.2,
-                                ),
-                              ),
-                              if (subtitle.isNotEmpty) ...[
-                                const SizedBox(height: 2),
-                                Text(
-                                  subtitle,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: _font(
-                                    13,
-                                    weight: FontWeight.w500,
-                                    color: const Color(0xFF8F96A3),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Program actions',
-                    style: _font(
-                      14,
-                      weight: FontWeight.w700,
-                      color: const Color(0xFF8F96A3),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  actionTile(
-                    icon: Icons.edit_rounded,
-                    title: 'Edit program',
-                    subtitle: 'Update name and short description',
-                    iconBg: const Color(0xFFF7F3EA),
-                    iconColor: const Color(0xFFB59B6A),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showProgramModal(item: item);
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  actionTile(
-                    icon: Icons.delete_outline_rounded,
-                    title: 'Delete program',
-                    subtitle: 'Remove this training program',
-                    iconBg: const Color(0xFFFEE4E2),
-                    iconColor: const Color(0xFFE11D48),
-                    titleColor: const Color(0xFFE11D48),
-                    onTap: _adminActionBusy
-                        ? null
-                        : () async {
-                            Navigator.pop(context);
-                            await _runAdminAction(
-                              () => _deleteProgram(item['id'].toString()),
-                              successMessage: 'Program deleted',
-                            );
-                          },
-                  ),
-                  const SizedBox(height: 14),
-                  SizedBox(
-                    width: double.infinity,
-                    child: SecondaryButton(
-                      text: 'Cancel',
-                      compact: true,
-                      radius: 16,
-                      textStyle: _font(
-                        16,
-                        weight: FontWeight.w700,
-                        color: const Color(0xFF344054),
-                        letterSpacing: -0.15,
                       ),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(color: const Color(0xFFEAECEF)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF7F3EA),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Icon(
+                                Icons.widgets_rounded,
+                                color: Color(0xFFB59B6A),
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title.isEmpty ? 'Program' : title,
+                                    style: _font(
+                                      18,
+                                      weight: FontWeight.w800,
+                                      color: const Color(0xFF111318),
+                                      letterSpacing: -0.2,
+                                    ),
+                                  ),
+                                  if (subtitle.isNotEmpty) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      subtitle,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: _font(
+                                        13,
+                                        weight: FontWeight.w500,
+                                        color: const Color(0xFF8F96A3),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Program actions',
+                        style: _font(
+                          14,
+                          weight: FontWeight.w700,
+                          color: const Color(0xFF8F96A3),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      actionTile(
+                        icon: Icons.edit_rounded,
+                        title: 'Edit program',
+                        subtitle: 'Update name and short description',
+                        iconBg: const Color(0xFFF7F3EA),
+                        iconColor: const Color(0xFFB59B6A),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showProgramModal(item: item);
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      actionTile(
+                        icon: Icons.delete_outline_rounded,
+                        title: 'Delete program',
+                        subtitle: 'Remove this training program',
+                        iconBg: const Color(0xFFFEE4E2),
+                        iconColor: const Color(0xFFE11D48),
+                        titleColor: const Color(0xFFE11D48),
+                        onTap: _adminActionBusy
+                            ? null
+                            : () async {
+                                Navigator.pop(context);
+                                await _runAdminAction(
+                                  () => _deleteProgram(item['id'].toString()),
+                                  successMessage: 'Program deleted',
+                                );
+                              },
+                      ),
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        width: double.infinity,
+                        child: SecondaryButton(
+                          text: 'Cancel',
+                          compact: true,
+                          radius: 16,
+                          textStyle: _font(
+                            16,
+                            weight: FontWeight.w700,
+                            color: const Color(0xFF344054),
+                            letterSpacing: -0.15,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -1719,7 +1753,6 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
-
   Future<void> _createRecurringClasses({
     required String programId,
     required String? coachId,
@@ -1756,17 +1789,15 @@ class _AdminScreenState extends State<AdminScreen> {
       throw Exception('Repeat until must be after start date');
     }
 
-    final selectedWeekdays = weekdays.toSet().where((d) => d >= 1 && d <= 7).toList()..sort();
+    final selectedWeekdays =
+        weekdays.toSet().where((d) => d >= 1 && d <= 7).toList()..sort();
     if (selectedWeekdays.isEmpty) {
       throw Exception('Select at least one weekday');
     }
 
-    final normalizedTimes = times
-        .map((t) => t.trim())
-        .where((t) => t.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
+    final normalizedTimes =
+        times.map((t) => t.trim()).where((t) => t.isNotEmpty).toSet().toList()
+          ..sort();
 
     if (normalizedTimes.isEmpty) {
       throw Exception('Add at least one time');
@@ -1950,7 +1981,7 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
-Widget _membersTab() {
+  Widget _membersTab() {
     return Column(
       children: [
         Row(
@@ -2102,10 +2133,11 @@ Widget _membersTab() {
 
             final fullName = (member['full_name'] ?? 'Member').toString();
             final email = (member['email'] ?? '-').toString();
-            final phone = ((member['phone'] ?? '').toString().isEmpty
-                    ? '-'
-                    : member['phone'])
-                .toString();
+            final phone =
+                ((member['phone'] ?? '').toString().isEmpty
+                        ? '-'
+                        : member['phone'])
+                    .toString();
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -2114,7 +2146,10 @@ Widget _membersTab() {
                     ? null
                     : () => _showMemberActions(member),
                 child: AppCard(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 16,
+                  ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -2138,7 +2173,9 @@ Widget _membersTab() {
                                 children: [
                                   Container(
                                     height: 18,
-                                    padding: const EdgeInsets.symmetric(horizontal: 7),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 7,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: status == 'active'
                                           ? const Color(0xFFDDF5E5)
@@ -2161,7 +2198,9 @@ Widget _membersTab() {
                                   const SizedBox(width: 5),
                                   Container(
                                     height: 18,
-                                    padding: const EdgeInsets.symmetric(horizontal: 7),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 7,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: role == 'admin'
                                           ? const Color(0xFFE6EDF7)
@@ -2184,7 +2223,9 @@ Widget _membersTab() {
                                   const SizedBox(width: 5),
                                   Container(
                                     height: 18,
-                                    padding: const EdgeInsets.symmetric(horizontal: 7),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 7,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: activeMembership == null
                                           ? const Color(0xFFFEE4E2)
@@ -2406,7 +2447,7 @@ Widget _membersTab() {
                     (p) => p['id'].toString() == selectedPlanId,
                     orElse: () => _plans.first,
                   );
-                      selectedPlan['description']?.toString().trim() ?? '';
+                  selectedPlan['description']?.toString().trim() ?? '';
 
                   Widget sectionTitle(String text) {
                     return Text(
@@ -2441,15 +2482,11 @@ Widget _membersTab() {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(
-                          color: Color(0xFFE2E8F0),
-                        ),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(
-                          color: Color(0xFFE2E8F0),
-                        ),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -2735,40 +2772,41 @@ Widget _membersTab() {
                                   weight: FontWeight.w500,
                                   color: const Color(0xFF111318),
                                 ),
-                                items: const [
-                                  DropdownMenuItem(
-                                    value: 'active',
-                                    child: Text('Active'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'paused',
-                                    child: Text('Paused'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'expired',
-                                    child: Text('Expired'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'cancelled',
-                                    child: Text('Cancelled'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'pending_payment',
-                                    child: Text('Pending Payment'),
-                                  ),
-                                ].map((item) {
-                                  return DropdownMenuItem<String>(
-                                    value: item.value,
-                                    child: Text(
-                                      (item.child as Text).data ?? '',
-                                      style: _font(
-                                        13,
-                                        weight: FontWeight.w500,
-                                        color: const Color(0xFF111318),
+                                items:
+                                    const [
+                                      DropdownMenuItem(
+                                        value: 'active',
+                                        child: Text('Active'),
                                       ),
-                                    ),
-                                  );
-                                }).toList(),
+                                      DropdownMenuItem(
+                                        value: 'paused',
+                                        child: Text('Paused'),
+                                      ),
+                                      DropdownMenuItem(
+                                        value: 'expired',
+                                        child: Text('Expired'),
+                                      ),
+                                      DropdownMenuItem(
+                                        value: 'cancelled',
+                                        child: Text('Cancelled'),
+                                      ),
+                                      DropdownMenuItem(
+                                        value: 'pending_payment',
+                                        child: Text('Pending Payment'),
+                                      ),
+                                    ].map((item) {
+                                      return DropdownMenuItem<String>(
+                                        value: item.value,
+                                        child: Text(
+                                          (item.child as Text).data ?? '',
+                                          style: _font(
+                                            13,
+                                            weight: FontWeight.w500,
+                                            color: const Color(0xFF111318),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
                                 selectedItemBuilder: (context) {
                                   final labels = [
                                     'Active',
@@ -2960,18 +2998,13 @@ Widget _membersTab() {
     );
   }
 
-  Future<void> _sendMemberPasswordEmail({
-    required String email,
-  }) async {
+  Future<void> _sendMemberPasswordEmail({required String email}) async {
     final cleanEmail = email.trim();
     if (cleanEmail.isEmpty) {
       throw Exception('This member does not have an email.');
     }
 
-    await _authRepo.resetPassword(
-      cleanEmail,
-      redirectTo: 'athletelab://auth',
-    );
+    await _authRepo.resetPassword(cleanEmail, redirectTo: 'athletelab://auth');
   }
 
   void _showMemberActions(Map<String, dynamic> member) {
@@ -3076,213 +3109,216 @@ Widget _membersTab() {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD7DBE1),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(color: const Color(0xFFEAECEF)),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 50,
-                          height: 50,
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 5,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF7F3EA),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(
-                            Icons.person_rounded,
-                            color: Color(0xFFB59B6A),
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                memberName,
-                                style: _font(
-                                  18,
-                                  weight: FontWeight.w800,
-                                  color: const Color(0xFF111318),
-                                  letterSpacing: -0.2,
-                                ),
-                              ),
-                              if (memberEmail.isNotEmpty) ...[
-                                const SizedBox(height: 2),
-                                Text(
-                                  memberEmail,
-                                  style: _font(
-                                    13,
-                                    weight: FontWeight.w500,
-                                    color: const Color(0xFF8F96A3),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF3F4F6),
+                            color: const Color(0xFFD7DBE1),
                             borderRadius: BorderRadius.circular(999),
                           ),
-                          child: Text(
-                            role.toUpperCase(),
-                            style: _font(
-                              11,
-                              weight: FontWeight.w700,
-                              color: const Color(0xFF667085),
-                              letterSpacing: 0.7,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(color: const Color(0xFFEAECEF)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF7F3EA),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Icon(
+                                Icons.person_rounded,
+                                color: Color(0xFFB59B6A),
+                                size: 24,
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    memberName,
+                                    style: _font(
+                                      18,
+                                      weight: FontWeight.w800,
+                                      color: const Color(0xFF111318),
+                                      letterSpacing: -0.2,
+                                    ),
+                                  ),
+                                  if (memberEmail.isNotEmpty) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      memberEmail,
+                                      style: _font(
+                                        13,
+                                        weight: FontWeight.w500,
+                                        color: const Color(0xFF8F96A3),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF3F4F6),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                role.toUpperCase(),
+                                style: _font(
+                                  11,
+                                  weight: FontWeight.w700,
+                                  color: const Color(0xFF667085),
+                                  letterSpacing: 0.7,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Member actions',
+                        style: _font(
+                          14,
+                          weight: FontWeight.w700,
+                          color: const Color(0xFF8F96A3),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      actionTile(
+                        icon: Icons.assignment_rounded,
+                        title: 'Assign Plan',
+                        subtitle: 'Add or change this athlete\'s membership',
+                        iconBg: const Color(0xFFF7F3EA),
+                        iconColor: const Color(0xFFB59B6A),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showAssignPlanModal(member);
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      actionTile(
+                        icon: Icons.mark_email_read_outlined,
+                        title: 'Send password email',
+                        subtitle:
+                            'Resend a secure link to create or reset password',
+                        iconBg: const Color(0xFFEFF6FF),
+                        iconColor: const Color(0xFF245BEB),
+                        onTap: _adminActionBusy
+                            ? null
+                            : () async {
+                                Navigator.pop(context);
+                                await _runAdminAction(
+                                  () => _sendMemberPasswordEmail(
+                                    email: memberEmail,
+                                  ),
+                                  successMessage: 'Password email sent',
+                                );
+                              },
+                      ),
+                      if (member['is_active'] == true) ...[
+                        const SizedBox(height: 10),
+                        actionTile(
+                          icon: Icons.pause_circle_outline_rounded,
+                          title: 'Deactivate member',
+                          subtitle:
+                              'Keep the profile but disable active access',
+                          iconBg: const Color(0xFFFEE4E2),
+                          iconColor: const Color(0xFFE11D48),
+                          onTap: _adminActionBusy
+                              ? null
+                              : () async {
+                                  Navigator.pop(context);
+                                  await _runAdminAction(
+                                    () => _updateMemberActiveStatus(
+                                      profileId: memberId,
+                                      isActive: false,
+                                    ),
+                                    successMessage: 'Member deactivated',
+                                  );
+                                },
+                        ),
+                      ] else ...[
+                        const SizedBox(height: 10),
+                        actionTile(
+                          icon: Icons.check_circle_outline_rounded,
+                          title: 'Activate member',
+                          subtitle:
+                              'Restore access and mark this member as active',
+                          iconBg: const Color(0xFFDDF5E5),
+                          iconColor: const Color(0xFF16A34A),
+                          onTap: _adminActionBusy
+                              ? null
+                              : () async {
+                                  Navigator.pop(context);
+                                  await _runAdminAction(
+                                    () => _updateMemberActiveStatus(
+                                      profileId: memberId,
+                                      isActive: true,
+                                    ),
+                                    successMessage: 'Member activated',
+                                  );
+                                },
                         ),
                       ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Member actions',
-                    style: _font(
-                      14,
-                      weight: FontWeight.w700,
-                      color: const Color(0xFF8F96A3),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  actionTile(
-                    icon: Icons.assignment_rounded,
-                    title: 'Assign Plan',
-                    subtitle: 'Add or change this athlete\'s membership',
-                    iconBg: const Color(0xFFF7F3EA),
-                    iconColor: const Color(0xFFB59B6A),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showAssignPlanModal(member);
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  actionTile(
-                    icon: Icons.mark_email_read_outlined,
-                    title: 'Send password email',
-                    subtitle: 'Resend a secure link to create or reset password',
-                    iconBg: const Color(0xFFEFF6FF),
-                    iconColor: const Color(0xFF245BEB),
-                    onTap: _adminActionBusy
-                        ? null
-                        : () async {
-                            Navigator.pop(context);
-                            await _runAdminAction(
-                              () => _sendMemberPasswordEmail(
-                                email: memberEmail,
-                              ),
-                              successMessage: 'Password email sent',
-                            );
-                          },
-                  ),
-                  if (member['is_active'] == true) ...[
-                    const SizedBox(height: 10),
-                    actionTile(
-                      icon: Icons.pause_circle_outline_rounded,
-                      title: 'Deactivate member',
-                      subtitle: 'Keep the profile but disable active access',
-                      iconBg: const Color(0xFFFEE4E2),
-                      iconColor: const Color(0xFFE11D48),
-                      onTap: _adminActionBusy
-                          ? null
-                          : () async {
-                              Navigator.pop(context);
-                              await _runAdminAction(
-                                () => _updateMemberActiveStatus(
-                                  profileId: memberId,
-                                  isActive: false,
-                                ),
-                                successMessage: 'Member deactivated',
-                              );
-                            },
-                    ),
-                  ] else ...[
-                    const SizedBox(height: 10),
-                    actionTile(
-                      icon: Icons.check_circle_outline_rounded,
-                      title: 'Activate member',
-                      subtitle: 'Restore access and mark this member as active',
-                      iconBg: const Color(0xFFDDF5E5),
-                      iconColor: const Color(0xFF16A34A),
-                      onTap: _adminActionBusy
-                          ? null
-                          : () async {
-                              Navigator.pop(context);
-                              await _runAdminAction(
-                                () => _updateMemberActiveStatus(
-                                  profileId: memberId,
-                                  isActive: true,
-                                ),
-                                successMessage: 'Member activated',
-                              );
-                            },
-                    ),
-                  ],
-                  if (role != 'athlete') ...[
-                    const SizedBox(height: 10),
-                    actionTile(
-                      icon: Icons.sports_gymnastics_rounded,
-                      title: 'Make athlete',
-                      subtitle: 'Remove elevated access for this member',
-                      onTap: _adminActionBusy
-                          ? null
-                          : () async {
-                              Navigator.pop(context);
-                              await _runAdminAction(
-                                () => _updateMemberRole(
-                                  profileId: memberId,
-                                  role: 'athlete',
-                                ),
-                                successMessage: 'Role updated to athlete',
-                              );
-                            },
-                    ),
-                  ],
-                  if (role != 'admin') ...[
-                    const SizedBox(height: 10),
-                    actionTile(
-                      icon: Icons.shield_rounded,
-                      title: 'Make admin',
-                      subtitle: 'Give this member admin permissions',
-                      onTap: _adminActionBusy
-                          ? null
-                          : () async {
-                              Navigator.pop(context);
-                              await _runAdminAction(
-                                () => _updateMemberRole(
-                                  profileId: memberId,
-                                  role: 'admin',
-                                ),
-                                successMessage: 'Role updated to admin',
-                              );
-                            },
-                    ),
-                  ],
+                      if (role != 'athlete') ...[
+                        const SizedBox(height: 10),
+                        actionTile(
+                          icon: Icons.sports_gymnastics_rounded,
+                          title: 'Make athlete',
+                          subtitle: 'Remove elevated access for this member',
+                          onTap: _adminActionBusy
+                              ? null
+                              : () async {
+                                  Navigator.pop(context);
+                                  await _runAdminAction(
+                                    () => _updateMemberRole(
+                                      profileId: memberId,
+                                      role: 'athlete',
+                                    ),
+                                    successMessage: 'Role updated to athlete',
+                                  );
+                                },
+                        ),
+                      ],
+                      if (role != 'admin') ...[
+                        const SizedBox(height: 10),
+                        actionTile(
+                          icon: Icons.shield_rounded,
+                          title: 'Make admin',
+                          subtitle: 'Give this member admin permissions',
+                          onTap: _adminActionBusy
+                              ? null
+                              : () async {
+                                  Navigator.pop(context);
+                                  await _runAdminAction(
+                                    () => _updateMemberRole(
+                                      profileId: memberId,
+                                      role: 'admin',
+                                    ),
+                                    successMessage: 'Role updated to admin',
+                                  );
+                                },
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -3397,7 +3433,10 @@ Widget _membersTab() {
                     ? null
                     : () => _showProgramModal(item: item),
                 child: AppCard(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 16,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -3558,7 +3597,7 @@ Widget _membersTab() {
                 ? DateFormat('EEE, MMM d · HH:mm').format(dt)
                 : '-';
             final program = (item['program_name'] ?? 'Class').toString();
-            final title = (item['title'] ?? 'Class').toString();
+            final title = (item['title'] ?? '').toString();
             final coach = (item['coach_name'] ?? 'TBD').toString();
             final remaining = (item['remaining_spots'] ?? 0).toString();
             final total = (item['max_spots'] ?? 0).toString();
@@ -3573,7 +3612,10 @@ Widget _membersTab() {
                     ? null
                     : () => _showClassModal(item: item),
                 child: AppCard(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 16,
+                  ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -3582,7 +3624,7 @@ Widget _membersTab() {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              title.toUpperCase(),
+                              program.toUpperCase(),
                               style: _font(
                                 20,
                                 weight: FontWeight.w800,
@@ -3592,7 +3634,13 @@ Widget _membersTab() {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              '$program · $dateLabel',
+                              [
+                                if (title.isNotEmpty &&
+                                    title.toLowerCase() !=
+                                        program.toLowerCase())
+                                  title,
+                                dateLabel,
+                              ].join(' · '),
                               style: _font(
                                 13,
                                 weight: FontWeight.w500,
@@ -3772,7 +3820,10 @@ Widget _membersTab() {
                     ? null
                     : () => _showWorkoutModal(item: item),
                 child: AppCard(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 16,
+                  ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -3995,8 +4046,10 @@ Widget _membersTab() {
             final planType = (plan['plan_type'] ?? '').toString();
             final billing = (plan['billing_period'] ?? '').toString();
             final price = plan['price'];
-            final bookingWindow = (plan['booking_window_days'] ?? '7').toString();
-            final classesPerPeriod = (plan['classes_per_period'] ?? '').toString();
+            final bookingWindow = (plan['booking_window_days'] ?? '7')
+                .toString();
+            final classesPerPeriod = (plan['classes_per_period'] ?? '')
+                .toString();
             final creditsTotal = (plan['credits_total'] ?? '').toString();
 
             String accessLine = '$bookingWindow days booking window';
@@ -4009,7 +4062,10 @@ Widget _membersTab() {
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: AppCard(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 16,
+                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -4090,7 +4146,9 @@ Widget _membersTab() {
                     ),
                     const SizedBox(width: 12),
                     GestureDetector(
-                      onTap: _adminActionBusy ? null : () => _showPlanActions(plan),
+                      onTap: _adminActionBusy
+                          ? null
+                          : () => _showPlanActions(plan),
                       child: Container(
                         width: 38,
                         height: 38,

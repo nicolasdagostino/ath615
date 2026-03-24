@@ -1,7 +1,7 @@
 part of 'admin_screen.dart';
 
 extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
-void _showAssignWorkoutModal(Map<String, dynamic> classItem) {
+  void _showAssignWorkoutModal(Map<String, dynamic> classItem) {
     if (_workouts.isEmpty) {
       _toast('Create a workout first');
       return;
@@ -13,6 +13,15 @@ void _showAssignWorkoutModal(Map<String, dynamic> classItem) {
         : _workouts.first['id'].toString();
 
     final className = (classItem['title'] ?? 'Class').toString().trim();
+    final programName = (classItem['program_name'] ?? 'Program')
+        .toString()
+        .trim();
+
+    String classDateLabel = '';
+    try {
+      final dt = DateTime.parse(classItem['starts_at'].toString()).toLocal();
+      classDateLabel = DateFormat('EEE, MMM d · HH:mm').format(dt);
+    } catch (_) {}
 
     InputDecoration dropdownDecoration(String label) {
       return InputDecoration(
@@ -29,7 +38,10 @@ void _showAssignWorkoutModal(Map<String, dynamic> classItem) {
         ),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -74,7 +86,9 @@ void _showAssignWorkoutModal(Map<String, dynamic> classItem) {
                     final selectedWorkoutTitle =
                         (selectedWorkout['title'] ?? 'Workout').toString();
                     final selectedWorkoutDate =
-                        (selectedWorkout['workout_date'] ?? '').toString().trim();
+                        (selectedWorkout['workout_date'] ?? '')
+                            .toString()
+                            .trim();
 
                     return SingleChildScrollView(
                       child: Column(
@@ -161,38 +175,68 @@ void _showAssignWorkoutModal(Map<String, dynamic> classItem) {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(22),
-                              border: Border.all(color: const Color(0xFFEAECEF)),
+                              border: Border.all(
+                                color: const Color(0xFFEAECEF),
+                              ),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                InputField(
-                                  label: 'Class',
-                                  controller: TextEditingController(text: className),
-                                  hint: className,
-                                  readOnly: true,
-                                  fillColor: const Color(0xFFF8FAFC),
-                                  borderColor: const Color(0xFFE2E8F0),
-                                  focusedBorderColor: const Color(0xFFB59B6A),
-                                  radius: 16,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 16,
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(18),
+                                    border: Border.all(
+                                      color: const Color(0xFFE2E8F0),
+                                    ),
                                   ),
-                                  labelStyle: _font(
-                                    12,
-                                    weight: FontWeight.w500,
-                                    color: const Color(0xFF667085),
-                                  ),
-                                  hintStyle: _font(
-                                    13,
-                                    weight: FontWeight.w500,
-                                    color: const Color(0xFF98A2B3),
-                                  ),
-                                  textStyle: _font(
-                                    13,
-                                    weight: FontWeight.w500,
-                                    color: const Color(0xFF111318),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Program',
+                                        style: _font(
+                                          12,
+                                          weight: FontWeight.w600,
+                                          color: const Color(0xFF667085),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        programName.isEmpty
+                                            ? 'Program'
+                                            : programName,
+                                        style: _font(
+                                          18,
+                                          weight: FontWeight.w800,
+                                          color: const Color(0xFF111318),
+                                          letterSpacing: -0.15,
+                                        ),
+                                      ),
+                                      if (classDateLabel.isNotEmpty ||
+                                          className.isNotEmpty) ...[
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          [
+                                            if (className.isNotEmpty &&
+                                                className.toLowerCase() !=
+                                                    programName.toLowerCase())
+                                              className,
+                                            if (classDateLabel.isNotEmpty)
+                                              classDateLabel,
+                                          ].join(' · '),
+                                          style: _font(
+                                            13,
+                                            weight: FontWeight.w500,
+                                            color: const Color(0xFF667085),
+                                            height: 1.35,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ),
                                 const SizedBox(height: 12),
@@ -208,10 +252,11 @@ void _showAssignWorkoutModal(Map<String, dynamic> classItem) {
                                     color: const Color(0xFF111318),
                                   ),
                                   items: _workouts.map((w) {
-                                    final title =
-                                        (w['title'] ?? 'Workout').toString();
-                                    final date =
-                                        (w['workout_date'] ?? '').toString().trim();
+                                    final title = (w['title'] ?? 'Workout')
+                                        .toString();
+                                    final date = (w['workout_date'] ?? '')
+                                        .toString()
+                                        .trim();
                                     return DropdownMenuItem<String>(
                                       value: w['id'].toString(),
                                       child: Text(
@@ -226,14 +271,17 @@ void _showAssignWorkoutModal(Map<String, dynamic> classItem) {
                                   }).toList(),
                                   selectedItemBuilder: (context) {
                                     return _workouts.map((w) {
-                                      final title =
-                                          (w['title'] ?? 'Workout').toString();
-                                      final date =
-                                          (w['workout_date'] ?? '').toString().trim();
+                                      final title = (w['title'] ?? 'Workout')
+                                          .toString();
+                                      final date = (w['workout_date'] ?? '')
+                                          .toString()
+                                          .trim();
                                       return Align(
                                         alignment: Alignment.centerLeft,
                                         child: Text(
-                                          date.isEmpty ? title : '$title · $date',
+                                          date.isEmpty
+                                              ? title
+                                              : '$title · $date',
                                           style: _font(
                                             13,
                                             weight: FontWeight.w500,
@@ -272,7 +320,9 @@ void _showAssignWorkoutModal(Map<String, dynamic> classItem) {
                                         height: 38,
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFF3F4F6),
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         child: const Icon(
                                           Icons.fitness_center_rounded,
@@ -347,7 +397,8 @@ void _showAssignWorkoutModal(Map<String, dynamic> classItem) {
                                         classId: classItem['id'].toString(),
                                         workoutId: selectedWorkoutId,
                                       ),
-                                      successMessage: 'Workout assigned to class',
+                                      successMessage:
+                                          'Workout assigned to class',
                                     );
                                     if (!mounted) return;
                                     Navigator.pop(context);

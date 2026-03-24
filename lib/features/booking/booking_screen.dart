@@ -7,7 +7,7 @@ import '../../core/supabase/class_attendance_repository.dart';
 import '../../core/supabase/class_repository.dart';
 import '../../core/supabase/membership_repository.dart';
 import '../../core/supabase/supabase_bootstrap.dart';
-import '../admin/class_roster_screen.dart';
+import '../admin/class_attendance_screen.dart';
 import '../../shared/widgets/app_card.dart';
 
 class BookingScreen extends StatefulWidget {
@@ -74,6 +74,24 @@ class _BookingScreenState extends State<BookingScreen> {
       color: color,
       height: height,
       letterSpacing: letterSpacing,
+    );
+  }
+
+  void _showToast(String message, {bool isError = false}) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        backgroundColor: isError
+            ? const Color(0xFFB42318)
+            : const Color(0xFF111318),
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          message,
+          style: _font(14, weight: FontWeight.w600, color: Colors.white),
+        ),
+      ),
     );
   }
 
@@ -259,14 +277,10 @@ class _BookingScreenState extends State<BookingScreen> {
         _applyLocalBookedState(classId);
       });
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Class booked')));
+      _showToast('Class booked');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-      );
+      _showToast(e.toString().replaceFirst('Exception: ', ''), isError: true);
     } finally {
       if (mounted) {
         setState(() {
@@ -303,14 +317,10 @@ class _BookingScreenState extends State<BookingScreen> {
         _applyLocalCancelledState(classId);
       });
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Booking cancelled')));
+      _showToast('Booking cancelled');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-      );
+      _showToast(e.toString().replaceFirst('Exception: ', ''), isError: true);
     } finally {
       if (mounted) {
         setState(() {
@@ -325,15 +335,11 @@ class _BookingScreenState extends State<BookingScreen> {
       await _attendanceRepo.checkInToClass(classItem['id'].toString());
 
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Checked in successfully')));
+      _showToast('Checked in successfully');
       await _load();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-      );
+      _showToast(e.toString().replaceFirst('Exception: ', ''), isError: true);
     }
   }
 
@@ -461,7 +467,9 @@ class _BookingScreenState extends State<BookingScreen> {
     Color? fillColor,
     Color? textColor,
   }) {
-    final bg = fillColor ?? (filled ? const Color(0xFFB59B6A) : const Color(0xFFF2F3F6));
+    final bg =
+        fillColor ??
+        (filled ? const Color(0xFFB59B6A) : const Color(0xFFF2F3F6));
     final fg = textColor ?? (filled ? Colors.white : const Color(0xFF344054));
 
     return SizedBox(
@@ -508,24 +516,26 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-Widget _brandLogo() {
+  Widget _brandLogo() {
     return SizedBox(
       width: 132,
       child: Text(
-  'ATHLETE LAB',
-  style: _font(
-    18,
-    weight: FontWeight.w800,
-    color: const Color(0xFF0E0E11),
-    letterSpacing: -0.3,
-    height: 1.0,
-  ),
-),
+        'ATHLETE LAB',
+        style: _font(
+          18,
+          weight: FontWeight.w800,
+          color: const Color(0xFF0E0E11),
+          letterSpacing: -0.3,
+          height: 1.0,
+        ),
+      ),
     );
   }
 
   Widget _topHeader() {
-    final monthText = DateFormat('MMMM yyyy').format(_selectedDay).toUpperCase();
+    final monthText = DateFormat(
+      'MMMM yyyy',
+    ).format(_selectedDay).toUpperCase();
 
     return Container(
       color: Colors.white,
@@ -681,10 +691,7 @@ Widget _brandLogo() {
               const SizedBox(height: 2),
             ],
             const SizedBox(height: 12),
-            Container(
-              height: 0.8,
-              color: const Color(0xFFEFF1F4),
-            ),
+            Container(height: 0.8, color: const Color(0xFFEFF1F4)),
             const SizedBox(height: 14),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -709,11 +716,7 @@ Widget _brandLogo() {
                 onPressed: () async {
                   await Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => ClassRosterScreen(
-                        classId: item['id'].toString(),
-                        classTitle: title,
-                        classTime: timeLabel,
-                      ),
+                      builder: (_) => ClassAttendanceScreen(classItem: item),
                     ),
                   );
                   await _load();
@@ -722,10 +725,7 @@ Widget _brandLogo() {
               const SizedBox(height: 6),
             ],
             if (_isCheckedIn(item))
-              _actionButton(
-                text: 'Checked in',
-                onPressed: null,
-              )
+              _actionButton(text: 'Checked in', onPressed: null)
             else if (_canCheckIn(item))
               _actionButton(
                 text: "I'm here",
@@ -742,10 +742,7 @@ Widget _brandLogo() {
                     : () => _cancelBooking(item),
               )
             else if (_asInt(item['remaining_spots'], 0) <= 0)
-              _actionButton(
-                text: 'Class full',
-                onPressed: null,
-              )
+              _actionButton(text: 'Class full', onPressed: null)
             else
               _actionButton(
                 text: 'Book class',
