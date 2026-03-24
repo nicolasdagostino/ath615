@@ -23,6 +23,8 @@ class InputField extends StatelessWidget {
   final TextStyle? labelStyle;
   final TextStyle? hintStyle;
   final TextStyle? textStyle;
+  final VoidCallback? onEditingComplete;
+  final ValueChanged<String>? onSubmitted;
 
   const InputField({
     super.key,
@@ -45,6 +47,8 @@ class InputField extends StatelessWidget {
     this.labelStyle,
     this.hintStyle,
     this.textStyle,
+    this.onEditingComplete,
+    this.onSubmitted,
   });
 
   InputDecoration _decoration() {
@@ -55,7 +59,8 @@ class InputField extends StatelessWidget {
       hintText: hint,
       filled: true,
       fillColor: fillColor ?? const Color(0xFFF8FAFC),
-      contentPadding: contentPadding ??
+      contentPadding:
+          contentPadding ??
           const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       suffixIcon: suffixIcon,
       border: OutlineInputBorder(
@@ -70,8 +75,8 @@ class InputField extends StatelessWidget {
         borderRadius: BorderRadius.circular(radius),
         borderSide: BorderSide(color: effectiveFocused, width: 1.4),
       ),
-      hintStyle: hintStyle ??
-          const TextStyle(fontSize: 14, color: Color(0xFF98A2B3)),
+      hintStyle:
+          hintStyle ?? const TextStyle(fontSize: 14, color: Color(0xFF98A2B3)),
     );
   }
 
@@ -81,19 +86,18 @@ class InputField extends StatelessWidget {
         controller: controller,
         obscureText: obscureText,
         maxLines: maxLines,
-        
-keyboardType: maxLines > 1
-          ? TextInputType.multiline
-          : keyboardType,
-
+        keyboardType:
+            keyboardType ??
+            (maxLines > 1 ? TextInputType.multiline : TextInputType.text),
         readOnly: readOnly,
         onTap: onTap,
+        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+        onEditingComplete: onEditingComplete,
+        onSubmitted: onSubmitted,
         inputFormatters: inputFormatters,
-        
-textInputAction: maxLines > 1
-          ? TextInputAction.newline
-          : textInputAction,
-
+        textInputAction:
+            textInputAction ??
+            (maxLines > 1 ? TextInputAction.newline : TextInputAction.done),
         style: textStyle,
         decoration: _decoration(),
       );
@@ -103,19 +107,18 @@ textInputAction: maxLines > 1
       initialValue: '',
       obscureText: obscureText,
       maxLines: maxLines,
-      
-keyboardType: maxLines > 1
-          ? TextInputType.multiline
-          : keyboardType,
-
+      keyboardType:
+          keyboardType ??
+          (maxLines > 1 ? TextInputType.multiline : TextInputType.text),
       readOnly: readOnly,
       onTap: onTap,
+      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+      onEditingComplete: onEditingComplete,
+      onFieldSubmitted: onSubmitted,
       inputFormatters: inputFormatters,
-      
-textInputAction: maxLines > 1
-          ? TextInputAction.newline
-          : textInputAction,
-
+      textInputAction:
+          textInputAction ??
+          (maxLines > 1 ? TextInputAction.newline : TextInputAction.done),
       style: textStyle,
       decoration: _decoration(),
     );
@@ -128,7 +131,8 @@ textInputAction: maxLines > 1
       children: [
         Text(
           label,
-          style: labelStyle ??
+          style:
+              labelStyle ??
               const TextStyle(
                 fontSize: 14,
                 height: 1.55,
