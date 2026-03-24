@@ -914,21 +914,27 @@ class _AdminScreenState extends State<AdminScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (_) {
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF6F7F9),
-                borderRadius: BorderRadius.circular(26),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.78,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF6F7F9),
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                   Center(
                     child: Container(
                       width: 40,
@@ -1033,7 +1039,9 @@ class _AdminScreenState extends State<AdminScreen> {
                             );
                           },
                   ),
-                ],
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -1377,21 +1385,27 @@ class _AdminScreenState extends State<AdminScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (_) {
+        final maxHeight = MediaQuery.of(context).size.height * 0.78;
+
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF6F7F9),
-                borderRadius: BorderRadius.circular(26),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: maxHeight),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF6F7F9),
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                   Center(
                     child: Container(
                       width: 40,
@@ -1514,7 +1528,9 @@ class _AdminScreenState extends State<AdminScreen> {
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
-                ],
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -2390,9 +2406,6 @@ Widget _membersTab() {
                     (p) => p['id'].toString() == selectedPlanId,
                     orElse: () => _plans.first,
                   );
-                  final selectedPlanName =
-                      selectedPlan['name']?.toString() ?? 'Plan';
-                  final selectedPlanDesc =
                       selectedPlan['description']?.toString().trim() ?? '';
 
                   Widget sectionTitle(String text) {
@@ -2710,76 +2723,6 @@ Widget _membersTab() {
                                 },
                               ),
                               const SizedBox(height: 12),
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: const Color(0xFFE2E8F0),
-                                  ),
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      width: 34,
-                                      height: 34,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFF3F4F6),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Icon(
-                                        Icons.badge_rounded,
-                                        size: 18,
-                                        color: Color(0xFF8F96A3),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            selectedPlanName,
-                                            style: _font(
-                                              14,
-                                              weight: FontWeight.w700,
-                                              color: const Color(0xFF111318),
-                                            ),
-                                          ),
-                                          if (selectedPlanDesc.isNotEmpty) ...[
-                                            const SizedBox(height: 3),
-                                            Text(
-                                              selectedPlanDesc,
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: _font(
-                                                12,
-                                                weight: FontWeight.w500,
-                                                color: const Color(0xFF8F96A3),
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                    ),
-                                    Text(
-                                      'Selected',
-                                      style: _font(
-                                        11,
-                                        weight: FontWeight.w700,
-                                        color: const Color(0xFF98A2B3),
-                                        letterSpacing: 0.3,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
                               const SizedBox(height: 12),
                               DropdownButtonFormField<String>(
                                 initialValue: selectedStatus,
@@ -2946,6 +2889,9 @@ Widget _membersTab() {
                                 text: 'Cancel',
                                 compact: true,
                                 radius: 16,
+                                backgroundColor: const Color(0xFFF3F4F6),
+                                pressedColor: const Color(0xFFE5E7EB),
+                                textColor: const Color(0xFF344054),
                                 textStyle: _font(
                                   16,
                                   weight: FontWeight.w700,
@@ -2961,12 +2907,17 @@ Widget _membersTab() {
                                 text: 'Assign',
                                 compact: true,
                                 radius: 16,
+                                backgroundColor: const Color(0xFFB59B6A),
+                                pressedColor: const Color(0xFFA88C59),
+                                disabledColor: const Color(0xFFC9C9C9),
+                                textColor: Colors.white,
                                 textStyle: _font(
                                   16,
                                   weight: FontWeight.w700,
                                   color: Colors.white,
                                   letterSpacing: -0.15,
                                 ),
+                                boxShadow: const [],
                                 onPressed: () async {
                                   await _runAdminAction(
                                     () => _assignPlanToMember(
@@ -3103,21 +3054,28 @@ Widget _membersTab() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (_) {
+        final media = MediaQuery.of(context);
+        final maxHeight = media.size.height * 0.78;
+
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF6F7F9),
-                borderRadius: BorderRadius.circular(26),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: maxHeight),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF6F7F9),
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                   Center(
                     child: Container(
                       width: 40,
@@ -3325,7 +3283,9 @@ Widget _membersTab() {
                             },
                     ),
                   ],
-                ],
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

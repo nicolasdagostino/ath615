@@ -17,13 +17,6 @@ void _showClassModal({Map<String, dynamic>? item}) {
     final dt = isEdit
         ? DateTime.tryParse(item['starts_at'].toString())?.toLocal()
         : null;
-
-    final titleCtrl = TextEditingController(
-      text: item?['title']?.toString() ?? '',
-    );
-    final descriptionCtrl = TextEditingController(
-      text: item?['description']?.toString() ?? '',
-    );
     final dateCtrl = TextEditingController(
       text: dt != null
           ? '${dt.year.toString().padLeft(4, '0')}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}'
@@ -293,7 +286,7 @@ void _showClassModal({Map<String, dynamic>? item}) {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      isEdit ? 'Edit Class' : 'Create Class',
+                                      isEdit ? 'Edit Class' : 'Schedule Class',
                                       style: _font(
                                         24,
                                         weight: FontWeight.w800,
@@ -305,7 +298,7 @@ void _showClassModal({Map<String, dynamic>? item}) {
                                     Text(
                                       isEdit
                                           ? 'Update scheduling, capacity and coach details.'
-                                          : 'Create a new class for your training schedule.',
+                                          : 'Schedule a class for your gym.',
                                       style: _font(
                                         13,
                                         weight: FontWeight.w500,
@@ -867,74 +860,6 @@ void _showClassModal({Map<String, dynamic>? item}) {
                               ),
                             ),
                           ],
-
-                          const SizedBox(height: 14),
-                          ExpansionTile(
-                            tilePadding: EdgeInsets.zero,
-                            childrenPadding: EdgeInsets.zero,
-                            title: Text(
-                              'Optional details',
-                              style: _font(
-                                15,
-                                weight: FontWeight.w700,
-                                color: const Color(0xFF667085),
-                                letterSpacing: -0.1,
-                              ),
-                            ),
-                            children: [
-                              const SizedBox(height: 8),
-                              styledField(
-                                label: 'Title',
-                                controller: titleCtrl,
-                                hint: 'CrossFit',
-                                textInputAction: TextInputAction.next,
-                              ),
-                              const SizedBox(height: 12),
-                              styledField(
-                                label: 'Description',
-                                controller: descriptionCtrl,
-                                hint: 'Class notes or coaching focus',
-                                maxLines: 3,
-                                textInputAction: TextInputAction.done,
-                              ),
-                              if (isEdit) ...[
-                                const SizedBox(height: 12),
-                                DropdownButtonFormField<String>(
-                                  initialValue: selectedStatus,
-                                  decoration: dropdownDecoration('Status'),
-                                  borderRadius: BorderRadius.circular(16),
-                                  dropdownColor: Colors.white,
-                                  iconEnabledColor: const Color(0xFF667085),
-                                  style: _font(
-                                    13,
-                                    weight: FontWeight.w500,
-                                    color: const Color(0xFF111318),
-                                  ),
-                                  items: const [
-                                    DropdownMenuItem(
-                                      value: 'scheduled',
-                                      child: Text('Scheduled'),
-                                    ),
-                                    DropdownMenuItem(
-                                      value: 'cancelled',
-                                      child: Text('Cancelled'),
-                                    ),
-                                    DropdownMenuItem(
-                                      value: 'completed',
-                                      child: Text('Completed'),
-                                    ),
-                                  ],
-                                  onChanged: (value) {
-                                    if (value != null) {
-                                      setLocalState(() {
-                                        selectedStatus = value;
-                                      });
-                                    }
-                                  },
-                                ),
-                              ],
-                            ],
-                          ),
                           const SizedBox(height: 18),
                           Row(
                             children: [
@@ -959,7 +884,7 @@ void _showClassModal({Map<String, dynamic>? item}) {
                                       ? 'Save Changes'
                                       : recurrenceEnabled
                                           ? 'Create Schedule'
-                                          : 'Create Class',
+                                          : 'Schedule Class',
                                   compact: true,
                                   radius: 16,
                                   backgroundColor: const Color(0xFFB59B6A),
@@ -982,8 +907,8 @@ void _showClassModal({Map<String, dynamic>? item}) {
                                           id: item['id'].toString(),
                                           programId: selectedProgramId,
                                           coachId: selectedCoachId,
-                                          title: titleCtrl.text,
-                                          description: descriptionCtrl.text,
+                                          title: '',
+                                          description: '',
                                           date: dateCtrl.text,
                                           time: timeCtrl.text,
                                           duration: durationCtrl.text,
@@ -998,8 +923,8 @@ void _showClassModal({Map<String, dynamic>? item}) {
                                         () => _createRecurringClasses(
                                           programId: selectedProgramId,
                                           coachId: selectedCoachId,
-                                          title: titleCtrl.text,
-                                          description: descriptionCtrl.text,
+                                          title: '',
+                                          description: '',
                                           startDate: dateCtrl.text,
                                           endDate: recurrenceEndDateCtrl.text,
                                           weekdays: selectedWeekdays.toList(),
@@ -1015,8 +940,8 @@ void _showClassModal({Map<String, dynamic>? item}) {
                                         () => _createClass(
                                           programId: selectedProgramId,
                                           coachId: selectedCoachId,
-                                          title: titleCtrl.text,
-                                          description: descriptionCtrl.text,
+                                          title: '',
+                                          description: '',
                                           date: dateCtrl.text,
                                           time: timeCtrl.text,
                                           duration: durationCtrl.text,
