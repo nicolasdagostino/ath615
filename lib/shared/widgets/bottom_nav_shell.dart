@@ -140,9 +140,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
     }
   }
 
-  TextStyle _labelStyle({
-    required bool selected,
-  }) {
+  TextStyle _labelStyle({required bool selected}) {
     return GoogleFonts.barlowCondensed(
       fontSize: 11.5,
       fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
@@ -158,21 +156,24 @@ class _BottomNavShellState extends State<BottomNavShell> {
     required VoidCallback onTap,
   }) {
     return Expanded(
-      child: InkWell(
+      child: _PressableNavItem(
         onTap: onTap,
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
         child: Padding(
           padding: const EdgeInsets.only(top: 8, bottom: 4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                selected ? item.activeIcon : item.icon,
-                size: 24,
-                color: selected
-                    ? const Color(0xFF111318)
-                    : const Color(0xFF8F96A3),
+              AnimatedScale(
+                scale: selected ? 1.0 : 1.0,
+                duration: const Duration(milliseconds: 140),
+                curve: Curves.easeOut,
+                child: Icon(
+                  selected ? item.activeIcon : item.icon,
+                  size: 24,
+                  color: selected
+                      ? const Color(0xFF111318)
+                      : const Color(0xFF8F96A3),
+                ),
               ),
               const SizedBox(height: 6),
               Text(
@@ -195,12 +196,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: Color(0xFFEAECEF),
-            width: 0.8,
-          ),
-        ),
+        border: Border(top: BorderSide(color: Color(0xFFEAECEF), width: 0.8)),
       ),
       child: SafeArea(
         top: false,
@@ -257,10 +253,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
 
         return Scaffold(
           resizeToAvoidBottomInset: true,
-          body: IndexedStack(
-            index: index,
-            children: currentScreens,
-          ),
+          body: IndexedStack(index: index, children: currentScreens),
           bottomNavigationBar: _bottomBar(currentItems),
         );
       },
@@ -278,4 +271,47 @@ class _NavItemData {
     required this.activeIcon,
     required this.label,
   });
+}
+
+class _PressableNavItem extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+
+  const _PressableNavItem({required this.child, required this.onTap});
+
+  @override
+  State<_PressableNavItem> createState() => _PressableNavItemState();
+}
+
+class _PressableNavItemState extends State<_PressableNavItem> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() {
+      _pressed = value;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _setPressed(true),
+      onTapCancel: () => _setPressed(false),
+      onTapUp: (_) => _setPressed(false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _pressed ? 0.92 : 1.0,
+        duration: const Duration(milliseconds: 110),
+        curve: Curves.easeOut,
+        child: AnimatedSlide(
+          offset: _pressed ? const Offset(0, 0.03) : Offset.zero,
+          duration: const Duration(milliseconds: 110),
+          curve: Curves.easeOut,
+          child: widget.child,
+        ),
+      ),
+    );
+  }
 }

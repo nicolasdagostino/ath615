@@ -27,6 +27,7 @@ class _BookingScreenState extends State<BookingScreen> {
   String? _error;
 
   DateTime _selectedDay = DateTime.now();
+  final ScrollController _daysScrollController = ScrollController();
   List<Map<String, dynamic>> _classes = [];
   List<Map<String, dynamic>> _myBookings = [];
   Map<String, dynamic>? _activeMembership;
@@ -37,6 +38,10 @@ class _BookingScreenState extends State<BookingScreen> {
   void initState() {
     super.initState();
     _selectedDay = DateTime.now();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_daysScrollController.hasClients) return;
+      _daysScrollController.jumpTo(56 * 8.5);
+    });
     _load();
   }
 
@@ -55,6 +60,12 @@ class _BookingScreenState extends State<BookingScreen> {
         _load();
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _daysScrollController.dispose();
+    super.dispose();
   }
 
   String _dateIso(DateTime d) {
@@ -350,8 +361,8 @@ class _BookingScreenState extends State<BookingScreen> {
       _selectedDay.day,
     );
     return List.generate(
-      7,
-      (i) => DateTime(base.year, base.month, base.day - 3 + i),
+      21,
+      (i) => DateTime(base.year, base.month, base.day - 10 + i),
     );
   }
 
@@ -384,14 +395,16 @@ class _BookingScreenState extends State<BookingScreen> {
     final selected = _dateIso(d) == _dateIso(_selectedDay);
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         setState(() {
           _selectedDay = d;
         });
         _load();
       },
-      child: SizedBox(
-        width: 46,
+      child: Container(
+        width: 54,
+        alignment: Alignment.center,
         child: Column(
           children: [
             Text(
@@ -613,9 +626,17 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: _days().map(_dayChip).toList(),
+          SizedBox(
+            height: 64,
+            child: ListView.separated(
+              controller: _daysScrollController,
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              itemCount: _days().length,
+              separatorBuilder: (_, __) => const SizedBox(width: 2),
+              itemBuilder: (context, i) => _dayChip(_days()[i]),
+            ),
           ),
         ],
       ),
