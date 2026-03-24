@@ -453,19 +453,19 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     );
   }
 
-Widget _brandLogo() {
+  Widget _brandLogo() {
     return SizedBox(
       width: 132,
       child: Text(
-  'ATHLETE LAB',
-  style: _font(
-    18,
-    weight: FontWeight.w800,
-    color: const Color(0xFF0E0E11),
-    letterSpacing: -0.3,
-    height: 1.0,
-  ),
-),
+        'ATHLETE LAB',
+        style: _font(
+          18,
+          weight: FontWeight.w800,
+          color: const Color(0xFF0E0E11),
+          letterSpacing: -0.3,
+          height: 1.0,
+        ),
+      ),
     );
   }
 
@@ -596,17 +596,24 @@ Widget _brandLogo() {
     final line = raw.trim().toLowerCase();
     if (line.isEmpty) return false;
 
-    if (RegExp(r'^(then|buy in|buy-in|cash out|cash-out|notes?):?$', caseSensitive: false)
-        .hasMatch(line)) {
+    if (RegExp(
+      r'^(then|buy in|buy-in|cash out|cash-out|notes?):?$',
+      caseSensitive: false,
+    ).hasMatch(line)) {
       return true;
     }
 
-    if (RegExp(r'^(men|women|rx|scaled):', caseSensitive: false).hasMatch(line)) {
+    if (RegExp(
+      r'^(men|women|rx|scaled):',
+      caseSensitive: false,
+    ).hasMatch(line)) {
       return true;
     }
 
-    if (RegExp(r'^(for time|amrap|emom|every\s+\d+)', caseSensitive: false)
-        .hasMatch(line)) {
+    if (RegExp(
+      r'^(for time|amrap|emom|every\s+\d+)',
+      caseSensitive: false,
+    ).hasMatch(line)) {
       return true;
     }
 
@@ -677,7 +684,8 @@ Widget _brandLogo() {
       );
     }
 
-    final isBullet = trimmed.startsWith('- ') ||
+    final isBullet =
+        trimmed.startsWith('- ') ||
         trimmed.startsWith('• ') ||
         trimmed.startsWith('* ');
 
@@ -720,9 +728,7 @@ Widget _brandLogo() {
   }
 
   Widget _parsedDescription(String description) {
-    final lines = description
-        .replaceAll('\r\n', '\n')
-        .split('\n');
+    final lines = description.replaceAll('\r\n', '\n').split('\n');
 
     if (lines.every((e) => e.trim().isEmpty)) {
       return const SizedBox.shrink();
@@ -758,7 +764,12 @@ Widget _brandLogo() {
     final digitsOnly = cleanTitle.replaceAll(RegExp(r'\D'), '');
     final dateDigits = dateIso.replaceAll('-', '');
 
-    if (digitsOnly == dateDigits || digitsOnly.length == 8 && digitsOnly == dateDigits.substring(6) + dateDigits.substring(4, 6) + dateDigits.substring(0, 4)) {
+    if (digitsOnly == dateDigits ||
+        digitsOnly.length == 8 &&
+            digitsOnly ==
+                dateDigits.substring(6) +
+                    dateDigits.substring(4, 6) +
+                    dateDigits.substring(0, 4)) {
       return program;
     }
 
@@ -862,7 +873,8 @@ Widget _brandLogo() {
                 ),
               ),
             ),
-            const SizedBox(height: 14),            if (type.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            if (type.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
                 type.toUpperCase(),
@@ -951,7 +963,8 @@ Widget _brandLogo() {
                   icon: Icons.chat_bubble_outline_rounded,
                   label: 'Comment',
                   iconColor: const Color(0xFF667085),
-                ),              ],
+                ),
+              ],
             ),
             const SizedBox(height: 4),
             Container(height: 0.6, color: const Color(0xFFF1F3F6)),
@@ -1028,14 +1041,31 @@ Widget _brandLogo() {
                   else if (_workouts.isEmpty)
                     Center(
                       child: Padding(
-                        padding: const EdgeInsets.only(top: 40),
-                        child: Text(
-                          'No workouts for today',
-                          style: _font(
-                            16,
-                            weight: FontWeight.w500,
-                            color: const Color(0xFF667085),
-                          ),
+                        padding: const EdgeInsets.fromLTRB(24, 56, 24, 24),
+                        child: Column(
+                          children: [
+                            Text(
+                              'REST DAY',
+                              textAlign: TextAlign.center,
+                              style: _font(
+                                28,
+                                weight: FontWeight.w800,
+                                color: const Color(0xFF111318),
+                                letterSpacing: -0.4,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            Text(
+                              "Resting is as important as work. Let your mind and body rest, do some mobility and stretching. Don't be tempted to train if you feel good.",
+                              textAlign: TextAlign.center,
+                              style: _font(
+                                13,
+                                weight: FontWeight.w500,
+                                color: const Color(0xFF667085),
+                                height: 1.45,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     )
