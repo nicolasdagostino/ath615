@@ -105,11 +105,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _openRegister() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const RegisterScreen(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const RegisterScreen()));
   }
 
   void _openNoAccountInfo() {

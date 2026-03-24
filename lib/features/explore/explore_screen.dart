@@ -62,6 +62,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
         query: _searchCtrl.text,
       );
       if (!mounted) return;
+      if (mounted) {}
+
       setState(() {
         _items = items;
       });
@@ -106,19 +108,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }
   }
 
-Widget _brandLogo() {
+  Widget _brandLogo() {
     return SizedBox(
       width: 132,
       child: Text(
-  'ATHLETE LAB',
-  style: _font(
-    18,
-    weight: FontWeight.w800,
-    color: const Color(0xFF0E0E11),
-    letterSpacing: -0.3,
-    height: 1.0,
-  ),
-),
+        'ATHLETE LAB',
+        style: _font(
+          18,
+          weight: FontWeight.w800,
+          color: const Color(0xFF0E0E11),
+          letterSpacing: -0.3,
+          height: 1.0,
+        ),
+      ),
     );
   }
 
@@ -341,18 +343,16 @@ Widget _brandLogo() {
   }
 
   Widget _resultCount() {
-    final benchmarkCount = _items.where((e) => e['is_benchmark'] == true).length;
+    final benchmarkCount = _items
+        .where((e) => e['is_benchmark'] == true)
+        .length;
     final text = _mode == 'popular'
         ? '${_items.length} results · $benchmarkCount benchmarks'
         : '${_items.length} results';
 
     return Text(
       text,
-      style: _font(
-        12,
-        weight: FontWeight.w500,
-        color: const Color(0xFF8F96A3),
-      ),
+      style: _font(12, weight: FontWeight.w500, color: const Color(0xFF8F96A3)),
     );
   }
 
@@ -563,6 +563,60 @@ Widget _brandLogo() {
     );
   }
 
+  Widget _skeletonLine({
+    double? width,
+    double height = 12,
+    double radius = 999,
+  }) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: const Color(0xFFEAECEF),
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    );
+  }
+
+  Widget _skeletonCard() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFEAECEF)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _skeletonLine(width: 110, height: 12),
+          const SizedBox(height: 12),
+          _skeletonLine(width: double.infinity, height: 22, radius: 8),
+          const SizedBox(height: 10),
+          _skeletonLine(width: 180, height: 14, radius: 8),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            height: 84,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF4F5F7),
+              borderRadius: BorderRadius.circular(18),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _skeletonLine(width: double.infinity, height: 12, radius: 8),
+          const SizedBox(height: 8),
+          _skeletonLine(width: 220, height: 12, radius: 8),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _skeletonList({int count = 3}) {
+    return List.generate(count, (_) => _skeletonCard());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -572,6 +626,8 @@ Widget _brandLogo() {
           Expanded(
             child: RefreshIndicator(
               onRefresh: _load,
+              color: const Color(0xFFB59B6A),
+              backgroundColor: Colors.white,
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(18, 16, 18, 24),
                 children: [
@@ -583,12 +639,10 @@ Widget _brandLogo() {
                   const SizedBox(height: 4),
                   _resultCount(),
                   const SizedBox(height: 18),
-                  if (_loading)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 40),
-                      child: Center(child: CircularProgressIndicator()),
-                    )
-                  else if (_error != null)
+                  if (_loading) ...[
+                    const SizedBox(height: 4),
+                    ..._skeletonList(),
+                  ] else if (_error != null)
                     Text(
                       _error!,
                       style: _font(

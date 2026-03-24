@@ -253,7 +253,9 @@ class _ClassRosterScreenState extends State<ClassRosterScreen> {
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFFB59B6A)),
+            )
           : _error != null
           ? Center(
               child: Text(

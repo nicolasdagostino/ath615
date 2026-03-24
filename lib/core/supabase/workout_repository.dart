@@ -60,7 +60,14 @@ class WorkoutRepository {
     required String mode,
     String? query,
   }) async {
-    var builder = sb.from('v_workouts_detailed').select('*');
+    final today = DateTime.now();
+    final todayIso =
+        '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+
+    var builder = sb
+        .from('v_workouts_detailed')
+        .select('*')
+        .lte('workout_date', todayIso);
 
     final q = (query ?? '').trim();
     if (q.isNotEmpty) {

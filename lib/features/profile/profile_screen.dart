@@ -30,10 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<Map<String, dynamic>> _loadData() async {
     final profile = await ProfileRepository().getMyProfile();
     final stats = await AchievementRepository().myStats();
-    return {
-      'profile': profile,
-      'stats': stats,
-    };
+    return {'profile': profile, 'stats': stats};
   }
 
   Future<void> _refreshProfile() async {
@@ -194,18 +191,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           final fullName =
               (profile['full_name'] ?? '').toString().trim().isEmpty
-                  ? (waiting ? '' : 'Athlete')
-                  : profile['full_name'].toString().trim();
+              ? (waiting ? '' : 'Athlete')
+              : profile['full_name'].toString().trim();
 
-          final email =
-              (profile['email'] ?? '').toString().trim().isEmpty
-                  ? '-'
-                  : profile['email'].toString().trim();
+          final email = (profile['email'] ?? '').toString().trim().isEmpty
+              ? '-'
+              : profile['email'].toString().trim();
 
-          final initials =
-              _initialsFromName(fullName.isEmpty ? 'Athlete' : fullName);
-          final avatarUrl =
-              (profile['avatar_url'] ?? '').toString().trim();
+          final initials = _initialsFromName(
+            fullName.isEmpty ? 'Athlete' : fullName,
+          );
+          final avatarUrl = (profile['avatar_url'] ?? '').toString().trim();
           final avatarDisplayUrl = avatarUrl.isEmpty
               ? ''
               : '${avatarUrl}${avatarUrl.contains('?') ? '&' : '?'}v=${DateTime.now().millisecondsSinceEpoch}';
@@ -417,11 +413,7 @@ class _TopSquareButton extends StatelessWidget {
   final String? badge;
   final VoidCallback onTap;
 
-  const _TopSquareButton({
-    required this.icon,
-    required this.onTap,
-    this.badge,
-  });
+  const _TopSquareButton({required this.icon, required this.onTap, this.badge});
 
   @override
   Widget build(BuildContext context) {
@@ -525,9 +517,12 @@ class _PrimaryActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final titleColor = danger ? const Color(0xFFB42318) : const Color(0xFF111318);
-    final subtitleColor =
-        danger ? const Color(0xFFCC6B5A) : const Color(0xFF98A2B3);
+    final titleColor = danger
+        ? const Color(0xFFB42318)
+        : const Color(0xFF111318);
+    final subtitleColor = danger
+        ? const Color(0xFFCC6B5A)
+        : const Color(0xFF98A2B3);
 
     return InkWell(
       borderRadius: BorderRadius.circular(18),
@@ -550,7 +545,6 @@ class _PrimaryActionRow extends StatelessWidget {
                       height: 0.98,
                     ),
                   ),
-
                 ],
               ),
             ),
@@ -575,10 +569,7 @@ class _SecondaryMenuRow extends StatelessWidget {
   final String title;
   final VoidCallback? onTap;
 
-  const _SecondaryMenuRow({
-    required this.title,
-    this.onTap,
-  });
+  const _SecondaryMenuRow({required this.title, this.onTap});
 
   TextStyle _font(
     double size, {
@@ -632,10 +623,7 @@ class _StatTile extends StatelessWidget {
   final String value;
   final String label;
 
-  const _StatTile({
-    required this.value,
-    required this.label,
-  });
+  const _StatTile({required this.value, required this.label});
 
   TextStyle _font(
     double size, {
@@ -686,17 +674,11 @@ class _StatTile extends StatelessWidget {
   }
 }
 
-
-
 class _SoftDivider extends StatelessWidget {
   const _SoftDivider();
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(
-      height: 1,
-      color: Color(0xFFEFF1F4),
-      thickness: 1,
-    );
+    return const Divider(height: 1, color: Color(0xFFEFF1F4), thickness: 1);
   }
 }

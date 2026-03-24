@@ -1,7 +1,7 @@
 part of 'admin_screen.dart';
 
 extension _AdminScreenWorkoutModal on _AdminScreenState {
-void _showWorkoutModal({Map<String, dynamic>? item}) {
+  void _showWorkoutModal({Map<String, dynamic>? item}) {
     final isEdit = item != null;
 
     String selectedProgramId = isEdit
@@ -15,7 +15,8 @@ void _showWorkoutModal({Map<String, dynamic>? item}) {
       text: item?['description']?.toString() ?? '',
     );
     final dateCtrl = TextEditingController(
-      text: item?['workout_date']?.toString() ??
+      text:
+          item?['workout_date']?.toString() ??
           DateFormat('yyyy-MM-dd').format(DateTime.now()),
     );
     final timeCapCtrl = TextEditingController(
@@ -67,7 +68,10 @@ void _showWorkoutModal({Map<String, dynamic>? item}) {
         ),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -120,7 +124,10 @@ void _showWorkoutModal({Map<String, dynamic>? item}) {
         borderColor: const Color(0xFFE2E8F0),
         focusedBorderColor: const Color(0xFFB59B6A),
         radius: 16,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         labelStyle: _font(
           12,
           weight: FontWeight.w500,
@@ -226,7 +233,9 @@ void _showWorkoutModal({Map<String, dynamic>? item}) {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: const Color(0xFFE8EBF0)),
+                                  border: Border.all(
+                                    color: const Color(0xFFE8EBF0),
+                                  ),
                                 ),
                                 child: const Icon(
                                   Icons.close_rounded,
@@ -294,7 +303,8 @@ void _showWorkoutModal({Map<String, dynamic>? item}) {
                                   final labels = [
                                     'No program',
                                     ..._programs.map(
-                                      (p) => (p['name'] ?? 'Program').toString(),
+                                      (p) =>
+                                          (p['name'] ?? 'Program').toString(),
                                     ),
                                   ];
                                   return labels
@@ -396,50 +406,52 @@ void _showWorkoutModal({Map<String, dynamic>? item}) {
                             height: 190,
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
                               borderRadius: BorderRadius.circular(22),
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(22),
                               child: pickedImage != null
-                                  ? Image.file(
-                                      pickedImage!,
-                                      fit: BoxFit.cover,
-                                    )
+                                  ? Image.file(pickedImage!, fit: BoxFit.cover)
                                   : (imageUrl.isNotEmpty
-                                      ? Image.network(
-                                          imageUrl,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
-                                              const Center(
-                                                child: Icon(
+                                        ? Image.network(
+                                            imageUrl,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                const Center(
+                                                  child: Icon(
+                                                    Icons.image_outlined,
+                                                    size: 40,
+                                                    color: Color(0xFF6B7280),
+                                                  ),
+                                                ),
+                                          )
+                                        : Center(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                const Icon(
                                                   Icons.image_outlined,
                                                   size: 40,
-                                                  color: Color(0xFF6B7280),
+                                                  color: Color(0xFF98A2B3),
                                                 ),
-                                              ),
-                                        )
-                                      : Center(
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              const Icon(
-                                                Icons.image_outlined,
-                                                size: 40,
-                                                color: Color(0xFF98A2B3),
-                                              ),
-                                              const SizedBox(height: 10),
-                                              Text(
-                                                'Tap to choose image',
-                                                style: _font(
-                                                  13,
-                                                  weight: FontWeight.w500,
-                                                  color: const Color(0xFF8F96A3),
+                                                const SizedBox(height: 10),
+                                                Text(
+                                                  'Tap to choose image',
+                                                  style: _font(
+                                                    13,
+                                                    weight: FontWeight.w500,
+                                                    color: const Color(
+                                                      0xFF8F96A3,
+                                                    ),
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                        )),
+                                              ],
+                                            ),
+                                          )),
                             ),
                           ),
                         ),
@@ -465,7 +477,9 @@ void _showWorkoutModal({Map<String, dynamic>? item}) {
                               child: PrimaryButton(
                                 text: uploading
                                     ? 'Uploading...'
-                                    : (isEdit ? 'Save Changes' : 'Create Workout'),
+                                    : (isEdit
+                                          ? 'Save Changes'
+                                          : 'Create Workout'),
                                 compact: true,
                                 radius: 16,
                                 backgroundColor: const Color(0xFFB59B6A),
@@ -493,7 +507,9 @@ void _showWorkoutModal({Map<String, dynamic>? item}) {
                                         try {
                                           if (pickedImage != null) {
                                             finalImageUrl = await _storageRepo
-                                                .uploadWorkoutImage(pickedImage!);
+                                                .uploadWorkoutImage(
+                                                  pickedImage!,
+                                                );
                                           }
 
                                           if (isEdit) {
@@ -502,9 +518,11 @@ void _showWorkoutModal({Map<String, dynamic>? item}) {
                                                 id: item['id'].toString(),
                                                 programId: selectedProgramId,
                                                 title: titleCtrl.text,
-                                                description: descriptionCtrl.text,
+                                                description:
+                                                    descriptionCtrl.text,
                                                 workoutDate: dateCtrl.text,
-                                                timeCapMinutes: timeCapCtrl.text,
+                                                timeCapMinutes:
+                                                    timeCapCtrl.text,
                                                 workoutType: typeCtrl.text,
                                                 imageUrl: finalImageUrl,
                                               ),
@@ -515,9 +533,11 @@ void _showWorkoutModal({Map<String, dynamic>? item}) {
                                               () => _createWorkout(
                                                 programId: selectedProgramId,
                                                 title: titleCtrl.text,
-                                                description: descriptionCtrl.text,
+                                                description:
+                                                    descriptionCtrl.text,
                                                 workoutDate: dateCtrl.text,
-                                                timeCapMinutes: timeCapCtrl.text,
+                                                timeCapMinutes:
+                                                    timeCapCtrl.text,
                                                 workoutType: typeCtrl.text,
                                                 imageUrl: finalImageUrl,
                                               ),

@@ -15,7 +15,8 @@ class AdminClassesTab extends StatelessWidget {
     Color color,
     double letterSpacing,
     double height,
-  }) font;
+  })
+  font;
 
   const AdminClassesTab({
     super.key,
@@ -82,11 +83,7 @@ class AdminClassesTab extends StatelessWidget {
                 alignment: Alignment.center,
                 child: Text(
                   '+ Add',
-                  style: font(
-                    15,
-                    weight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
+                  style: font(15, weight: FontWeight.w800, color: Colors.white),
                 ),
               ),
             ),
@@ -95,7 +92,9 @@ class AdminClassesTab extends StatelessWidget {
         const SizedBox(height: 12),
 
         if (loading)
-          const Center(child: CircularProgressIndicator())
+          const Center(
+            child: CircularProgressIndicator(color: Color(0xFFB59B6A)),
+          )
         else if (classes.isEmpty)
           _emptyState()
         else
@@ -141,8 +140,9 @@ class AdminClassesTab extends StatelessWidget {
 
   Widget _card(Map<String, dynamic> item) {
     final dt = DateTime.tryParse(item['starts_at'].toString())?.toLocal();
-    final dateLabel =
-        dt != null ? DateFormat('EEE, MMM d · HH:mm').format(dt) : '-';
+    final dateLabel = dt != null
+        ? DateFormat('EEE, MMM d · HH:mm').format(dt)
+        : '-';
 
     final title = (item['title'] ?? 'Class').toString();
     final coach = (item['coach_name'] ?? 'TBD').toString();

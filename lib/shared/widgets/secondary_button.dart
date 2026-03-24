@@ -59,7 +59,8 @@ class _SecondaryButtonState extends State<SecondaryButton> {
           decoration: BoxDecoration(
             color: _pressed ? pressedBg : bg,
             borderRadius: BorderRadius.circular(effectiveRadius),
-            boxShadow: widget.boxShadow ??
+            boxShadow:
+                widget.boxShadow ??
                 const [
                   BoxShadow(
                     color: Color(0x0F0D0D12),
@@ -81,7 +82,8 @@ class _SecondaryButtonState extends State<SecondaryButton> {
               Text(
                 widget.text,
                 textAlign: TextAlign.center,
-                style: widget.textStyle ??
+                style:
+                    widget.textStyle ??
                     TextStyle(
                       color: effectiveTextColor,
                       fontSize: 16,

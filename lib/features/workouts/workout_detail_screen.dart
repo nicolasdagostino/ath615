@@ -442,19 +442,19 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
     );
   }
 
-Widget _brandLogo() {
+  Widget _brandLogo() {
     return SizedBox(
       width: 110,
       child: Text(
-  'ATHLETE LAB',
-  style: _font(
-    18,
-    weight: FontWeight.w800,
-    color: const Color(0xFF0E0E11),
-    letterSpacing: -0.3,
-    height: 1.0,
-  ),
-),
+        'ATHLETE LAB',
+        style: _font(
+          18,
+          weight: FontWeight.w800,
+          color: const Color(0xFF0E0E11),
+          letterSpacing: -0.3,
+          height: 1.0,
+        ),
+      ),
     );
   }
 
@@ -594,17 +594,24 @@ Widget _brandLogo() {
     final line = raw.trim().toLowerCase();
     if (line.isEmpty) return false;
 
-    if (RegExp(r'^(then|buy in|buy-in|cash out|cash-out|notes?):?$', caseSensitive: false)
-        .hasMatch(line)) {
+    if (RegExp(
+      r'^(then|buy in|buy-in|cash out|cash-out|notes?):?$',
+      caseSensitive: false,
+    ).hasMatch(line)) {
       return true;
     }
 
-    if (RegExp(r'^(men|women|rx|scaled):', caseSensitive: false).hasMatch(line)) {
+    if (RegExp(
+      r'^(men|women|rx|scaled):',
+      caseSensitive: false,
+    ).hasMatch(line)) {
       return true;
     }
 
-    if (RegExp(r'^(for time|amrap|emom|every\s+\d+)', caseSensitive: false)
-        .hasMatch(line)) {
+    if (RegExp(
+      r'^(for time|amrap|emom|every\s+\d+)',
+      caseSensitive: false,
+    ).hasMatch(line)) {
       return true;
     }
 
@@ -675,7 +682,8 @@ Widget _brandLogo() {
       );
     }
 
-    final isBullet = trimmed.startsWith('- ') ||
+    final isBullet =
+        trimmed.startsWith('- ') ||
         trimmed.startsWith('• ') ||
         trimmed.startsWith('* ');
 

@@ -1,7 +1,7 @@
 part of 'admin_screen.dart';
 
 extension _AdminScreenPlanModal on _AdminScreenState {
-void _showPlanModal({Map<String, dynamic>? plan}) {
+  void _showPlanModal({Map<String, dynamic>? plan}) {
     final isEdit = plan != null;
     final nameCtrl = TextEditingController(
       text: plan?['name']?.toString() ?? '',
@@ -28,8 +28,8 @@ void _showPlanModal({Map<String, dynamic>? plan}) {
 
     String selectedBilling =
         (plan?['billing_period']?.toString().isNotEmpty ?? false)
-            ? plan!['billing_period'].toString()
-            : 'monthly';
+        ? plan!['billing_period'].toString()
+        : 'monthly';
 
     InputDecoration dropdownDecoration(String label) {
       return InputDecoration(
@@ -46,7 +46,10 @@ void _showPlanModal({Map<String, dynamic>? plan}) {
         ),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -93,7 +96,10 @@ void _showPlanModal({Map<String, dynamic>? plan}) {
         borderColor: const Color(0xFFE2E8F0),
         focusedBorderColor: const Color(0xFFB59B6A),
         radius: 16,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         labelStyle: _font(
           12,
           weight: FontWeight.w500,
@@ -200,7 +206,9 @@ void _showPlanModal({Map<String, dynamic>? plan}) {
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(color: const Color(0xFFE8EBF0)),
+                                    border: Border.all(
+                                      color: const Color(0xFFE8EBF0),
+                                    ),
                                   ),
                                   child: const Icon(
                                     Icons.close_rounded,
@@ -220,7 +228,9 @@ void _showPlanModal({Map<String, dynamic>? plan}) {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(22),
-                              border: Border.all(color: const Color(0xFFEAECEF)),
+                              border: Border.all(
+                                color: const Color(0xFFEAECEF),
+                              ),
                             ),
                             child: Column(
                               children: [
@@ -242,26 +252,45 @@ void _showPlanModal({Map<String, dynamic>? plan}) {
                                     weight: FontWeight.w500,
                                     color: const Color(0xFF111318),
                                   ),
-                                  items: const [
-                                    DropdownMenuItem(value: 'unlimited', child: Text('Unlimited')),
-                                    DropdownMenuItem(value: 'weekly_limit', child: Text('Weekly Limit')),
-                                    DropdownMenuItem(value: 'class_pack', child: Text('Class Pack')),
-                                    DropdownMenuItem(value: 'drop_in', child: Text('Drop-In')),
-                                    DropdownMenuItem(value: 'open_gym', child: Text('Open Gym')),
-                                    DropdownMenuItem(value: 'pt_pack', child: Text('PT Pack')),
-                                  ].map((item) {
-                                    return DropdownMenuItem<String>(
-                                      value: item.value,
-                                      child: Text(
-                                        (item.child as Text).data ?? '',
-                                        style: _font(
-                                          13,
-                                          weight: FontWeight.w500,
-                                          color: const Color(0xFF111318),
+                                  items:
+                                      const [
+                                        DropdownMenuItem(
+                                          value: 'unlimited',
+                                          child: Text('Unlimited'),
                                         ),
-                                      ),
-                                    );
-                                  }).toList(),
+                                        DropdownMenuItem(
+                                          value: 'weekly_limit',
+                                          child: Text('Weekly Limit'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'class_pack',
+                                          child: Text('Class Pack'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'drop_in',
+                                          child: Text('Drop-In'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'open_gym',
+                                          child: Text('Open Gym'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'pt_pack',
+                                          child: Text('PT Pack'),
+                                        ),
+                                      ].map((item) {
+                                        return DropdownMenuItem<String>(
+                                          value: item.value,
+                                          child: Text(
+                                            (item.child as Text).data ?? '',
+                                            style: _font(
+                                              13,
+                                              weight: FontWeight.w500,
+                                              color: const Color(0xFF111318),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
                                   onChanged: (value) {
                                     if (value != null) {
                                       setLocalState(() {
@@ -273,7 +302,9 @@ void _showPlanModal({Map<String, dynamic>? plan}) {
                                 const SizedBox(height: 12),
                                 DropdownButtonFormField<String>(
                                   initialValue: selectedBilling,
-                                  decoration: dropdownDecoration('Billing Period'),
+                                  decoration: dropdownDecoration(
+                                    'Billing Period',
+                                  ),
                                   borderRadius: BorderRadius.circular(16),
                                   dropdownColor: Colors.white,
                                   iconEnabledColor: const Color(0xFF667085),
@@ -282,23 +313,33 @@ void _showPlanModal({Map<String, dynamic>? plan}) {
                                     weight: FontWeight.w500,
                                     color: const Color(0xFF111318),
                                   ),
-                                  items: const [
-                                    DropdownMenuItem(value: 'weekly', child: Text('Weekly')),
-                                    DropdownMenuItem(value: 'monthly', child: Text('Monthly')),
-                                    DropdownMenuItem(value: 'one_time', child: Text('One Time')),
-                                  ].map((item) {
-                                    return DropdownMenuItem<String>(
-                                      value: item.value,
-                                      child: Text(
-                                        (item.child as Text).data ?? '',
-                                        style: _font(
-                                          13,
-                                          weight: FontWeight.w500,
-                                          color: const Color(0xFF111318),
+                                  items:
+                                      const [
+                                        DropdownMenuItem(
+                                          value: 'weekly',
+                                          child: Text('Weekly'),
                                         ),
-                                      ),
-                                    );
-                                  }).toList(),
+                                        DropdownMenuItem(
+                                          value: 'monthly',
+                                          child: Text('Monthly'),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'one_time',
+                                          child: Text('One Time'),
+                                        ),
+                                      ].map((item) {
+                                        return DropdownMenuItem<String>(
+                                          value: item.value,
+                                          child: Text(
+                                            (item.child as Text).data ?? '',
+                                            style: _font(
+                                              13,
+                                              weight: FontWeight.w500,
+                                              color: const Color(0xFF111318),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
                                   onChanged: (value) {
                                     if (value != null) {
                                       setLocalState(() {
@@ -319,7 +360,9 @@ void _showPlanModal({Map<String, dynamic>? plan}) {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(22),
-                              border: Border.all(color: const Color(0xFFEAECEF)),
+                              border: Border.all(
+                                color: const Color(0xFFEAECEF),
+                              ),
                             ),
                             child: Column(
                               children: [
@@ -412,7 +455,8 @@ void _showPlanModal({Map<String, dynamic>? plan}) {
                                           price: priceCtrl.text,
                                           classesPerPeriod: classesCtrl.text,
                                           creditsTotal: creditsCtrl.text,
-                                          bookingWindowDays: bookingWindowCtrl.text,
+                                          bookingWindowDays:
+                                              bookingWindowCtrl.text,
                                           description: descriptionCtrl.text,
                                         ),
                                         successMessage: 'Plan updated',
@@ -426,7 +470,8 @@ void _showPlanModal({Map<String, dynamic>? plan}) {
                                           price: priceCtrl.text,
                                           classesPerPeriod: classesCtrl.text,
                                           creditsTotal: creditsCtrl.text,
-                                          bookingWindowDays: bookingWindowCtrl.text,
+                                          bookingWindowDays:
+                                              bookingWindowCtrl.text,
                                           description: descriptionCtrl.text,
                                         ),
                                         successMessage: 'Plan created',

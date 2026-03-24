@@ -63,11 +63,10 @@ class _PrimaryButtonState extends State<PrimaryButton> {
           duration: const Duration(milliseconds: 90),
           height: effectiveHeight,
           decoration: BoxDecoration(
-            color: !enabled
-                ? disabledBg
-                : (_pressed ? pressedBg : bg),
+            color: !enabled ? disabledBg : (_pressed ? pressedBg : bg),
             borderRadius: BorderRadius.circular(effectiveRadius),
-            boxShadow: widget.boxShadow ??
+            boxShadow:
+                widget.boxShadow ??
                 const [
                   BoxShadow(
                     color: Color(0x0F0D0D12),
@@ -89,7 +88,8 @@ class _PrimaryButtonState extends State<PrimaryButton> {
               Text(
                 widget.text,
                 textAlign: TextAlign.center,
-                style: widget.textStyle ??
+                style:
+                    widget.textStyle ??
                     TextStyle(
                       color: effectiveTextColor,
                       fontSize: 16,

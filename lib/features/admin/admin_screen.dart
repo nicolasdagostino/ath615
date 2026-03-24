@@ -335,6 +335,81 @@ class _AdminScreenState extends State<AdminScreen> {
     bool isActive = true;
     String? localError;
 
+    Future<void> pickDate(
+      BuildContext context,
+      TextEditingController controller,
+    ) async {
+      DateTime initialDate = DateTime.now();
+      final raw = controller.text.trim();
+      if (raw.isNotEmpty) {
+        final parsed = DateTime.tryParse(raw);
+        if (parsed != null) initialDate = parsed;
+      }
+
+      final picked = await showDatePicker(
+        context: context,
+        initialDate: initialDate,
+        firstDate: DateTime(1900),
+        lastDate: DateTime(2035),
+        builder: (context, child) {
+          final base = Theme.of(context);
+          return Theme(
+            data: base.copyWith(
+              colorScheme: base.colorScheme.copyWith(
+                primary: const Color(0xFFB59B6A),
+                onPrimary: Colors.white,
+                surface: Colors.white,
+                onSurface: const Color(0xFF111318),
+              ),
+              datePickerTheme: DatePickerThemeData(
+                backgroundColor: Colors.white,
+                headerBackgroundColor: const Color(0xFFB59B6A),
+                headerForegroundColor: Colors.white,
+                headerHeadlineStyle: _font(
+                  24,
+                  weight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+                headerHelpStyle: _font(
+                  13,
+                  weight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+                weekdayStyle: _font(
+                  13,
+                  weight: FontWeight.w600,
+                  color: const Color(0xFF667085),
+                ),
+                dayStyle: _font(
+                  16,
+                  weight: FontWeight.w600,
+                  color: const Color(0xFF111318),
+                ),
+                yearStyle: _font(
+                  16,
+                  weight: FontWeight.w600,
+                  color: const Color(0xFF111318),
+                ),
+                cancelButtonStyle: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFFB59B6A),
+                  textStyle: _font(16, weight: FontWeight.w700),
+                ),
+                confirmButtonStyle: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFFB59B6A),
+                  textStyle: _font(16, weight: FontWeight.w700),
+                ),
+              ),
+            ),
+            child: child ?? const SizedBox.shrink(),
+          );
+        },
+      );
+
+      if (picked != null) {
+        controller.text = picked.toIso8601String().split('T').first;
+      }
+    }
+
     InputDecoration inputDecoration(String label, {String? hint}) {
       return InputDecoration(
         labelText: label,
@@ -396,6 +471,8 @@ class _AdminScreenState extends State<AdminScreen> {
                     borderRadius: BorderRadius.circular(26),
                   ),
                   child: SingleChildScrollView(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -439,6 +516,8 @@ class _AdminScreenState extends State<AdminScreen> {
                           ),
                           style: _font(14, weight: FontWeight.w500),
                           textInputAction: TextInputAction.next,
+                          onTapOutside: (_) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                         ),
                         const SizedBox(height: 12),
                         TextField(
@@ -450,6 +529,8 @@ class _AdminScreenState extends State<AdminScreen> {
                           style: _font(14, weight: FontWeight.w500),
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
+                          onTapOutside: (_) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                         ),
                         const SizedBox(height: 12),
                         TextField(
@@ -461,16 +542,32 @@ class _AdminScreenState extends State<AdminScreen> {
                           style: _font(14, weight: FontWeight.w500),
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.next,
+                          onTapOutside: (_) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                         ),
                         const SizedBox(height: 12),
                         TextField(
                           controller: dobCtrl,
-                          decoration: inputDecoration(
-                            'Date of birth',
-                            hint: '1986-12-11',
-                          ),
+                          decoration:
+                              inputDecoration(
+                                'Date of birth',
+                                hint: '1986-12-11',
+                              ).copyWith(
+                                suffixIcon: const Icon(
+                                  Icons.calendar_today_rounded,
+                                  size: 18,
+                                  color: Color(0xFF98A2B3),
+                                ),
+                              ),
                           style: _font(14, weight: FontWeight.w500),
+                          readOnly: true,
+                          onTap: () async {
+                            await pickDate(context, dobCtrl);
+                            setLocalState(() {});
+                          },
                           textInputAction: TextInputAction.next,
+                          onTapOutside: (_) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                         ),
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
@@ -512,6 +609,11 @@ class _AdminScreenState extends State<AdminScreen> {
                             hint: 'Optional notes',
                           ),
                           style: _font(14, weight: FontWeight.w500),
+                          textInputAction: TextInputAction.done,
+                          onEditingComplete: () =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
+                          onTapOutside: (_) =>
+                              FocusManager.instance.primaryFocus?.unfocus(),
                         ),
                         const SizedBox(height: 12),
                         Container(
@@ -4182,6 +4284,8 @@ class _AdminScreenState extends State<AdminScreen> {
             child: IgnorePointer(
               ignoring: _adminActionBusy,
               child: RefreshIndicator(
+                color: const Color(0xFFB59B6A),
+                backgroundColor: Colors.white,
                 onRefresh: _loadAdminData,
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),

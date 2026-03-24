@@ -50,6 +50,9 @@ class AppTheme {
           fontSize: 16,
         ),
       ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: Color(0xFFB59B6A),
+      ),
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: Colors.transparent,
       ),

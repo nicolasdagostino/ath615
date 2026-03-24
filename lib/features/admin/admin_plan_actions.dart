@@ -1,7 +1,7 @@
 part of 'admin_screen.dart';
 
 extension _AdminScreenPlanActions on _AdminScreenState {
-void _showPlanActions(Map<String, dynamic> plan) {
+  void _showPlanActions(Map<String, dynamic> plan) {
     final title = (plan['name'] ?? 'Plan').toString().trim();
     final subtitle = (plan['description'] ?? '').toString().trim();
 

@@ -99,7 +99,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     );
   }
 
-
   Future<void> _load() async {
     setState(() {
       _loading = true;
@@ -183,7 +182,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   }
 
   int get _strengthCount => personalRecords
-      .where((e) => (e['category'] ?? '').toString().toLowerCase() == 'strength')
+      .where(
+        (e) => (e['category'] ?? '').toString().toLowerCase() == 'strength',
+      )
       .length;
 
   List<Map<String, dynamic>> get _filteredRecords {
@@ -355,7 +356,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: _categoryColor(tag).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(999),
@@ -535,18 +539,28 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                           ),
                           filled: true,
                           fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE2E8F0),
+                            ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE2E8F0),
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: Color(0xFFB59B6A), width: 1.2),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFB59B6A),
+                              width: 1.2,
+                            ),
                           ),
                         );
                       }
@@ -594,18 +608,28 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                 ),
                                 GestureDetector(
                                   onTap: () => Navigator.pop(context),
-                                  child: const Icon(Icons.close_rounded, size: 28),
+                                  child: const Icon(
+                                    Icons.close_rounded,
+                                    size: 28,
+                                  ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 18),
                             Container(
                               width: double.infinity,
-                              padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+                              padding: const EdgeInsets.fromLTRB(
+                                18,
+                                18,
+                                18,
+                                18,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(22),
-                                border: Border.all(color: const Color(0xFFEAECEF)),
+                                border: Border.all(
+                                  color: const Color(0xFFEAECEF),
+                                ),
                               ),
                               child: Column(
                                 children: [
@@ -618,11 +642,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                             value: c,
                                             child: Text(
                                               c,
-                                              style: GoogleFonts.barlowCondensed(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600,
-                                                color: const Color(0xFF111318),
-                                              ),
+                                              style:
+                                                  GoogleFonts.barlowCondensed(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: const Color(
+                                                      0xFF111318,
+                                                    ),
+                                                  ),
                                             ),
                                           ),
                                         )
@@ -636,8 +663,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                       if (value == null) return;
                                       setLocalState(() {
                                         selectedCategory = value;
-                                        movementCtrl.text =
-                                            _movementOptionsFor(selectedCategory).first;
+                                        movementCtrl.text = _movementOptionsFor(
+                                          selectedCategory,
+                                        ).first;
                                         weightCtrl.clear();
                                         scoreCtrl.clear();
                                       });
@@ -650,8 +678,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                       selectedCategory == 'Strength'
                                           ? 'Movement'
                                           : (selectedCategory == 'Benchmark'
-                                              ? 'Benchmark'
-                                              : 'Open Workout'),
+                                                ? 'Benchmark'
+                                                : 'Open Workout'),
                                     ),
                                     items: options
                                         .map(
@@ -659,11 +687,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                             value: m,
                                             child: Text(
                                               m,
-                                              style: GoogleFonts.barlowCondensed(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600,
-                                                color: const Color(0xFF111318),
-                                              ),
+                                              style:
+                                                  GoogleFonts.barlowCondensed(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: const Color(
+                                                      0xFF111318,
+                                                    ),
+                                                  ),
                                             ),
                                           ),
                                         )
@@ -688,9 +719,15 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                       hint: '100',
                                       fillColor: Colors.white,
                                       borderColor: const Color(0xFFE2E8F0),
-                                      focusedBorderColor: const Color(0xFFB59B6A),
+                                      focusedBorderColor: const Color(
+                                        0xFFB59B6A,
+                                      ),
                                       radius: 16,
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 16,
+                                          ),
                                       labelStyle: GoogleFonts.barlowCondensed(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w500,
@@ -714,9 +751,15 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                       hint: '7:32',
                                       fillColor: Colors.white,
                                       borderColor: const Color(0xFFE2E8F0),
-                                      focusedBorderColor: const Color(0xFFB59B6A),
+                                      focusedBorderColor: const Color(
+                                        0xFFB59B6A,
+                                      ),
                                       radius: 16,
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 16,
+                                          ),
                                       labelStyle: GoogleFonts.barlowCondensed(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w500,
@@ -748,14 +791,22 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                           color: const Color(0xFF111318),
                                         ),
                                         readOnly: true,
-                                        suffixIcon: const Icon(Icons.calendar_today),
+                                        suffixIcon: const Icon(
+                                          Icons.calendar_today,
+                                        ),
                                         controller: dateCtrl,
                                         hint: '2026-03-18',
                                         fillColor: Colors.white,
                                         borderColor: const Color(0xFFE2E8F0),
-                                        focusedBorderColor: const Color(0xFFB59B6A),
+                                        focusedBorderColor: const Color(
+                                          0xFFB59B6A,
+                                        ),
                                         radius: 16,
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 16,
+                                            ),
                                       ),
                                     ),
                                   ),
@@ -769,7 +820,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                     borderColor: const Color(0xFFE2E8F0),
                                     focusedBorderColor: const Color(0xFFB59B6A),
                                     radius: 16,
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
                                     labelStyle: GoogleFonts.barlowCondensed(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
@@ -811,7 +865,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                 const SizedBox(width: 14),
                                 Expanded(
                                   child: PrimaryButton(
-                                    text: primaryText == 'Create' ? 'Create Record' : 'Update Record',
+                                    text: primaryText == 'Create'
+                                        ? 'Create Record'
+                                        : 'Update Record',
                                     radius: 18,
                                     height: 58,
                                     backgroundColor: const Color(0xFFB59B6A),
@@ -830,16 +886,22 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                       final notes = notesCtrl.text.trim();
 
                                       if (movement.isEmpty) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
                                           const SnackBar(
-                                            content: Text('Movement is required'),
+                                            content: Text(
+                                              'Movement is required',
+                                            ),
                                           ),
                                         );
                                         return;
                                       }
 
                                       if (achievedOn.isEmpty) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
                                           const SnackBar(
                                             content: Text('Date is required'),
                                           ),
@@ -849,9 +911,13 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
                                       try {
                                         if (isStrength) {
-                                          final weight = num.tryParse(weightCtrl.text.trim());
+                                          final weight = num.tryParse(
+                                            weightCtrl.text.trim(),
+                                          );
                                           if (weight == null) {
-                                            throw Exception('Enter a valid weight in kg');
+                                            throw Exception(
+                                              'Enter a valid weight in kg',
+                                            );
                                           }
 
                                           if (isEdit) {
@@ -863,7 +929,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                               unit: 'kg',
                                               scoreText: null,
                                               achievedOn: achievedOn,
-                                              notes: notes.isEmpty ? null : notes,
+                                              notes: notes.isEmpty
+                                                  ? null
+                                                  : notes,
                                             );
                                           } else {
                                             await _repo.createPr(
@@ -873,13 +941,17 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                               unit: 'kg',
                                               scoreText: null,
                                               achievedOn: achievedOn,
-                                              notes: notes.isEmpty ? null : notes,
+                                              notes: notes.isEmpty
+                                                  ? null
+                                                  : notes,
                                             );
                                           }
                                         } else {
                                           final score = scoreCtrl.text.trim();
                                           if (score.isEmpty) {
-                                            throw Exception('Score is required');
+                                            throw Exception(
+                                              'Score is required',
+                                            );
                                           }
 
                                           if (isEdit) {
@@ -891,7 +963,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                               unit: 'score',
                                               scoreText: score,
                                               achievedOn: achievedOn,
-                                              notes: notes.isEmpty ? null : notes,
+                                              notes: notes.isEmpty
+                                                  ? null
+                                                  : notes,
                                             );
                                           } else {
                                             await _repo.createPr(
@@ -901,7 +975,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                               unit: 'score',
                                               scoreText: score,
                                               achievedOn: achievedOn,
-                                              notes: notes.isEmpty ? null : notes,
+                                              notes: notes.isEmpty
+                                                  ? null
+                                                  : notes,
                                             );
                                           }
                                         }
@@ -911,10 +987,15 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                         await _load();
                                       } catch (e) {
                                         if (!mounted) return;
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
                                           SnackBar(
                                             content: Text(
-                                              e.toString().replaceFirst('Exception: ', ''),
+                                              e.toString().replaceFirst(
+                                                'Exception: ',
+                                                '',
+                                              ),
                                             ),
                                           ),
                                         );
@@ -1289,7 +1370,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                       else
                         ...List.generate(records.length, (i) {
                           return Padding(
-                            padding: EdgeInsets.only(bottom: i == records.length - 1 ? 0 : 14),
+                            padding: EdgeInsets.only(
+                              bottom: i == records.length - 1 ? 0 : 14,
+                            ),
                             child: _prCard(records[i]),
                           );
                         }),
@@ -1368,10 +1451,7 @@ class _MiniTag extends StatelessWidget {
   final String text;
   final Color color;
 
-  _MiniTag({
-    required this.text,
-    required this.color,
-  });
+  _MiniTag({required this.text, required this.color});
 
   @override
   Widget build(BuildContext context) {

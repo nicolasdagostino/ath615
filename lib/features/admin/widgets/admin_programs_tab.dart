@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class AdminProgramsTab extends StatelessWidget {
@@ -6,8 +5,8 @@ class AdminProgramsTab extends StatelessWidget {
   final List programs;
   final bool adminActionBusy;
   final Function() onAdd;
-  final Function(Map<String,dynamic>) onEdit;
-  final Function(Map<String,dynamic>) onActions;
+  final Function(Map<String, dynamic>) onEdit;
+  final Function(Map<String, dynamic>) onActions;
   final dynamic font;
 
   const AdminProgramsTab({
@@ -49,11 +48,7 @@ class AdminProgramsTab extends StatelessWidget {
                 alignment: Alignment.center,
                 child: Text(
                   '+ Add',
-                  style: font(
-                    15,
-                    weight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
+                  style: font(15, weight: FontWeight.w800, color: Colors.white),
                 ),
               ),
             ),
@@ -62,44 +57,46 @@ class AdminProgramsTab extends StatelessWidget {
         const SizedBox(height: 12),
 
         if (loading)
-          const Center(child: CircularProgressIndicator())
+          const Center(
+            child: CircularProgressIndicator(color: Color(0xFFB59B6A)),
+          )
         else if (programs.isEmpty)
           const SizedBox()
         else
-          ...programs.map((item) => GestureDetector(
-                onTap: adminActionBusy ? null : () => onEdit(item),
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(color: const Color(0xFFEFF1F4)),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            (item['name'] ?? 'Program').toString(),
-                            style: font(
-                              18,
-                              weight: FontWeight.w700,
-                              color: const Color(0xFF111318),
-                            ),
+          ...programs.map(
+            (item) => GestureDetector(
+              onTap: adminActionBusy ? null : () => onEdit(item),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: const Color(0xFFEFF1F4)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          (item['name'] ?? 'Program').toString(),
+                          style: font(
+                            18,
+                            weight: FontWeight.w700,
+                            color: const Color(0xFF111318),
                           ),
                         ),
-                        GestureDetector(
-                          onTap: adminActionBusy
-                              ? null
-                              : () => onActions(item),
-                          child: const Icon(Icons.more_horiz_rounded),
-                        )
-                      ],
-                    ),
+                      ),
+                      GestureDetector(
+                        onTap: adminActionBusy ? null : () => onActions(item),
+                        child: const Icon(Icons.more_horiz_rounded),
+                      ),
+                    ],
                   ),
                 ),
-              ))
+              ),
+            ),
+          ),
       ],
     );
   }

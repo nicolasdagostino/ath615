@@ -1,14 +1,12 @@
-
 import 'package:flutter/material.dart';
 
 class AdminWorkoutsTab extends StatelessWidget {
-
   final bool loading;
   final List items;
   final bool adminActionBusy;
   final Function() onAdd;
-  final Function(Map<String,dynamic>) onEdit;
-  final Function(Map<String,dynamic>) onActions;
+  final Function(Map<String, dynamic>) onEdit;
+  final Function(Map<String, dynamic>) onActions;
   final dynamic font;
 
   const AdminWorkoutsTab({
@@ -24,13 +22,10 @@ class AdminWorkoutsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Column(
       children: [
-
         Row(
           children: [
-
             Expanded(
               child: Text(
                 'Workouts',
@@ -54,63 +49,57 @@ class AdminWorkoutsTab extends StatelessWidget {
                 alignment: Alignment.center,
                 child: Text(
                   '+ Add',
-                  style: font(
-                    15,
-                    weight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
+                  style: font(15, weight: FontWeight.w800, color: Colors.white),
                 ),
               ),
-            )
-
+            ),
           ],
         ),
 
-        const SizedBox(height:12),
+        const SizedBox(height: 12),
 
-        if(loading)
-          const Center(child:CircularProgressIndicator())
-        else if(items.isEmpty)
+        if (loading)
+          const Center(
+            child: CircularProgressIndicator(color: Color(0xFFB59B6A)),
+          )
+        else if (items.isEmpty)
           const SizedBox()
         else
-          ...items.map((item) => Padding(
-                padding: const EdgeInsets.only(bottom:10),
-                child: GestureDetector(
-                  onTap: adminActionBusy ? null : () => onEdit(item),
-                  child: Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(color: const Color(0xFFEFF1F4)),
-                    ),
-                    child: Row(
-                      children: [
-
-                        Expanded(
-                          child: Text(
-                            item.toString(),
-                            style: font(
-                              16,
-                              weight: FontWeight.w700,
-                              color: const Color(0xFF111318),
-                            ),
+          ...items.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: GestureDetector(
+                onTap: adminActionBusy ? null : () => onEdit(item),
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: const Color(0xFFEFF1F4)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.toString(),
+                          style: font(
+                            16,
+                            weight: FontWeight.w700,
+                            color: const Color(0xFF111318),
                           ),
                         ),
+                      ),
 
-                        GestureDetector(
-                          onTap: adminActionBusy
-                              ? null
-                              : () => onActions(item),
-                          child: const Icon(Icons.more_horiz_rounded),
-                        )
-
-                      ],
-                    ),
+                      GestureDetector(
+                        onTap: adminActionBusy ? null : () => onActions(item),
+                        child: const Icon(Icons.more_horiz_rounded),
+                      ),
+                    ],
                   ),
                 ),
-              ))
-
+              ),
+            ),
+          ),
       ],
     );
   }

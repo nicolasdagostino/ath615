@@ -27,11 +27,9 @@ class NoAccountInfoScreen extends StatelessWidget {
   }
 
   void _openRegister(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const RegisterScreen(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const RegisterScreen()));
   }
 
   @override
@@ -128,7 +126,9 @@ class NoAccountInfoScreen extends StatelessWidget {
                                       ),
                                       decoration: BoxDecoration(
                                         color: Colors.black.withOpacity(0.30),
-                                        borderRadius: BorderRadius.circular(999),
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
                                         border: Border.all(
                                           color: Colors.white.withOpacity(0.20),
                                         ),
@@ -149,7 +149,8 @@ class NoAccountInfoScreen extends StatelessWidget {
                                     right: 18,
                                     bottom: 18,
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
@@ -167,7 +168,9 @@ class NoAccountInfoScreen extends StatelessWidget {
                                           style: _font(
                                             15,
                                             weight: FontWeight.w700,
-                                            color: Colors.white.withOpacity(0.96),
+                                            color: Colors.white.withOpacity(
+                                              0.96,
+                                            ),
                                             letterSpacing: 0.8,
                                           ),
                                         ),

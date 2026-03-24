@@ -7,10 +7,7 @@ class ClassRepository {
         .toUtc()
         .subtract(const Duration(days: 7))
         .toIso8601String();
-    final endIso = now
-        .toUtc()
-        .add(const Duration(days: 7))
-        .toIso8601String();
+    final endIso = now.toUtc().add(const Duration(days: 7)).toIso8601String();
 
     final data = await sb
         .from('v_classes_with_spots')

@@ -21,7 +21,7 @@ class Ath615App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: AuthDeepLinkHandler.navigatorKey,
-debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: false,
       title: 'Ath615',
       theme: AppTheme.build(),
       initialRoute: '/',

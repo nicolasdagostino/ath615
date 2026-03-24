@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:app_links/app_links.dart';
@@ -67,8 +66,7 @@ class AuthDeepLinkHandler {
       if (refreshToken != null && refreshToken.isNotEmpty) {
         await sb.auth.setSession(refreshToken);
 
-        final isPasswordSetupFlow =
-            type == 'invite' || type == 'recovery';
+        final isPasswordSetupFlow = type == 'invite' || type == 'recovery';
 
         if (isPasswordSetupFlow) {
           nav.pushNamedAndRemoveUntil('/set-password', (_) => false);

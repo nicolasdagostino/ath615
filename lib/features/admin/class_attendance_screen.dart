@@ -320,7 +320,11 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                   if (_loading)
                     const Padding(
                       padding: EdgeInsets.only(top: 40),
-                      child: Center(child: CircularProgressIndicator()),
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFB59B6A),
+                        ),
+                      ),
                     )
                   else if (_error != null)
                     Text(

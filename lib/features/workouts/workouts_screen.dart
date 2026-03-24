@@ -141,6 +141,8 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
       }
 
       if (!mounted) return;
+      if (mounted) {}
+
       setState(() {
         _workouts = items;
         _commentsByWorkout
@@ -1010,6 +1012,60 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     );
   }
 
+  Widget _skeletonLine({
+    double? width,
+    double height = 12,
+    double radius = 999,
+  }) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: const Color(0xFFEAECEF),
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    );
+  }
+
+  Widget _skeletonCard() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFEAECEF)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _skeletonLine(width: 110, height: 12),
+          const SizedBox(height: 12),
+          _skeletonLine(width: double.infinity, height: 22, radius: 8),
+          const SizedBox(height: 10),
+          _skeletonLine(width: 180, height: 14, radius: 8),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            height: 220,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF4F5F7),
+              borderRadius: BorderRadius.circular(18),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _skeletonLine(width: double.infinity, height: 12, radius: 8),
+          const SizedBox(height: 8),
+          _skeletonLine(width: 220, height: 12, radius: 8),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _skeletonList({int count = 3}) {
+    return List.generate(count, (_) => _skeletonCard());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1019,15 +1075,15 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: _loadToday,
+              color: const Color(0xFFB59B6A),
+              backgroundColor: Colors.white,
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(18, 16, 18, 24),
                 children: [
-                  if (_loading)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 40),
-                      child: Center(child: CircularProgressIndicator()),
-                    )
-                  else if (_error != null)
+                  if (_loading) ...[
+                    const SizedBox(height: 4),
+                    ..._skeletonList(),
+                  ] else if (_error != null)
                     Center(
                       child: Text(
                         _error!,

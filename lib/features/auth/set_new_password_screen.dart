@@ -76,9 +76,7 @@ class _SetNewPasswordScreenState extends State<SetNewPasswordScreen> {
     }
 
     try {
-      await sb.auth.updateUser(
-        UserAttributes(password: pass),
-      );
+      await sb.auth.updateUser(UserAttributes(password: pass));
 
       if (!mounted) return;
       setState(() {

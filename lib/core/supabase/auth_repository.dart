@@ -41,10 +41,7 @@ class AuthRepository {
     return sb.auth.onAuthStateChange;
   }
 
-  Future<void> resetPassword(
-    String email, {
-    String? redirectTo,
-  }) async {
+  Future<void> resetPassword(String email, {String? redirectTo}) async {
     await sb.auth.resetPasswordForEmail(
       email,
       redirectTo: redirectTo ?? 'athletelab://auth',

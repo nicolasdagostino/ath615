@@ -91,18 +91,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String _initials(Map<String, dynamic> profile) {
     final fullName = _stringValue(profile['full_name']);
     if (fullName.isNotEmpty) {
-      final parts = fullName.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
+      final parts = fullName
+          .split(RegExp(r'\s+'))
+          .where((e) => e.isNotEmpty)
+          .toList();
       if (parts.length == 1) return parts.first[0].toUpperCase();
-      if (parts.length >= 2) return (parts.first[0] + parts.last[0]).toUpperCase();
+      if (parts.length >= 2)
+        return (parts.first[0] + parts.last[0]).toUpperCase();
     }
     return 'A';
   }
 
   String _birthDate(Map<String, dynamic> profile) {
     final raw = _stringValue(
-      profile['date_of_birth'] ??
-          profile['birth_date'] ??
-          profile['dob'],
+      profile['date_of_birth'] ?? profile['birth_date'] ?? profile['dob'],
     );
 
     if (raw.isEmpty) return '-';
@@ -117,9 +119,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   DateTime? _birthDateValue(Map<String, dynamic> profile) {
     final raw = _stringValue(
-      profile['date_of_birth'] ??
-          profile['birth_date'] ??
-          profile['dob'],
+      profile['date_of_birth'] ?? profile['birth_date'] ?? profile['dob'],
     );
     if (raw.isEmpty) return null;
     return DateTime.tryParse(raw);
@@ -305,10 +305,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() => _saving = true);
     try {
       await _saveProfileFields({
-        'date_of_birth': DateTime(picked.year, picked.month, picked.day)
-            .toIso8601String()
-            .split('T')
-            .first,
+        'date_of_birth': DateTime(
+          picked.year,
+          picked.month,
+          picked.day,
+        ).toIso8601String().split('T').first,
       });
       await _reload();
       if (!mounted) return;
@@ -344,7 +345,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: Container(
                   decoration: const BoxDecoration(
                     color: Color(0xFFF6F7F9),
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(28),
+                    ),
                   ),
                   padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
                   child: Column(
@@ -521,12 +524,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _toast('Password updated');
     } catch (e) {
       if (!mounted) return;
-      _toast(e.toString().replaceFirst('AuthException: ', '').replaceFirst('Exception: ', ''));
+      _toast(
+        e
+            .toString()
+            .replaceFirst('AuthException: ', '')
+            .replaceFirst('Exception: ', ''),
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -537,7 +544,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           FutureBuilder<Map<String, dynamic>?>(
             future: _future,
             builder: (context, snapshot) {
-              final waiting = snapshot.connectionState == ConnectionState.waiting;
+              final waiting =
+                  snapshot.connectionState == ConnectionState.waiting;
               final profile = snapshot.data ?? <String, dynamic>{};
 
               final initials = _initials(profile);
@@ -545,7 +553,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               final fullName = waiting ? '' : _fullName(profile);
               final birthDate = waiting ? '' : _birthDate(profile);
               final birthDateValue = waiting ? null : _birthDateValue(profile);
-              final avatarUrl = waiting ? '' : _stringValue(profile['avatar_url']);
+              final avatarUrl = waiting
+                  ? ''
+                  : _stringValue(profile['avatar_url']);
               final avatarDisplayUrl = avatarUrl.isEmpty
                   ? ''
                   : '$avatarUrl${avatarUrl.contains('?') ? '&' : '?'}v=${DateTime.now().millisecondsSinceEpoch}';
@@ -645,12 +655,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                             ),
                                           )
                                         : avatarDisplayUrl.isNotEmpty
-                                            ? Image.network(
-                                                avatarDisplayUrl,
-                                                width: 96,
-                                                height: 96,
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (_, error, stackTrace) {
+                                        ? Image.network(
+                                            avatarDisplayUrl,
+                                            width: 96,
+                                            height: 96,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (_, error, stackTrace) {
                                                   return Center(
                                                     child: Text(
                                                       initials,
@@ -663,16 +674,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                     ),
                                                   );
                                                 },
-                                              )
-                                            : Text(
-                                                initials,
-                                                style: _font(
-                                                  34,
-                                                  weight: FontWeight.w800,
-                                                  color: Colors.white,
-                                                  letterSpacing: -0.4,
-                                                ),
-                                              ),
+                                          )
+                                        : Text(
+                                            initials,
+                                            style: _font(
+                                              34,
+                                              weight: FontWeight.w800,
+                                              color: Colors.white,
+                                              letterSpacing: -0.4,
+                                            ),
+                                          ),
                                   ),
                                   Positioned(
                                     right: -4,
@@ -734,10 +745,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               onTap: waiting || _saving
                                   ? null
                                   : () => _editTextField(
-                                        title: 'Full Name',
-                                        fieldKey: 'full_name',
-                                        initialValue: fullName,
-                                      ),
+                                      title: 'Full Name',
+                                      fieldKey: 'full_name',
+                                      initialValue: fullName,
+                                    ),
                             ),
                             const _SectionDivider(),
                             _AccountRow(
@@ -764,9 +775,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         _SectionLabel('APP'),
                         const SizedBox(height: 6),
                         const _SectionCard(
-                          children: [
-                            _AccountRow(title: 'Settings'),
-                          ],
+                          children: [_AccountRow(title: 'Settings')],
                         ),
                         const SizedBox(height: 18),
                         _SectionLabel('DANGER ZONE'),
@@ -792,9 +801,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             IgnorePointer(
               child: Container(
                 color: const Color(0x22000000),
-                child: const Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: const Center(child: CircularProgressIndicator()),
               ),
             ),
         ],
@@ -885,8 +892,9 @@ class _AccountRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final titleColor =
-        danger ? const Color(0xFFB42318) : const Color(0xFF111318);
+    final titleColor = danger
+        ? const Color(0xFFB42318)
+        : const Color(0xFF111318);
 
     return InkWell(
       borderRadius: BorderRadius.circular(14),
@@ -941,10 +949,6 @@ class _SectionDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(
-      height: 1,
-      thickness: 1,
-      color: Color(0xFFEAECEF),
-    );
+    return const Divider(height: 1, thickness: 1, color: Color(0xFFEAECEF));
   }
 }
