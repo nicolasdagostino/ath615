@@ -32,20 +32,198 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
 
     Future<void> pickDate(
       BuildContext context,
-      TextEditingController controller,
-    ) async {
-      DateTime initialDate = DateTime.now();
-      final raw = controller.text.trim();
-      if (raw.isNotEmpty) {
-        final parsed = DateTime.tryParse(raw);
-        if (parsed != null) initialDate = parsed;
-      }
+      TextEditingController controller, {
+      String title = 'Workout Date',
+      String subtitle = 'Choose the workout date.',
+    }) async {
+      final now = DateTime.now();
+      DateTime selectedDate = DateTime.tryParse(controller.text.trim()) ?? now;
 
-      final picked = await showDatePicker(
+      final picked = await showModalBottomSheet<DateTime>(
         context: context,
-        initialDate: initialDate,
-        firstDate: DateTime(2024),
-        lastDate: DateTime(2035),
+        backgroundColor: Colors.transparent,
+        builder: (sheetContext) {
+          return SafeArea(
+            top: false,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFF6F7F9),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+                child: StatefulBuilder(
+                  builder: (context, setModalState) {
+                    return SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(
+                            child: Container(
+                              width: 42,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD7DBE1),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Container(
+                                width: 46,
+                                height: 46,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF7F3EA),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(
+                                  Icons.event_rounded,
+                                  color: Color(0xFFB59B6A),
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      title,
+                                      style: _font(
+                                        24,
+                                        weight: FontWeight.w800,
+                                        color: const Color(0xFF111318),
+                                        letterSpacing: -0.3,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      subtitle,
+                                      style: _font(
+                                        13,
+                                        weight: FontWeight.w500,
+                                        color: const Color(0xFF8F96A3),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              InkWell(
+                                borderRadius: BorderRadius.circular(14),
+                                onTap: () => Navigator.pop(sheetContext),
+                                child: Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: const Color(0xFFE8EBF0),
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.close_rounded,
+                                    size: 22,
+                                    color: Color(0xFF111318),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Select Date',
+                            style: _font(
+                              15,
+                              weight: FontWeight.w800,
+                              color: const Color(0xFF111318),
+                              letterSpacing: -0.1,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
+                                color: const Color(0xFFEAECEF),
+                              ),
+                            ),
+                            padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+                            child: Column(
+                              children: [
+                                SizedBox(
+                                  height: 220,
+                                  child: CupertinoTheme(
+                                    data: const CupertinoThemeData(
+                                      primaryColor: Color(0xFFB59B6A),
+                                    ),
+                                    child: CupertinoDatePicker(
+                                      mode: CupertinoDatePickerMode.date,
+                                      initialDateTime: selectedDate,
+                                      minimumDate: DateTime(2024),
+                                      maximumDate: DateTime(2035, 12, 31),
+                                      onDateTimeChanged: (value) {
+                                        setModalState(() {
+                                          selectedDate = value;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  DateFormat(
+                                    'd MMMM yyyy',
+                                  ).format(selectedDate),
+                                  style: _font(
+                                    13,
+                                    weight: FontWeight.w600,
+                                    color: const Color(0xFF667085),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () =>
+                                  Navigator.pop(sheetContext, selectedDate),
+                              style: ElevatedButton.styleFrom(
+                                elevation: 0,
+                                backgroundColor: const Color(0xFFB59B6A),
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size.fromHeight(52),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: Text(
+                                'Save Changes',
+                                style: _font(
+                                  16,
+                                  weight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: -0.15,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          );
+        },
       );
 
       if (picked != null) {
@@ -150,11 +328,11 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) {
+      builder: (sheetContext) {
         return Padding(
           padding: EdgeInsets.only(
             top: 36,
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
           ),
           child: Container(
             decoration: const BoxDecoration(
@@ -226,7 +404,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                             ),
                             InkWell(
                               borderRadius: BorderRadius.circular(14),
-                              onTap: () => Navigator.pop(context),
+                              onTap: () => Navigator.pop(sheetContext),
                               child: Container(
                                 width: 42,
                                 height: 42,

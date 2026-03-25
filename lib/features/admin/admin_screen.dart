@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -337,70 +338,201 @@ class _AdminScreenState extends State<AdminScreen> {
 
     Future<void> pickDate(
       BuildContext context,
-      TextEditingController controller,
-    ) async {
-      DateTime initialDate = DateTime.now();
-      final raw = controller.text.trim();
-      if (raw.isNotEmpty) {
-        final parsed = DateTime.tryParse(raw);
-        if (parsed != null) initialDate = parsed;
-      }
+      TextEditingController controller, {
+      String title = 'Date of Birth',
+      String subtitle = 'Choose the athlete birth date.',
+    }) async {
+      final now = DateTime.now();
+      DateTime selectedDate =
+          DateTime.tryParse(controller.text.trim()) ?? DateTime(1990, 1, 1);
 
-      final picked = await showDatePicker(
+      final picked = await showModalBottomSheet<DateTime>(
         context: context,
-        initialDate: initialDate,
-        firstDate: DateTime(1900),
-        lastDate: DateTime(2035),
-        builder: (context, child) {
-          final base = Theme.of(context);
-          return Theme(
-            data: base.copyWith(
-              colorScheme: base.colorScheme.copyWith(
-                primary: const Color(0xFFB59B6A),
-                onPrimary: Colors.white,
-                surface: Colors.white,
-                onSurface: const Color(0xFF111318),
+        backgroundColor: Colors.transparent,
+        builder: (sheetContext) {
+          return SafeArea(
+            top: false,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFF6F7F9),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
               ),
-              datePickerTheme: DatePickerThemeData(
-                backgroundColor: Colors.white,
-                headerBackgroundColor: const Color(0xFFB59B6A),
-                headerForegroundColor: Colors.white,
-                headerHeadlineStyle: _font(
-                  24,
-                  weight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-                headerHelpStyle: _font(
-                  13,
-                  weight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-                weekdayStyle: _font(
-                  13,
-                  weight: FontWeight.w600,
-                  color: const Color(0xFF667085),
-                ),
-                dayStyle: _font(
-                  16,
-                  weight: FontWeight.w600,
-                  color: const Color(0xFF111318),
-                ),
-                yearStyle: _font(
-                  16,
-                  weight: FontWeight.w600,
-                  color: const Color(0xFF111318),
-                ),
-                cancelButtonStyle: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFFB59B6A),
-                  textStyle: _font(16, weight: FontWeight.w700),
-                ),
-                confirmButtonStyle: TextButton.styleFrom(
-                  foregroundColor: const Color(0xFFB59B6A),
-                  textStyle: _font(16, weight: FontWeight.w700),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+                child: StatefulBuilder(
+                  builder: (context, setModalState) {
+                    return SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(
+                            child: Container(
+                              width: 42,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD7DBE1),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Container(
+                                width: 46,
+                                height: 46,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF7F3EA),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(
+                                  Icons.event_rounded,
+                                  color: Color(0xFFB59B6A),
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      title,
+                                      style: _font(
+                                        24,
+                                        weight: FontWeight.w800,
+                                        color: const Color(0xFF111318),
+                                        letterSpacing: -0.3,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      subtitle,
+                                      style: _font(
+                                        13,
+                                        weight: FontWeight.w500,
+                                        color: const Color(0xFF8F96A3),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              InkWell(
+                                borderRadius: BorderRadius.circular(14),
+                                onTap: () => Navigator.pop(sheetContext),
+                                child: Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: const Color(0xFFE8EBF0),
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.close_rounded,
+                                    size: 22,
+                                    color: Color(0xFF111318),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Select Date',
+                            style: _font(
+                              15,
+                              weight: FontWeight.w800,
+                              color: const Color(0xFF111318),
+                              letterSpacing: -0.1,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
+                                color: const Color(0xFFEAECEF),
+                              ),
+                            ),
+                            padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+                            child: Column(
+                              children: [
+                                SizedBox(
+                                  height: 220,
+                                  child: CupertinoTheme(
+                                    data: const CupertinoThemeData(
+                                      primaryColor: Color(0xFFB59B6A),
+                                    ),
+                                    child: CupertinoDatePicker(
+                                      mode: CupertinoDatePickerMode.date,
+                                      initialDateTime: selectedDate,
+                                      minimumDate: DateTime(1900),
+                                      maximumDate: DateTime(
+                                        now.year,
+                                        now.month,
+                                        now.day,
+                                      ),
+                                      onDateTimeChanged: (value) {
+                                        setModalState(() {
+                                          selectedDate = value;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  DateFormat(
+                                    'd MMMM yyyy',
+                                  ).format(selectedDate),
+                                  style: _font(
+                                    13,
+                                    weight: FontWeight.w600,
+                                    color: const Color(0xFF667085),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () =>
+                                  Navigator.pop(sheetContext, selectedDate),
+                              style: ElevatedButton.styleFrom(
+                                elevation: 0,
+                                backgroundColor: const Color(0xFFB59B6A),
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size.fromHeight(52),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: Text(
+                                'Save Changes',
+                                style: _font(
+                                  16,
+                                  weight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: -0.15,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
-            child: child ?? const SizedBox.shrink(),
           );
         },
       );
@@ -449,7 +581,7 @@ class _AdminScreenState extends State<AdminScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) {
+      builder: (sheetContext) {
         return StatefulBuilder(
           builder: (context, setLocalState) {
             return SafeArea(
@@ -458,7 +590,7 @@ class _AdminScreenState extends State<AdminScreen> {
                   16,
                   0,
                   16,
-                  16 + MediaQuery.of(context).viewInsets.bottom,
+                  16 + MediaQuery.of(sheetContext).viewInsets.bottom,
                 ),
                 child: Container(
                   width: double.infinity,
@@ -688,7 +820,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   color: const Color(0xFF344054),
                                   letterSpacing: -0.15,
                                 ),
-                                onPressed: () => Navigator.pop(context),
+                                onPressed: () => Navigator.pop(sheetContext),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -750,7 +882,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   );
 
                                   if (!mounted) return;
-                                  Navigator.pop(context);
+                                  Navigator.pop(sheetContext);
                                 },
                               ),
                             ),
