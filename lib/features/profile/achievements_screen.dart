@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -146,6 +148,24 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     return DateFormat('MMMM d, yyyy').format(parsed);
   }
 
+  void _toast(String message, {bool isError = false}) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        backgroundColor: isError
+            ? const Color(0xFFB42318)
+            : const Color(0xFF111318),
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          message,
+          style: _font(14, weight: FontWeight.w600, color: Colors.white),
+        ),
+      ),
+    );
+  }
+
   String _recordValue(Map<String, dynamic> item) {
     final category = (item['category'] ?? '').toString().toLowerCase();
 
@@ -212,26 +232,210 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     try {
       await _repo.deletePr(id);
       await _load();
+      if (!mounted) return;
+      _toast('Record deleted');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-      );
+      _toast(e.toString().replaceFirst('Exception: ', ''), isError: true);
     }
   }
 
   Future<void> _pickDate(TextEditingController controller) async {
-    final initial = DateTime.tryParse(controller.text) ?? DateTime.now();
-    final picked = await showDatePicker(
+    final now = DateTime.now();
+    DateTime selectedDate =
+        DateTime.tryParse(controller.text.trim()) ?? DateTime.now();
+
+    final picked = await showModalBottomSheet<DateTime>(
       context: context,
-      initialDate: initial,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2035),
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return SafeArea(
+          top: false,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFF6F7F9),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+              child: StatefulBuilder(
+                builder: (context, setModalState) {
+                  return SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Container(
+                            width: 42,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD7DBE1),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Container(
+                              width: 46,
+                              height: 46,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF7F3EA),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(
+                                Icons.event_rounded,
+                                color: Color(0xFFB59B6A),
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Date',
+                                    style: _font(
+                                      24,
+                                      weight: FontWeight.w800,
+                                      color: const Color(0xFF111318),
+                                      letterSpacing: -0.3,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Choose the record date.',
+                                    style: _font(
+                                      13,
+                                      weight: FontWeight.w500,
+                                      color: const Color(0xFF8F96A3),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(14),
+                              onTap: () => Navigator.pop(sheetContext),
+                              child: Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: const Color(0xFFE8EBF0),
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.close_rounded,
+                                  size: 22,
+                                  color: Color(0xFF111318),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Select Date',
+                          style: _font(
+                            15,
+                            weight: FontWeight.w800,
+                            color: const Color(0xFF111318),
+                            letterSpacing: -0.1,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(color: const Color(0xFFEAECEF)),
+                          ),
+                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                height: 220,
+                                child: CupertinoTheme(
+                                  data: const CupertinoThemeData(
+                                    primaryColor: Color(0xFFB59B6A),
+                                  ),
+                                  child: CupertinoDatePicker(
+                                    mode: CupertinoDatePickerMode.date,
+                                    initialDateTime: selectedDate,
+                                    minimumDate: DateTime(2020),
+                                    maximumDate: DateTime(
+                                      now.year,
+                                      now.month,
+                                      now.day,
+                                    ),
+                                    onDateTimeChanged: (value) {
+                                      setModalState(() {
+                                        selectedDate = value;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                DateFormat('d MMMM yyyy').format(selectedDate),
+                                style: _font(
+                                  13,
+                                  weight: FontWeight.w600,
+                                  color: const Color(0xFF667085),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () =>
+                                Navigator.pop(sheetContext, selectedDate),
+                            style: ElevatedButton.styleFrom(
+                              elevation: 0,
+                              backgroundColor: const Color(0xFFB59B6A),
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size.fromHeight(52),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: Text(
+                              'Save Changes',
+                              style: _font(
+                                16,
+                                weight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: -0.15,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
     );
-    if (picked != null) {
-      controller.text =
-          '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
-    }
+
+    if (picked == null) return;
+
+    controller.text =
+        '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
   }
 
   void _showCreatePrModal() {
@@ -400,19 +604,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                             ],
                           ),
                         ),
-                        Container(
-                          width: 46,
-                          height: 46,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF3F4F6),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: const Icon(
-                            Icons.more_horiz_rounded,
-                            size: 22,
-                            color: Color(0xFF667085),
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -503,14 +694,13 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) {
+      builder: (sheetContext) {
+        final bottomInset = MediaQuery.of(sheetContext).viewInsets.bottom;
         return GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => FocusScope.of(sheetContext).unfocus(),
           child: Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-              top: 32,
-            ),
+            padding: EdgeInsets.only(bottom: bottomInset, top: 32),
             child: Container(
               decoration: const BoxDecoration(
                 color: Color(0xFFF6F7F9),
@@ -566,6 +756,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                       }
 
                       return SingleChildScrollView(
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        padding: EdgeInsets.only(bottom: bottomInset + 24),
                         child: Column(
                           children: [
                             Container(
@@ -606,11 +799,24 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                     ],
                                   ),
                                 ),
-                                GestureDetector(
-                                  onTap: () => Navigator.pop(context),
-                                  child: const Icon(
-                                    Icons.close_rounded,
-                                    size: 28,
+                                InkWell(
+                                  borderRadius: BorderRadius.circular(14),
+                                  onTap: () => Navigator.pop(sheetContext),
+                                  child: Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: const Color(0xFFE8EBF0),
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.close_rounded,
+                                      size: 22,
+                                      color: Color(0xFF111318),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -717,6 +923,15 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                       label: 'Weight (kg)',
                                       controller: weightCtrl,
                                       hint: '100',
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                            decimal: true,
+                                          ),
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.allow(
+                                          RegExp(r'^\d*\.?\d{0,2}'),
+                                        ),
+                                      ],
                                       fillColor: Colors.white,
                                       borderColor: const Color(0xFFE2E8F0),
                                       focusedBorderColor: const Color(
@@ -792,7 +1007,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                         ),
                                         readOnly: true,
                                         suffixIcon: const Icon(
-                                          Icons.calendar_today,
+                                          Icons.calendar_today_rounded,
+                                          color: Color(0xFF98A2B3),
                                         ),
                                         controller: dateCtrl,
                                         hint: '2026-03-18',
@@ -886,25 +1102,17 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                       final notes = notesCtrl.text.trim();
 
                                       if (movement.isEmpty) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Movement is required',
-                                            ),
-                                          ),
+                                        _toast(
+                                          'Movement is required',
+                                          isError: true,
                                         );
                                         return;
                                       }
 
                                       if (achievedOn.isEmpty) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('Date is required'),
-                                          ),
+                                        _toast(
+                                          'Date is required',
+                                          isError: true,
                                         );
                                         return;
                                       }
@@ -983,21 +1191,22 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                         }
 
                                         if (!mounted) return;
-                                        Navigator.pop(context);
+                                        Navigator.pop(sheetContext);
                                         await _load();
+                                        if (!mounted) return;
+                                        _toast(
+                                          isEdit
+                                              ? 'Record updated'
+                                              : 'Record created',
+                                        );
                                       } catch (e) {
                                         if (!mounted) return;
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              e.toString().replaceFirst(
-                                                'Exception: ',
-                                                '',
-                                              ),
-                                            ),
+                                        _toast(
+                                          e.toString().replaceFirst(
+                                            'Exception: ',
+                                            '',
                                           ),
+                                          isError: true,
                                         );
                                       }
                                     },

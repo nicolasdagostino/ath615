@@ -25,6 +25,7 @@ class InputField extends StatelessWidget {
   final TextStyle? textStyle;
   final VoidCallback? onEditingComplete;
   final ValueChanged<String>? onSubmitted;
+  final FocusNode? focusNode;
 
   const InputField({
     super.key,
@@ -49,6 +50,7 @@ class InputField extends StatelessWidget {
     this.textStyle,
     this.onEditingComplete,
     this.onSubmitted,
+    this.focusNode,
   });
 
   InputDecoration _decoration() {
@@ -84,6 +86,7 @@ class InputField extends StatelessWidget {
     if (controller != null) {
       return TextField(
         controller: controller,
+        focusNode: focusNode,
         obscureText: obscureText,
         maxLines: maxLines,
         keyboardType:
@@ -105,6 +108,7 @@ class InputField extends StatelessWidget {
 
     return TextFormField(
       initialValue: '',
+      focusNode: focusNode,
       obscureText: obscureText,
       maxLines: maxLines,
       keyboardType:

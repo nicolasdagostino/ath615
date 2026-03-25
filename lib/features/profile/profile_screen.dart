@@ -423,20 +423,21 @@ class _TopSquareButton extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           Container(
-            width: 50,
-            height: 50,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFF08112B),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE8EBF0)),
               boxShadow: const [
                 BoxShadow(
-                  color: Color(0x12000000),
+                  color: Color(0x0D0D1210),
                   blurRadius: 10,
                   offset: Offset(0, 3),
                 ),
               ],
             ),
-            child: Icon(icon, color: Colors.white, size: 27),
+            child: Icon(icon, color: const Color(0xFF111318), size: 24),
           ),
           if (badge != null)
             Positioned(
@@ -446,7 +447,7 @@ class _TopSquareButton extends StatelessWidget {
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF245BEB),
+                  color: const Color(0xFFB59B6A),
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 2),
                 ),

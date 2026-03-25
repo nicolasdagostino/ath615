@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -148,11 +149,172 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     await sb.from('profiles').update(payload).eq('id', user.id);
   }
 
-  void _toast(String message) {
+  void _toast(String message, {bool isError = false}) {
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
     messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(content: Text(message)));
+    messenger.showSnackBar(
+      SnackBar(
+        backgroundColor: isError
+            ? const Color(0xFFB42318)
+            : const Color(0xFF111318),
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          message,
+          style: _font(14, weight: FontWeight.w600, color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  Widget _sheetHandle() {
+    return Center(
+      child: Container(
+        width: 42,
+        height: 5,
+        decoration: BoxDecoration(
+          color: const Color(0xFFD7DBE1),
+          borderRadius: BorderRadius.circular(999),
+        ),
+      ),
+    );
+  }
+
+  Widget _sheetHeader({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onClose,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 46,
+          height: 46,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF7F3EA),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(icon, color: const Color(0xFFB59B6A), size: 22),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: _font(
+                  24,
+                  weight: FontWeight.w800,
+                  color: const Color(0xFF111318),
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: _font(
+                  13,
+                  weight: FontWeight.w500,
+                  color: const Color(0xFF8F96A3),
+                ),
+              ),
+            ],
+          ),
+        ),
+        InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onClose,
+          child: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFE8EBF0)),
+            ),
+            child: const Icon(
+              Icons.close_rounded,
+              size: 22,
+              color: Color(0xFF111318),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  InputDecoration _sheetInputDecoration({
+    required String hintText,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: _font(
+        13,
+        weight: FontWeight.w500,
+        color: const Color(0xFF98A2B3),
+      ),
+      filled: true,
+      fillColor: const Color(0xFFF8FAFC),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      suffixIcon: suffixIcon,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFFB59B6A), width: 1.2),
+      ),
+    );
+  }
+
+  Widget _sheetSectionTitle(String text) {
+    return Text(
+      text,
+      style: _font(
+        15,
+        weight: FontWeight.w800,
+        color: const Color(0xFF111318),
+        letterSpacing: -0.1,
+      ),
+    );
+  }
+
+  Widget _sheetPrimaryButton({
+    required String text,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          backgroundColor: const Color(0xFFB59B6A),
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(52),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        child: Text(
+          text,
+          style: _font(
+            16,
+            weight: FontWeight.w700,
+            color: Colors.white,
+            letterSpacing: -0.15,
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _editTextField({
@@ -164,109 +326,101 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final controller = TextEditingController(
       text: initialValue == '-' ? '' : initialValue,
     );
+    final scrollCtrl = ScrollController();
+    final focusNode = FocusNode();
+
+    focusNode.addListener(() {
+      if (focusNode.hasFocus && scrollCtrl.hasClients) {
+        Future.delayed(const Duration(milliseconds: 180), () {
+          if (!scrollCtrl.hasClients) return;
+          scrollCtrl.animateTo(
+            scrollCtrl.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 240),
+            curve: Curves.easeOut,
+          );
+        });
+      }
+    });
 
     final value = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
-          ),
+        final bottomInset = MediaQuery.of(sheetContext).viewInsets.bottom;
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          padding: EdgeInsets.only(top: 36, bottom: bottomInset),
           child: SafeArea(
             top: false,
             child: Container(
               decoration: const BoxDecoration(
                 color: Color(0xFFF6F7F9),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
               ),
-              padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD7DBE1),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => FocusScope.of(sheetContext).unfocus(),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+                  child: SingleChildScrollView(
+                    controller: scrollCtrl,
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: EdgeInsets.only(bottom: bottomInset + 40),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _sheetHandle(),
+                        const SizedBox(height: 16),
+                        _sheetHeader(
+                          icon: Icons.person_outline_rounded,
+                          title: title,
+                          subtitle: 'Update your account information.',
+                          onClose: () => Navigator.pop(sheetContext),
+                        ),
+                        const SizedBox(height: 16),
+                        _sheetSectionTitle('Details'),
+                        const SizedBox(height: 10),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(color: const Color(0xFFEAECEF)),
+                          ),
+                          child: TextField(
+                            controller: controller,
+                            focusNode: focusNode,
+                            autofocus: true,
+                            onTapOutside: (_) =>
+                                FocusScope.of(sheetContext).unfocus(),
+                            textCapitalization: capitalizeWords
+                                ? TextCapitalization.words
+                                : TextCapitalization.none,
+                            style: _font(
+                              13,
+                              weight: FontWeight.w500,
+                              color: const Color(0xFF111318),
+                            ),
+                            decoration: _sheetInputDecoration(
+                              hintText: 'Enter $title',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        _sheetPrimaryButton(
+                          text: 'Save Changes',
+                          onPressed: () {
+                            Navigator.pop(sheetContext, controller.text.trim());
+                          },
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    title.toUpperCase(),
-                    style: _font(
-                      18,
-                      weight: FontWeight.w800,
-                      color: const Color(0xFF111318),
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFFEAECEF)),
-                    ),
-                    child: TextField(
-                      controller: controller,
-                      autofocus: true,
-                      textCapitalization: capitalizeWords
-                          ? TextCapitalization.words
-                          : TextCapitalization.none,
-                      style: _font(
-                        18,
-                        weight: FontWeight.w600,
-                        color: const Color(0xFF111318),
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Enter $title',
-                        hintStyle: _font(
-                          16,
-                          weight: FontWeight.w500,
-                          color: const Color(0xFF98A2B3),
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(sheetContext, controller.text.trim());
-                      },
-                      style: ElevatedButton.styleFrom(
-                        elevation: 0,
-                        backgroundColor: const Color(0xFF111318),
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size.fromHeight(48),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: Text(
-                        'SAVE',
-                        style: _font(
-                          15,
-                          weight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -292,12 +446,98 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _editBirthDate(DateTime? initialDate) async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    DateTime selectedDate = initialDate ?? DateTime(1990, 1, 1);
+
+    final picked = await showModalBottomSheet<DateTime>(
       context: context,
-      initialDate: initialDate ?? DateTime(1990, 1, 1),
-      firstDate: DateTime(1920, 1, 1),
-      lastDate: DateTime(now.year, now.month, now.day),
-      helpText: 'Select date of birth',
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return SafeArea(
+          top: false,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFF6F7F9),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+              child: StatefulBuilder(
+                builder: (context, setModalState) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _sheetHandle(),
+                      const SizedBox(height: 16),
+                      _sheetHeader(
+                        icon: Icons.event_rounded,
+                        title: 'Date of Birth',
+                        subtitle: 'Choose your birth date.',
+                        onClose: () => Navigator.pop(sheetContext),
+                      ),
+                      const SizedBox(height: 16),
+                      _sheetSectionTitle('Select Date'),
+                      const SizedBox(height: 10),
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(color: const Color(0xFFEAECEF)),
+                        ),
+                        padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              height: 220,
+                              child: CupertinoTheme(
+                                data: const CupertinoThemeData(
+                                  primaryColor: Color(0xFFB59B6A),
+                                ),
+                                child: CupertinoDatePicker(
+                                  mode: CupertinoDatePickerMode.date,
+                                  initialDateTime: selectedDate,
+                                  minimumDate: DateTime(1920, 1, 1),
+                                  maximumDate: DateTime(
+                                    now.year,
+                                    now.month,
+                                    now.day,
+                                  ),
+                                  onDateTimeChanged: (value) {
+                                    setModalState(() {
+                                      selectedDate = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              DateFormat('d MMMM yyyy').format(selectedDate),
+                              style: _font(
+                                13,
+                                weight: FontWeight.w600,
+                                color: const Color(0xFF667085),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _sheetPrimaryButton(
+                        text: 'Save Changes',
+                        onPressed: () =>
+                            Navigator.pop(sheetContext, selectedDate),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
     );
 
     if (picked == null) return;
@@ -333,161 +573,131 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       builder: (sheetContext) {
         bool obscure1 = true;
         bool obscure2 = true;
+        final bottomInset = MediaQuery.of(sheetContext).viewInsets.bottom;
 
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
-              ),
+            return AnimatedPadding(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.only(top: 36, bottom: bottomInset),
               child: SafeArea(
                 top: false,
                 child: Container(
                   decoration: const BoxDecoration(
                     color: Color(0xFFF6F7F9),
                     borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(28),
+                      top: Radius.circular(30),
                     ),
                   ),
-                  padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 40,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD7DBE1),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'CHANGE PASSWORD',
-                        style: _font(
-                          18,
-                          weight: FontWeight.w800,
-                          color: const Color(0xFF111318),
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: const Color(0xFFEAECEF)),
-                        ),
-                        child: TextField(
-                          controller: passwordController,
-                          obscureText: obscure1,
-                          autofocus: true,
-                          style: _font(
-                            18,
-                            weight: FontWeight.w600,
-                            color: const Color(0xFF111318),
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'New password',
-                            hintStyle: _font(
-                              16,
-                              weight: FontWeight.w500,
-                              color: const Color(0xFF98A2B3),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => FocusScope.of(sheetContext).unfocus(),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+                      child: SingleChildScrollView(
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        padding: EdgeInsets.only(bottom: bottomInset + 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _sheetHandle(),
+                            const SizedBox(height: 16),
+                            _sheetHeader(
+                              icon: Icons.lock_outline_rounded,
+                              title: 'Change Password',
+                              subtitle: 'Set a new password for your account.',
+                              onClose: () => Navigator.pop(sheetContext),
                             ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
-                            suffixIcon: IconButton(
-                              onPressed: () {
-                                setModalState(() => obscure1 = !obscure1);
-                              },
-                              icon: Icon(
-                                obscure1
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                color: const Color(0xFF98A2B3),
+                            const SizedBox(height: 16),
+                            _sheetSectionTitle('Security'),
+                            const SizedBox(height: 10),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(18),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(
+                                  color: const Color(0xFFEAECEF),
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  TextField(
+                                    controller: passwordController,
+                                    obscureText: obscure1,
+                                    autofocus: true,
+                                    onTapOutside: (_) =>
+                                        FocusScope.of(sheetContext).unfocus(),
+                                    style: _font(
+                                      13,
+                                      weight: FontWeight.w500,
+                                      color: const Color(0xFF111318),
+                                    ),
+                                    decoration: _sheetInputDecoration(
+                                      hintText: 'New password',
+                                      suffixIcon: IconButton(
+                                        onPressed: () {
+                                          setModalState(
+                                            () => obscure1 = !obscure1,
+                                          );
+                                        },
+                                        icon: Icon(
+                                          obscure1
+                                              ? Icons.visibility_off_outlined
+                                              : Icons.visibility_outlined,
+                                          color: const Color(0xFF98A2B3),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  TextField(
+                                    controller: confirmController,
+                                    obscureText: obscure2,
+                                    onTapOutside: (_) =>
+                                        FocusScope.of(sheetContext).unfocus(),
+                                    style: _font(
+                                      13,
+                                      weight: FontWeight.w500,
+                                      color: const Color(0xFF111318),
+                                    ),
+                                    decoration: _sheetInputDecoration(
+                                      hintText: 'Confirm new password',
+                                      suffixIcon: IconButton(
+                                        onPressed: () {
+                                          setModalState(
+                                            () => obscure2 = !obscure2,
+                                          );
+                                        },
+                                        icon: Icon(
+                                          obscure2
+                                              ? Icons.visibility_off_outlined
+                                              : Icons.visibility_outlined,
+                                          color: const Color(0xFF98A2B3),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: const Color(0xFFEAECEF)),
-                        ),
-                        child: TextField(
-                          controller: confirmController,
-                          obscureText: obscure2,
-                          style: _font(
-                            18,
-                            weight: FontWeight.w600,
-                            color: const Color(0xFF111318),
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'Confirm new password',
-                            hintStyle: _font(
-                              16,
-                              weight: FontWeight.w500,
-                              color: const Color(0xFF98A2B3),
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
-                            suffixIcon: IconButton(
+                            const SizedBox(height: 18),
+                            _sheetPrimaryButton(
+                              text: 'Update Password',
                               onPressed: () {
-                                setModalState(() => obscure2 = !obscure2);
+                                Navigator.pop(sheetContext, {
+                                  'password': passwordController.text,
+                                  'confirm': confirmController.text,
+                                });
                               },
-                              icon: Icon(
-                                obscure2
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                color: const Color(0xFF98A2B3),
-                              ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 14),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(sheetContext, {
-                              'password': passwordController.text,
-                              'confirm': confirmController.text,
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            elevation: 0,
-                            backgroundColor: const Color(0xFF111318),
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size.fromHeight(48),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          child: Text(
-                            'UPDATE PASSWORD',
-                            style: _font(
-                              15,
-                              weight: FontWeight.w700,
-                              color: Colors.white,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
