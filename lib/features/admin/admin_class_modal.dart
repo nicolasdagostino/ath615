@@ -265,33 +265,312 @@ extension _AdminScreenClassModal on _AdminScreenState {
       BuildContext context,
       void Function(String value) onSelected, {
       String? initialValue,
+      String title = 'Time',
+      String subtitle = 'Choose the class start time.',
     }) async {
-      TimeOfDay initial = const TimeOfDay(hour: 18, minute: 0);
+      int selectedHour = 18;
+      int selectedMinute = 0;
+
       final raw = (initialValue ?? '').trim();
       final parts = raw.split(':');
       if (parts.length == 2) {
         final h = int.tryParse(parts[0]);
         final m = int.tryParse(parts[1]);
-        if (h != null && m != null && h >= 0 && h <= 23 && m >= 0 && m <= 59) {
-          initial = TimeOfDay(hour: h, minute: m);
+        if (h != null && h >= 0 && h <= 23) {
+          selectedHour = h;
+        }
+        if (m != null && m >= 0 && m <= 59) {
+          selectedMinute = m;
         }
       }
 
-      final picked = await showTimePicker(
+      final picked = await showModalBottomSheet<String>(
         context: context,
-        initialTime: initial,
-        builder: (context, child) {
-          return MediaQuery(
-            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-            child: child ?? const SizedBox.shrink(),
+        backgroundColor: Colors.transparent,
+        builder: (sheetContext) {
+          return SafeArea(
+            top: false,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFF6F7F9),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+                child: StatefulBuilder(
+                  builder: (context, setModalState) {
+                    return SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(
+                            child: Container(
+                              width: 42,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD7DBE1),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Container(
+                                width: 46,
+                                height: 46,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF7F3EA),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(
+                                  Icons.schedule_rounded,
+                                  color: Color(0xFFB59B6A),
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      title,
+                                      style: _font(
+                                        24,
+                                        weight: FontWeight.w800,
+                                        color: const Color(0xFF111318),
+                                        letterSpacing: -0.3,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      subtitle,
+                                      style: _font(
+                                        13,
+                                        weight: FontWeight.w500,
+                                        color: const Color(0xFF8F96A3),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              InkWell(
+                                borderRadius: BorderRadius.circular(14),
+                                onTap: () => Navigator.pop(sheetContext),
+                                child: Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: const Color(0xFFE8EBF0),
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.close_rounded,
+                                    size: 22,
+                                    color: Color(0xFF111318),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Select Time',
+                            style: _font(
+                              15,
+                              weight: FontWeight.w800,
+                              color: const Color(0xFF111318),
+                              letterSpacing: -0.1,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
+                                color: const Color(0xFFEAECEF),
+                              ),
+                            ),
+                            padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+                            child: Column(
+                              children: [
+                                SizedBox(
+                                  height: 220,
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: CupertinoPicker(
+                                          scrollController:
+                                              FixedExtentScrollController(
+                                                initialItem: selectedHour,
+                                              ),
+                                          itemExtent: 40,
+                                          useMagnifier: true,
+                                          magnification: 1.05,
+                                          onSelectedItemChanged: (value) {
+                                            setModalState(() {
+                                              selectedHour = value;
+                                            });
+                                          },
+                                          children: List.generate(
+                                            24,
+                                            (index) => Center(
+                                              child: Text(
+                                                index.toString().padLeft(
+                                                  2,
+                                                  '0',
+                                                ),
+                                                style: _font(
+                                                  20,
+                                                  weight: FontWeight.w700,
+                                                  color: const Color(
+                                                    0xFF111318,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        ':',
+                                        style: _font(
+                                          22,
+                                          weight: FontWeight.w800,
+                                          color: const Color(0xFF111318),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: CupertinoPicker(
+                                          scrollController:
+                                              FixedExtentScrollController(
+                                                initialItem:
+                                                    (selectedMinute ~/ 15)
+                                                        .clamp(0, 3),
+                                              ),
+                                          itemExtent: 40,
+                                          useMagnifier: true,
+                                          magnification: 1.05,
+                                          onSelectedItemChanged: (value) {
+                                            setModalState(() {
+                                              selectedMinute = value * 15;
+                                            });
+                                          },
+                                          children: [
+                                            Center(
+                                              child: Text(
+                                                '00',
+                                                style: _font(
+                                                  20,
+                                                  weight: FontWeight.w700,
+                                                  color: const Color(
+                                                    0xFF111318,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            Center(
+                                              child: Text(
+                                                '15',
+                                                style: _font(
+                                                  20,
+                                                  weight: FontWeight.w700,
+                                                  color: const Color(
+                                                    0xFF111318,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            Center(
+                                              child: Text(
+                                                '30',
+                                                style: _font(
+                                                  20,
+                                                  weight: FontWeight.w700,
+                                                  color: const Color(
+                                                    0xFF111318,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            Center(
+                                              child: Text(
+                                                '45',
+                                                style: _font(
+                                                  20,
+                                                  weight: FontWeight.w700,
+                                                  color: const Color(
+                                                    0xFF111318,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '${selectedHour.toString().padLeft(2, '0')}:${selectedMinute.toString().padLeft(2, '0')}',
+                                  style: _font(
+                                    13,
+                                    weight: FontWeight.w600,
+                                    color: const Color(0xFF667085),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () => Navigator.pop(
+                                sheetContext,
+                                '${selectedHour.toString().padLeft(2, '0')}:${selectedMinute.toString().padLeft(2, '0')}',
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                elevation: 0,
+                                backgroundColor: const Color(0xFFB59B6A),
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size.fromHeight(52),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: Text(
+                                'Save Changes',
+                                style: _font(
+                                  16,
+                                  weight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: -0.15,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
           );
         },
       );
 
-      if (picked != null) {
-        final hh = picked.hour.toString().padLeft(2, '0');
-        final mm = picked.minute.toString().padLeft(2, '0');
-        onSelected('$hh:$mm');
+      if (picked != null && picked.trim().isNotEmpty) {
+        onSelected(picked.trim());
       }
     }
 

@@ -922,6 +922,35 @@ class _AdminScreenState extends State<AdminScreen> {
     return 'e0d4640f-72f8-4440-88c1-2b7b196c74b1';
   }
 
+  bool _isPastClassDateTime(String date, String time) {
+    final cleanDate = date.trim();
+    final cleanTime = time.trim();
+
+    if (cleanDate.isEmpty || cleanTime.isEmpty) return false;
+
+    final parts = cleanDate.split('-');
+    final timeParts = cleanTime.split(':');
+
+    if (parts.length != 3 || timeParts.length < 2) return false;
+
+    final year = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final day = int.tryParse(parts[2]);
+    final hour = int.tryParse(timeParts[0]);
+    final minute = int.tryParse(timeParts[1]);
+
+    if (year == null ||
+        month == null ||
+        day == null ||
+        hour == null ||
+        minute == null) {
+      return false;
+    }
+
+    final localDateTime = DateTime(year, month, day, hour, minute);
+    return localDateTime.isBefore(DateTime.now());
+  }
+
   String _buildUtcIsoFromDateAndTime(String date, String time) {
     final cleanDate = date.trim();
     final cleanTime = time.trim();
@@ -1971,6 +2000,9 @@ class _AdminScreenState extends State<AdminScreen> {
     if (time.trim().isEmpty) throw Exception('Time is required');
     if (parsedDuration == null) throw Exception('Invalid duration');
     if (parsedMaxSpots == null) throw Exception('Invalid max spots');
+    if (_isPastClassDateTime(date, time)) {
+      throw Exception('Classes cannot be scheduled in the past');
+    }
 
     final startsAtIso = _buildUtcIsoFromDateAndTime(date, time);
 
@@ -2064,6 +2096,10 @@ class _AdminScreenState extends State<AdminScreen> {
 
     for (final date in dates) {
       for (final time in normalizedTimes) {
+        if (_isPastClassDateTime(date, time)) {
+          continue;
+        }
+
         final startsAtIso = _buildUtcIsoFromDateAndTime(date, time);
 
         await _classRepo.createClass(
@@ -2102,6 +2138,9 @@ class _AdminScreenState extends State<AdminScreen> {
     if (time.trim().isEmpty) throw Exception('Time is required');
     if (parsedDuration == null) throw Exception('Invalid duration');
     if (parsedMaxSpots == null) throw Exception('Invalid max spots');
+    if (_isPastClassDateTime(date, time)) {
+      throw Exception('Classes cannot be scheduled in the past');
+    }
 
     final startsAtIso = _buildUtcIsoFromDateAndTime(date, time);
 
