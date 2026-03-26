@@ -494,6 +494,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               child: CupertinoTheme(
                                 data: const CupertinoThemeData(
                                   primaryColor: Color(0xFFB59B6A),
+                                  textTheme: CupertinoTextThemeData(
+                                    dateTimePickerTextStyle: TextStyle(
+                                      color: Color(0xFF111318),
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
                                 child: CupertinoDatePicker(
                                   mode: CupertinoDatePickerMode.date,

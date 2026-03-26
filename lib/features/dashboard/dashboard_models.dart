@@ -66,11 +66,13 @@ class DashboardRiskClassItem {
   final String id;
   final String title;
   final String subtitle;
+  final bool needsWorkoutAssignment;
 
   const DashboardRiskClassItem({
     required this.id,
     required this.title,
     required this.subtitle,
+    this.needsWorkoutAssignment = false,
   });
 }
 
@@ -106,6 +108,52 @@ class DashboardAlertItem {
   });
 }
 
+class DashboardNextClassItem {
+  final String id;
+  final String title;
+  final String subtitle;
+  final String occupancyLabel;
+  final bool hasWorkout;
+  final bool isToday;
+
+  const DashboardNextClassItem({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.occupancyLabel,
+    required this.hasWorkout,
+    required this.isToday,
+  });
+}
+
+class DashboardWorkoutStatus {
+  final bool hasWorkoutToday;
+  final int workoutsToday;
+  final int classesMissingWorkoutToday;
+  final String summary;
+
+  const DashboardWorkoutStatus({
+    required this.hasWorkoutToday,
+    required this.workoutsToday,
+    required this.classesMissingWorkoutToday,
+    required this.summary,
+  });
+}
+
+class DashboardTodayHighlightItem {
+  final String id;
+  final String title;
+  final String subtitle;
+  final String type;
+
+  const DashboardTodayHighlightItem({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.type,
+  });
+}
+
 class DashboardData {
   final DashboardTodayStats today;
   final DashboardMemberStats members;
@@ -114,6 +162,9 @@ class DashboardData {
   final DashboardTomorrowStats tomorrow;
   final List<DashboardMemberActivityItem> memberActivity;
   final List<DashboardAlertItem> alerts;
+  final DashboardNextClassItem? nextClass;
+  final DashboardWorkoutStatus workoutStatus;
+  final List<DashboardTodayHighlightItem> todayHighlights;
   final String? gymId;
 
   const DashboardData({
@@ -124,6 +175,9 @@ class DashboardData {
     required this.tomorrow,
     required this.memberActivity,
     required this.alerts,
+    required this.nextClass,
+    required this.workoutStatus,
+    required this.todayHighlights,
     required this.gymId,
   });
 }

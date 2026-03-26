@@ -17,6 +17,7 @@ class DashboardRepository {
     final thisWeekClasses = await _loadWeekClasses(gymId, weekOffset: 0);
     final lastWeekClasses = await _loadWeekClasses(gymId, weekOffset: -1);
     final bookings = await _loadGymBookings(gymId);
+    final todayWorkouts = await _loadTodayWorkouts(gymId);
 
     final todayStats = _buildTodayStats(classesToday, bookings);
     final memberStats = _buildMemberStats(members);
@@ -33,6 +34,15 @@ class DashboardRepository {
       classesToday: classesToday,
       bookings: bookings,
     );
+    final nextClass = _buildNextClass(classesToday, classesTomorrow, bookings);
+    final workoutStatus = _buildWorkoutStatus(
+      classesToday: classesToday,
+      todayWorkouts: todayWorkouts,
+    );
+    final todayHighlights = _buildTodayHighlights(
+      members: members,
+      workoutStatus: workoutStatus,
+    );
 
     return DashboardData(
       today: todayStats,
@@ -42,6 +52,9 @@ class DashboardRepository {
       tomorrow: tomorrowStats,
       memberActivity: memberActivity,
       alerts: alerts,
+      nextClass: nextClass,
+      workoutStatus: workoutStatus,
+      todayHighlights: todayHighlights,
       gymId: gymId,
     );
   }
@@ -124,6 +137,26 @@ class DashboardRepository {
     }
 
     final data = await query.order('created_at', ascending: false);
+    return List<Map<String, dynamic>>.from(data);
+  }
+
+  Future<List<Map<String, dynamic>>> _loadTodayWorkouts(String? gymId) async {
+    final now = DateTime.now();
+    final todayIso =
+        '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+
+    dynamic query = sb
+        .from('workouts')
+        .select('id, gym_id, title, workout_date');
+
+    if (gymId != null && gymId.isNotEmpty) {
+      query = query.eq('gym_id', gymId);
+    }
+
+    final data = await query
+        .eq('workout_date', todayIso)
+        .order('created_at', ascending: false);
+
     return List<Map<String, dynamic>>.from(data);
   }
 
@@ -272,7 +305,11 @@ class DashboardRepository {
       }).length;
 
       final ratio = reserved / maxSpots;
-      if (ratio > 0.40) continue;
+      final workoutId = (item['workout_id'] ?? '').toString().trim();
+      final hasWorkout = workoutId.isNotEmpty;
+      final lowOccupancy = ratio <= 0.40;
+
+      if (!lowOccupancy && hasWorkout) continue;
 
       final startsAt = DateTime.tryParse(
         (item['starts_at'] ?? '').toString(),
@@ -285,11 +322,20 @@ class DashboardRepository {
           .trim();
       final safeTitle = title.isEmpty ? 'Class' : title;
 
+      final subtitleParts = <String>[];
+      if (!hasWorkout) {
+        subtitleParts.add('Workout not assigned');
+      }
+      if (lowOccupancy) {
+        subtitleParts.add('$reserved / $maxSpots booked');
+      }
+
       riskItems.add(
         DashboardRiskClassItem(
           id: classId,
           title: '$hh:$mm · $safeTitle',
-          subtitle: '$reserved / $maxSpots booked',
+          subtitle: subtitleParts.join(' · '),
+          needsWorkoutAssignment: !hasWorkout,
         ),
       );
     }
@@ -363,6 +409,156 @@ class DashboardRepository {
 
     items.sort((a, b) => b.priority.compareTo(a.priority));
     return items.take(5).toList();
+  }
+
+  DashboardNextClassItem? _buildNextClass(
+    List<Map<String, dynamic>> classesToday,
+    List<Map<String, dynamic>> classesTomorrow,
+    List<Map<String, dynamic>> bookings,
+  ) {
+    final now = DateTime.now();
+
+    Map<String, dynamic>? nextItem;
+    bool isToday = true;
+
+    for (final item in classesToday) {
+      final startsAt = DateTime.tryParse(
+        (item['starts_at'] ?? '').toString(),
+      )?.toLocal();
+      if (startsAt == null) continue;
+      if (startsAt.isBefore(now)) continue;
+      nextItem = item;
+      isToday = true;
+      break;
+    }
+
+    if (nextItem == null && classesTomorrow.isNotEmpty) {
+      nextItem = classesTomorrow.first;
+      isToday = false;
+    }
+
+    if (nextItem == null) return null;
+
+    final classId = (nextItem['id'] ?? '').toString();
+    final startsAt = DateTime.tryParse(
+      (nextItem['starts_at'] ?? '').toString(),
+    )?.toLocal();
+
+    final hh = startsAt?.hour.toString().padLeft(2, '0') ?? '--';
+    final mm = startsAt?.minute.toString().padLeft(2, '0') ?? '--';
+
+    final reserved = bookings.where((b) {
+      final sameClass = (b['class_id'] ?? '').toString() == classId;
+      if (!sameClass) return false;
+      final status = (b['status'] ?? '').toString().toLowerCase().trim();
+      return status == 'booked' || status == 'attended';
+    }).length;
+
+    final maxSpots = _readInt(nextItem, const [
+      'max_spots',
+      'capacity',
+      'spots_total',
+    ]);
+
+    final title = (nextItem['title'] ?? nextItem['program_name'] ?? 'Class')
+        .toString()
+        .trim();
+    final coach = (nextItem['coach_name'] ?? '').toString().trim();
+    final hasWorkout = (nextItem['workout_id'] ?? '')
+        .toString()
+        .trim()
+        .isNotEmpty;
+
+    final subtitleParts = <String>[
+      isToday ? 'Today · $hh:$mm' : 'Tomorrow · $hh:$mm',
+    ];
+    if (coach.isNotEmpty) {
+      subtitleParts.add(coach);
+    }
+
+    return DashboardNextClassItem(
+      id: classId,
+      title: title.isEmpty ? 'Class' : title,
+      subtitle: subtitleParts.join(' · '),
+      occupancyLabel: maxSpots > 0
+          ? '$reserved / $maxSpots booked'
+          : '$reserved booked',
+      hasWorkout: hasWorkout,
+      isToday: isToday,
+    );
+  }
+
+  DashboardWorkoutStatus _buildWorkoutStatus({
+    required List<Map<String, dynamic>> classesToday,
+    required List<Map<String, dynamic>> todayWorkouts,
+  }) {
+    var missing = 0;
+    for (final item in classesToday) {
+      final hasWorkout = (item['workout_id'] ?? '')
+          .toString()
+          .trim()
+          .isNotEmpty;
+      if (!hasWorkout) missing++;
+    }
+
+    final workoutsToday = todayWorkouts.length;
+    final hasWorkoutToday =
+        workoutsToday > 0 ||
+        classesToday.any(
+          (item) => (item['workout_id'] ?? '').toString().trim().isNotEmpty,
+        );
+
+    final summary = classesToday.isEmpty
+        ? 'No classes scheduled today.'
+        : missing == 0
+        ? 'Today programming is assigned.'
+        : '$missing classes still need a workout.';
+
+    return DashboardWorkoutStatus(
+      hasWorkoutToday: hasWorkoutToday,
+      workoutsToday: workoutsToday,
+      classesMissingWorkoutToday: missing,
+      summary: summary,
+    );
+  }
+
+  List<DashboardTodayHighlightItem> _buildTodayHighlights({
+    required List<Map<String, dynamic>> members,
+    required DashboardWorkoutStatus workoutStatus,
+  }) {
+    final now = DateTime.now();
+    final items = <DashboardTodayHighlightItem>[];
+
+    for (final member in members) {
+      if (member['is_active'] != true) continue;
+      final dobRaw = (member['date_of_birth'] ?? '').toString().trim();
+      final dob = DateTime.tryParse(dobRaw);
+      if (dob == null) continue;
+      if (dob.month != now.month || dob.day != now.day) continue;
+
+      final name = _memberName(member);
+      items.add(
+        DashboardTodayHighlightItem(
+          id: 'birthday-${member['id']}',
+          title: name,
+          subtitle: 'Birthday today',
+          type: 'birthday',
+        ),
+      );
+    }
+
+    items.add(
+      DashboardTodayHighlightItem(
+        id: 'workout-status',
+        title: workoutStatus.hasWorkoutToday
+            ? 'Workout ready'
+            : 'Workout missing',
+        subtitle: workoutStatus.summary,
+        type: 'workout',
+      ),
+    );
+
+    return items.take(4).toList();
   }
 
   _WeekPerformance _computeWeekPerformance({

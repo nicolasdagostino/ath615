@@ -32,12 +32,14 @@ class AdminScreen extends StatefulWidget {
   final int initialTabIndex;
   final String? initialMemberId;
   final String? initialClassId;
+  final bool initialOpenAssignWorkout;
 
   const AdminScreen({
     super.key,
     this.initialTabIndex = 0,
     this.initialMemberId,
     this.initialClassId,
+    this.initialOpenAssignWorkout = false,
   });
 
   @override
@@ -59,6 +61,7 @@ class _AdminScreenState extends State<AdminScreen> {
   late int tabIndex;
   String? _pendingOpenMemberId;
   String? _pendingOpenClassId;
+  bool _pendingOpenAssignWorkout = false;
   bool _loading = true;
   bool _adminActionBusy = false;
   String? _error;
@@ -88,6 +91,7 @@ class _AdminScreenState extends State<AdminScreen> {
     tabIndex = widget.initialTabIndex;
     _pendingOpenMemberId = widget.initialMemberId;
     _pendingOpenClassId = widget.initialClassId;
+    _pendingOpenAssignWorkout = widget.initialOpenAssignWorkout;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToActiveTab();
     });
@@ -103,6 +107,9 @@ class _AdminScreenState extends State<AdminScreen> {
     }
     if (oldWidget.initialClassId != widget.initialClassId) {
       _pendingOpenClassId = widget.initialClassId;
+    }
+    if (oldWidget.initialOpenAssignWorkout != widget.initialOpenAssignWorkout) {
+      _pendingOpenAssignWorkout = widget.initialOpenAssignWorkout;
     }
 
     if (oldWidget.initialTabIndex != widget.initialTabIndex) {
@@ -160,28 +167,14 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   void _openPendingClassIfNeeded() {
-    if (tabIndex != 1) {
-      debugPrint('ADMIN DEBUG class open skipped: tabIndex=$tabIndex');
-      return;
-    }
+    if (tabIndex != 1) return;
 
     final rawClassId = _pendingOpenClassId?.trim() ?? '';
-    debugPrint('ADMIN DEBUG raw pending class id="$rawClassId"');
-
-    if (rawClassId.isEmpty) {
-      debugPrint('ADMIN DEBUG pending class id empty');
-      return;
-    }
+    if (rawClassId.isEmpty) return;
 
     final classId = rawClassId.startsWith('tomorrow-risk-')
         ? rawClassId.substring('tomorrow-risk-'.length)
         : rawClassId;
-
-    debugPrint('ADMIN DEBUG normalized class id="$classId"');
-    debugPrint('ADMIN DEBUG classes loaded count=${_classes.length}');
-    debugPrint(
-      'ADMIN DEBUG class ids loaded=${_classes.map((e) => (e['id'] ?? '').toString()).take(20).toList()}',
-    );
 
     Map<String, dynamic>? target;
     for (final item in _classes) {
@@ -191,23 +184,21 @@ class _AdminScreenState extends State<AdminScreen> {
       }
     }
 
+    final openAssignWorkout = _pendingOpenAssignWorkout;
     _pendingOpenClassId = null;
+    _pendingOpenAssignWorkout = false;
 
-    if (target == null) {
-      debugPrint('ADMIN DEBUG target class NOT found');
-      return;
-    }
-
-    debugPrint(
-      'ADMIN DEBUG target class found title=${(target['title'] ?? '').toString()} program=${(target['program_name'] ?? '').toString()}',
-    );
+    if (target == null) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       Future.delayed(const Duration(milliseconds: 120), () {
         if (!mounted) return;
-        debugPrint('ADMIN DEBUG opening class actions sheet');
-        _showClassActions(target!);
+        if (openAssignWorkout) {
+          _showAssignWorkoutModal(target!);
+        } else {
+          _showClassActions(target!);
+        }
       });
     });
   }
@@ -618,6 +609,14 @@ class _AdminScreenState extends State<AdminScreen> {
                                   child: CupertinoTheme(
                                     data: const CupertinoThemeData(
                                       primaryColor: Color(0xFFB59B6A),
+                                      textTheme: CupertinoTextThemeData(
+                                        dateTimePickerTextStyle: TextStyle(
+                                          color: Color(0xFF111318),
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w500,
+                                          letterSpacing: -0.2,
+                                        ),
+                                      ),
                                     ),
                                     child: CupertinoDatePicker(
                                       mode: CupertinoDatePickerMode.date,

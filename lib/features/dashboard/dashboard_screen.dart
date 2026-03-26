@@ -8,14 +8,17 @@ import 'widgets/dashboard_alert_tile.dart';
 import 'widgets/dashboard_kpi_card.dart';
 import 'widgets/dashboard_loading_state.dart';
 import 'widgets/dashboard_member_activity_tile.dart';
+import 'widgets/dashboard_next_class_card.dart';
 import 'widgets/dashboard_section_header.dart';
+import 'widgets/dashboard_today_highlights_card.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenAdmin;
   final VoidCallback? onOpenAdminClasses;
   final VoidCallback? onOpenAdminMembers;
   final ValueChanged<String>? onOpenAdminMemberDetail;
-  final ValueChanged<String>? onOpenAdminClassDetail;
+  final void Function(String classId, bool openAssignWorkout)?
+  onOpenAdminClassDetail;
 
   const DashboardScreen({
     super.key,
@@ -300,7 +303,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 return;
               }
               if (widget.onOpenAdminClassDetail != null) {
-                widget.onOpenAdminClassDetail!.call(classId);
+                widget.onOpenAdminClassDetail!.call(
+                  classId,
+                  tomorrow.riskClasses[i].needsWorkoutAssignment,
+                );
               } else if (widget.onOpenAdminClasses != null) {
                 widget.onOpenAdminClasses!.call();
               } else {
@@ -428,6 +434,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 8),
           Text('Business insights for your gym.', style: _subtitleStyle()),
           const SizedBox(height: 24),
+
+          if (data.nextClass != null) ...[
+            DashboardNextClassCard(
+              title: data.nextClass!.title,
+              subtitle: data.nextClass!.subtitle,
+              occupancyLabel: data.nextClass!.occupancyLabel,
+              hasWorkout: data.nextClass!.hasWorkout,
+              onTap: () {
+                final classId = data.nextClass!.id.trim();
+                if (classId.isEmpty) return;
+                if (widget.onOpenAdminClassDetail != null) {
+                  widget.onOpenAdminClassDetail!.call(
+                    classId,
+                    !data.nextClass!.hasWorkout,
+                  );
+                } else if (widget.onOpenAdminClasses != null) {
+                  widget.onOpenAdminClasses!.call();
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          DashboardTodayHighlightsCard(items: data.todayHighlights),
+          const SizedBox(height: 28),
 
           KeyedSubtree(
             key: _todaySectionKey,

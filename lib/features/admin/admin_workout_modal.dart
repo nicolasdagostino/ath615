@@ -161,6 +161,14 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                   child: CupertinoTheme(
                                     data: const CupertinoThemeData(
                                       primaryColor: Color(0xFFB59B6A),
+                                      textTheme: CupertinoTextThemeData(
+                                        dateTimePickerTextStyle: TextStyle(
+                                          color: Color(0xFF111318),
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w500,
+                                          letterSpacing: -0.2,
+                                        ),
+                                      ),
                                     ),
                                     child: CupertinoDatePicker(
                                       mode: CupertinoDatePickerMode.date,

@@ -29,6 +29,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
   int _adminInitialTabIndex = 0;
   String? _adminInitialMemberId;
   String? _adminInitialClassId;
+  bool _adminOpenAssignWorkout = false;
 
   @override
   void initState() {
@@ -77,6 +78,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
     int initialTabIndex = 0,
     String? initialMemberId,
     String? initialClassId,
+    bool openAssignWorkout = false,
   }) {
     final items = _cachedItems;
     if (items == null) return;
@@ -88,6 +90,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
       _adminInitialTabIndex = initialTabIndex;
       _adminInitialMemberId = initialMemberId;
       _adminInitialClassId = initialClassId;
+      _adminOpenAssignWorkout = openAssignWorkout;
       _cachedScreens = _screens(_resolvedIsAdmin ?? false);
       index = adminIndex;
     });
@@ -108,18 +111,22 @@ class _BottomNavShellState extends State<BottomNavShell> {
           onOpenAdminMembers: () => _goToAdminTab(initialTabIndex: 3),
           onOpenAdminMemberDetail: (memberId) =>
               _goToAdminTab(initialTabIndex: 3, initialMemberId: memberId),
-          onOpenAdminClassDetail: (classId) =>
-              _goToAdminTab(initialTabIndex: 1, initialClassId: classId),
+          onOpenAdminClassDetail: (classId, openAssignWorkout) => _goToAdminTab(
+            initialTabIndex: 1,
+            initialClassId: classId,
+            openAssignWorkout: openAssignWorkout,
+          ),
         ),
       );
       base.add(
         AdminScreen(
           key: ValueKey(
-            'admin_${_adminInitialTabIndex}_${_adminInitialMemberId ?? ''}_${_adminInitialClassId ?? ''}',
+            'admin_${_adminInitialTabIndex}_${_adminInitialMemberId ?? ''}_${_adminInitialClassId ?? ''}_${_adminOpenAssignWorkout ? 'assign' : 'actions'}',
           ),
           initialTabIndex: _adminInitialTabIndex,
           initialMemberId: _adminInitialMemberId,
           initialClassId: _adminInitialClassId,
+          initialOpenAssignWorkout: _adminOpenAssignWorkout,
         ),
       );
     }
