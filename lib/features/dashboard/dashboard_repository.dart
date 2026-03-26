@@ -12,12 +12,22 @@ class DashboardRepository {
     final gymId = await _gymRepository.resolveGymId();
 
     final members = await _loadMemberRows(gymId);
-    final classesToday = await _loadTodayClasses(gymId);
+    final classesToday = await _loadDayClasses(gymId, dayOffset: 0);
+    final classesTomorrow = await _loadDayClasses(gymId, dayOffset: 1);
+    final thisWeekClasses = await _loadWeekClasses(gymId, weekOffset: 0);
+    final lastWeekClasses = await _loadWeekClasses(gymId, weekOffset: -1);
     final bookings = await _loadGymBookings(gymId);
 
     final todayStats = _buildTodayStats(classesToday, bookings);
     final memberStats = _buildMemberStats(members);
     final engagementStats = _buildEngagementStats(members, bookings);
+    final performanceStats = _buildPerformanceStats(
+      thisWeekClasses: thisWeekClasses,
+      lastWeekClasses: lastWeekClasses,
+      bookings: bookings,
+    );
+    final tomorrowStats = _buildTomorrowStats(classesTomorrow, bookings);
+    final memberActivity = _buildMemberActivity(members, bookings);
     final alerts = _buildAlerts(
       members: members,
       classesToday: classesToday,
@@ -28,6 +38,9 @@ class DashboardRepository {
       today: todayStats,
       members: memberStats,
       engagement: engagementStats,
+      performance: performanceStats,
+      tomorrow: tomorrowStats,
+      memberActivity: memberActivity,
       alerts: alerts,
       gymId: gymId,
     );
@@ -51,9 +64,16 @@ class DashboardRepository {
     return List<Map<String, dynamic>>.from(data);
   }
 
-  Future<List<Map<String, dynamic>>> _loadTodayClasses(String? gymId) async {
+  Future<List<Map<String, dynamic>>> _loadDayClasses(
+    String? gymId, {
+    required int dayOffset,
+  }) async {
     final now = DateTime.now();
-    final start = DateTime(now.year, now.month, now.day);
+    final start = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).add(Duration(days: dayOffset));
     final end = start.add(const Duration(days: 1));
 
     dynamic query = sb
@@ -61,6 +81,27 @@ class DashboardRepository {
         .select('*')
         .gte('starts_at', start.toUtc().toIso8601String())
         .lt('starts_at', end.toUtc().toIso8601String())
+        .eq('status', 'scheduled');
+
+    if (gymId != null && gymId.isNotEmpty) {
+      query = query.eq('gym_id', gymId);
+    }
+
+    final data = await query.order('starts_at', ascending: true);
+    return List<Map<String, dynamic>>.from(data);
+  }
+
+  Future<List<Map<String, dynamic>>> _loadWeekClasses(
+    String? gymId, {
+    required int weekOffset,
+  }) async {
+    final range = _weekRange(weekOffset: weekOffset);
+
+    dynamic query = sb
+        .from('v_classes_with_spots')
+        .select('*')
+        .gte('starts_at', range.start.toUtc().toIso8601String())
+        .lt('starts_at', range.end.toUtc().toIso8601String())
         .eq('status', 'scheduled');
 
     if (gymId != null && gymId.isNotEmpty) {
@@ -153,32 +194,10 @@ class DashboardRepository {
         .where((id) => id.isNotEmpty)
         .toSet();
 
-    final Map<String, DateTime> lastActivityByMember = {};
-
-    for (final booking in bookings) {
-      final memberId = (booking['member_id'] ?? '').toString();
-      if (!activeMemberIds.contains(memberId)) continue;
-
-      final classData = booking['classes'];
-      DateTime? classStartsAt;
-      if (classData is Map) {
-        classStartsAt = DateTime.tryParse(
-          (classData['starts_at'] ?? '').toString(),
-        );
-      }
-
-      final createdAt = DateTime.tryParse(
-        (booking['created_at'] ?? '').toString(),
-      );
-
-      final activityAt = classStartsAt ?? createdAt;
-      if (activityAt == null) continue;
-
-      final current = lastActivityByMember[memberId];
-      if (current == null || activityAt.isAfter(current)) {
-        lastActivityByMember[memberId] = activityAt;
-      }
-    }
+    final lastActivityByMember = _lastActivityByMember(
+      bookings,
+      activeMemberIds,
+    );
 
     var inactive7 = 0;
     var inactive14 = 0;
@@ -202,15 +221,223 @@ class DashboardRepository {
     );
   }
 
+  DashboardPerformanceStats _buildPerformanceStats({
+    required List<Map<String, dynamic>> thisWeekClasses,
+    required List<Map<String, dynamic>> lastWeekClasses,
+    required List<Map<String, dynamic>> bookings,
+  }) {
+    final thisWeek = _computeWeekPerformance(
+      classes: thisWeekClasses,
+      bookings: bookings,
+      weekOffset: 0,
+    );
+    final lastWeek = _computeWeekPerformance(
+      classes: lastWeekClasses,
+      bookings: bookings,
+      weekOffset: -1,
+    );
+
+    return DashboardPerformanceStats(
+      bookingsThisWeek: thisWeek.bookings,
+      bookingsLastWeek: lastWeek.bookings,
+      attendanceRate: thisWeek.attendanceRate,
+      attendanceRateLastWeek: lastWeek.attendanceRate,
+      avgAthletesPerClass: thisWeek.avgAthletesPerClass,
+      avgAthletesPerClassLastWeek: lastWeek.avgAthletesPerClass,
+    );
+  }
+
+  DashboardTomorrowStats _buildTomorrowStats(
+    List<Map<String, dynamic>> classesTomorrow,
+    List<Map<String, dynamic>> bookings,
+  ) {
+    final riskItems = <DashboardRiskClassItem>[];
+
+    for (final item in classesTomorrow) {
+      final classId = (item['id'] ?? '').toString();
+      if (classId.isEmpty) continue;
+
+      final maxSpots = _readInt(item, const [
+        'max_spots',
+        'capacity',
+        'spots_total',
+      ]);
+      if (maxSpots <= 0) continue;
+
+      final reserved = bookings.where((b) {
+        final sameClass = (b['class_id'] ?? '').toString() == classId;
+        if (!sameClass) return false;
+        final status = (b['status'] ?? '').toString().toLowerCase().trim();
+        return status == 'booked' || status == 'attended';
+      }).length;
+
+      final ratio = reserved / maxSpots;
+      if (ratio > 0.40) continue;
+
+      final startsAt = DateTime.tryParse(
+        (item['starts_at'] ?? '').toString(),
+      )?.toLocal();
+      final hh = startsAt?.hour.toString().padLeft(2, '0') ?? '--';
+      final mm = startsAt?.minute.toString().padLeft(2, '0') ?? '--';
+
+      final title = (item['title'] ?? item['program_name'] ?? 'Class')
+          .toString()
+          .trim();
+      final safeTitle = title.isEmpty ? 'Class' : title;
+
+      riskItems.add(
+        DashboardRiskClassItem(
+          id: 'tomorrow-risk-$classId',
+          title: '$hh:$mm · $safeTitle',
+          subtitle: '$reserved / $maxSpots booked',
+        ),
+      );
+    }
+
+    return DashboardTomorrowStats(
+      classesTomorrow: classesTomorrow.length,
+      lowOccupancyTomorrow: riskItems.length,
+      riskClasses: riskItems.take(4).toList(),
+    );
+  }
+
+  List<DashboardMemberActivityItem> _buildMemberActivity(
+    List<Map<String, dynamic>> members,
+    List<Map<String, dynamic>> bookings,
+  ) {
+    final now = DateTime.now();
+    final activeMembers = members.where((m) => m['is_active'] == true).toList();
+
+    final activeMemberIds = activeMembers
+        .map((m) => (m['id'] ?? '').toString())
+        .where((id) => id.isNotEmpty)
+        .toSet();
+
+    final lastActivityByMember = _lastActivityByMember(
+      bookings,
+      activeMemberIds,
+    );
+    final items = <DashboardMemberActivityItem>[];
+
+    for (final member in activeMembers) {
+      final memberId = (member['id'] ?? '').toString();
+      if (memberId.isEmpty) continue;
+
+      final name = _memberName(member);
+      final last = lastActivityByMember[memberId];
+
+      if (last == null) {
+        items.add(
+          DashboardMemberActivityItem(
+            id: 'member-$memberId',
+            name: name,
+            subtitle: 'No booking activity yet',
+            priority: 1000,
+            isAtRisk: true,
+          ),
+        );
+        continue;
+      }
+
+      final days = now.difference(last.toLocal()).inDays;
+
+      String subtitle;
+      if (days <= 0) {
+        subtitle = 'Active today';
+      } else if (days == 1) {
+        subtitle = 'Active 1 day ago';
+      } else {
+        subtitle = 'Active $days days ago';
+      }
+
+      items.add(
+        DashboardMemberActivityItem(
+          id: 'member-$memberId',
+          name: name,
+          subtitle: days >= 10 ? '$days days without activity' : subtitle,
+          priority: days >= 10 ? days : -days,
+          isAtRisk: days >= 10,
+        ),
+      );
+    }
+
+    items.sort((a, b) => b.priority.compareTo(a.priority));
+    return items.take(5).toList();
+  }
+
+  _WeekPerformance _computeWeekPerformance({
+    required List<Map<String, dynamic>> classes,
+    required List<Map<String, dynamic>> bookings,
+    required int weekOffset,
+  }) {
+    final range = _weekRange(weekOffset: weekOffset);
+    final classIds = classes
+        .map((e) => (e['id'] ?? '').toString())
+        .where((e) => e.isNotEmpty)
+        .toSet();
+
+    var bookingsCount = 0;
+    var attendedCount = 0;
+    var reservedCount = 0;
+
+    for (final booking in bookings) {
+      final classId = (booking['class_id'] ?? '').toString();
+      if (!classIds.contains(classId)) continue;
+
+      DateTime? classStartsAt;
+      final classData = booking['classes'];
+      if (classData is Map) {
+        classStartsAt = DateTime.tryParse(
+          (classData['starts_at'] ?? '').toString(),
+        )?.toLocal();
+      }
+
+      if (classStartsAt == null) continue;
+      if (classStartsAt.isBefore(range.start) ||
+          !classStartsAt.isBefore(range.end)) {
+        continue;
+      }
+
+      final status = (booking['status'] ?? '').toString().toLowerCase().trim();
+
+      if (status == 'booked' || status == 'attended') {
+        bookingsCount++;
+        reservedCount++;
+      }
+
+      if (status == 'attended') {
+        attendedCount++;
+      }
+    }
+
+    final attendanceRate = reservedCount == 0
+        ? 0.0
+        : (attendedCount / reservedCount) * 100.0;
+
+    final avgAthletesPerClass = classes.isEmpty
+        ? 0.0
+        : bookingsCount / classes.length;
+
+    return _WeekPerformance(
+      bookings: bookingsCount,
+      attendanceRate: attendanceRate,
+      avgAthletesPerClass: avgAthletesPerClass,
+    );
+  }
+
   List<DashboardAlertItem> _buildAlerts({
     required List<Map<String, dynamic>> members,
     required List<Map<String, dynamic>> classesToday,
     required List<Map<String, dynamic>> bookings,
   }) {
     final alerts = <DashboardAlertItem>[];
+
+    alerts.addAll(_buildInactiveMemberAlerts(members, bookings));
     alerts.addAll(_buildBirthdayAlerts(members));
     alerts.addAll(_buildLowOccupancyAlerts(classesToday, bookings));
-    return alerts;
+
+    alerts.sort((a, b) => b.priority.compareTo(a.priority));
+    return alerts.take(6).toList();
   }
 
   List<DashboardAlertItem> _buildBirthdayAlerts(
@@ -222,10 +449,7 @@ class DashboardRepository {
     for (final member in members) {
       if (member['is_active'] != true) continue;
 
-      final name = (member['full_name'] ?? 'Athlete').toString().trim().isEmpty
-          ? 'Athlete'
-          : (member['full_name'] ?? 'Athlete').toString().trim();
-
+      final name = _memberName(member);
       final dobRaw = (member['date_of_birth'] ?? '').toString().trim();
       final dob = DateTime.tryParse(dobRaw);
       if (dob == null) continue;
@@ -249,12 +473,61 @@ class DashboardRepository {
           type: 'birthday',
           title: '$name birthday',
           subtitle: '$when · turns ${nextBirthday.year - dob.year}',
+          priority: 40 - diff,
         ),
       );
     }
 
-    alerts.sort((a, b) => a.title.compareTo(b.title));
-    return alerts.take(4).toList();
+    return alerts;
+  }
+
+  List<DashboardAlertItem> _buildInactiveMemberAlerts(
+    List<Map<String, dynamic>> members,
+    List<Map<String, dynamic>> bookings,
+  ) {
+    final now = DateTime.now();
+    final activeMembers = members.where((m) => m['is_active'] == true).toList();
+
+    final activeMemberIds = activeMembers
+        .map((m) => (m['id'] ?? '').toString())
+        .where((id) => id.isNotEmpty)
+        .toSet();
+
+    final lastActivityByMember = _lastActivityByMember(
+      bookings,
+      activeMemberIds,
+    );
+    final alerts = <DashboardAlertItem>[];
+
+    for (final member in activeMembers) {
+      final memberId = (member['id'] ?? '').toString();
+      if (memberId.isEmpty) continue;
+
+      final last = lastActivityByMember[memberId];
+      final inactiveDays = last == null
+          ? 999
+          : now.difference(last.toLocal()).inDays;
+
+      if (inactiveDays < 10) continue;
+
+      final name = _memberName(member);
+      final subtitle = last == null
+          ? 'No booking activity yet'
+          : '$inactiveDays days without activity';
+
+      alerts.add(
+        DashboardAlertItem(
+          id: 'inactive-$memberId',
+          type: 'inactive_member',
+          title: '$name inactive',
+          subtitle: subtitle,
+          priority: last == null ? 100 : inactiveDays,
+        ),
+      );
+    }
+
+    alerts.sort((a, b) => b.priority.compareTo(a.priority));
+    return alerts.take(3).toList();
   }
 
   DateTime _nextBirthdayDate(DateTime now, DateTime dob) {
@@ -313,11 +586,61 @@ class DashboardRepository {
           type: 'low_occupancy',
           title: title.isEmpty ? 'Class with low occupancy' : title,
           subtitle: subtitle,
+          priority: 60 - reserved,
         ),
       );
     }
 
-    return alerts.take(4).toList();
+    return alerts;
+  }
+
+  Map<String, DateTime> _lastActivityByMember(
+    List<Map<String, dynamic>> bookings,
+    Set<String> activeMemberIds,
+  ) {
+    final result = <String, DateTime>{};
+
+    for (final booking in bookings) {
+      final memberId = (booking['member_id'] ?? '').toString();
+      if (!activeMemberIds.contains(memberId)) continue;
+
+      final classData = booking['classes'];
+      DateTime? classStartsAt;
+      if (classData is Map) {
+        classStartsAt = DateTime.tryParse(
+          (classData['starts_at'] ?? '').toString(),
+        );
+      }
+
+      final createdAt = DateTime.tryParse(
+        (booking['created_at'] ?? '').toString(),
+      );
+
+      final activityAt = classStartsAt ?? createdAt;
+      if (activityAt == null) continue;
+
+      final current = result[memberId];
+      if (current == null || activityAt.isAfter(current)) {
+        result[memberId] = activityAt;
+      }
+    }
+
+    return result;
+  }
+
+  _WeekRange _weekRange({required int weekOffset}) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final startOfThisWeek = today.subtract(Duration(days: now.weekday - 1));
+    final start = startOfThisWeek.add(Duration(days: 7 * weekOffset));
+    final end = start.add(const Duration(days: 7));
+    return _WeekRange(start: start, end: end);
+  }
+
+  String _memberName(Map<String, dynamic> member) {
+    final raw = (member['full_name'] ?? '').toString().trim();
+    if (raw.isEmpty) return 'Athlete';
+    return raw;
   }
 
   bool _isClassFull(Map<String, dynamic> item) {
@@ -356,4 +679,23 @@ class DashboardRepository {
     }
     return null;
   }
+}
+
+class _WeekRange {
+  final DateTime start;
+  final DateTime end;
+
+  const _WeekRange({required this.start, required this.end});
+}
+
+class _WeekPerformance {
+  final int bookings;
+  final double attendanceRate;
+  final double avgAthletesPerClass;
+
+  const _WeekPerformance({
+    required this.bookings,
+    required this.attendanceRate,
+    required this.avgAthletesPerClass,
+  });
 }

@@ -29,7 +29,9 @@ part 'admin_plan_actions.dart';
 part 'admin_plan_modal.dart';
 
 class AdminScreen extends StatefulWidget {
-  const AdminScreen({super.key});
+  final int initialTabIndex;
+
+  const AdminScreen({super.key, this.initialTabIndex = 0});
 
   @override
   State<AdminScreen> createState() => _AdminScreenState();
@@ -47,7 +49,7 @@ class _AdminScreenState extends State<AdminScreen> {
   final _storageRepo = StorageRepository();
   final _picker = ImagePicker();
 
-  int tabIndex = 0;
+  late int tabIndex;
   bool _loading = true;
   bool _adminActionBusy = false;
   String? _error;
@@ -68,11 +70,30 @@ class _AdminScreenState extends State<AdminScreen> {
     'Plans',
     'Notifications',
   ];
+  late final List<GlobalKey> _tabChipKeys;
 
   @override
   void initState() {
     super.initState();
+    _tabChipKeys = List.generate(tabs.length, (_) => GlobalKey());
+    tabIndex = widget.initialTabIndex;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToActiveTab();
+    });
     _loadAdminData();
+  }
+
+  void _scrollToActiveTab() {
+    if (tabIndex < 0 || tabIndex >= _tabChipKeys.length) return;
+    final context = _tabChipKeys[tabIndex].currentContext;
+    if (context == null) return;
+
+    Scrollable.ensureVisible(
+      context,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeInOut,
+      alignment: 0.5,
+    );
   }
 
   TextStyle _font(
@@ -4466,13 +4487,22 @@ class _AdminScreenState extends State<AdminScreen> {
                       child: Row(
                         children: List.generate(tabs.length, (i) {
                           return Padding(
+                            key: _tabChipKeys[i],
                             padding: EdgeInsets.only(
                               right: i == tabs.length - 1 ? 0 : 8,
                             ),
                             child: _adminTabChip(
                               label: tabs[i],
                               selected: i == tabIndex,
-                              onTap: () => setState(() => tabIndex = i),
+                              onTap: () {
+                                setState(() => tabIndex = i);
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) {
+                                  if (!mounted) return;
+                                  _scrollToActiveTab();
+                                });
+                              },
                             ),
                           );
                         }),

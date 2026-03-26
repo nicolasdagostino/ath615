@@ -26,6 +26,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
   List<Widget>? _cachedScreens;
   List<_NavItemData>? _cachedItems;
   int _bookingScreenSeed = 0;
+  int _adminInitialTabIndex = 0;
 
   @override
   void initState() {
@@ -70,6 +71,20 @@ class _BottomNavShellState extends State<BottomNavShell> {
     return false;
   }
 
+  void _goToAdminTab({int initialTabIndex = 0}) {
+    final items = _cachedItems;
+    if (items == null) return;
+
+    final adminIndex = items.indexWhere((item) => item.label == 'Admin');
+    if (adminIndex < 0) return;
+
+    setState(() {
+      _adminInitialTabIndex = initialTabIndex;
+      _cachedScreens = _screens(_resolvedIsAdmin ?? false);
+      index = adminIndex;
+    });
+  }
+
   List<Widget> _screens(bool isAdmin) {
     final base = <Widget>[
       const WorkoutsScreen(),
@@ -78,8 +93,19 @@ class _BottomNavShellState extends State<BottomNavShell> {
     ];
 
     if (isAdmin) {
-      base.add(const DashboardScreen());
-      base.add(const AdminScreen());
+      base.add(
+        DashboardScreen(
+          onOpenAdmin: () => _goToAdminTab(initialTabIndex: 0),
+          onOpenAdminClasses: () => _goToAdminTab(initialTabIndex: 1),
+          onOpenAdminMembers: () => _goToAdminTab(initialTabIndex: 3),
+        ),
+      );
+      base.add(
+        AdminScreen(
+          key: ValueKey('admin_$_adminInitialTabIndex'),
+          initialTabIndex: _adminInitialTabIndex,
+        ),
+      );
     }
 
     base.add(const ProfileScreen());
