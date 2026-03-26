@@ -31,11 +31,13 @@ part 'admin_plan_modal.dart';
 class AdminScreen extends StatefulWidget {
   final int initialTabIndex;
   final String? initialMemberId;
+  final String? initialClassId;
 
   const AdminScreen({
     super.key,
     this.initialTabIndex = 0,
     this.initialMemberId,
+    this.initialClassId,
   });
 
   @override
@@ -56,6 +58,7 @@ class _AdminScreenState extends State<AdminScreen> {
 
   late int tabIndex;
   String? _pendingOpenMemberId;
+  String? _pendingOpenClassId;
   bool _loading = true;
   bool _adminActionBusy = false;
   String? _error;
@@ -84,10 +87,52 @@ class _AdminScreenState extends State<AdminScreen> {
     _tabChipKeys = List.generate(tabs.length, (_) => GlobalKey());
     tabIndex = widget.initialTabIndex;
     _pendingOpenMemberId = widget.initialMemberId;
+    _pendingOpenClassId = widget.initialClassId;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToActiveTab();
     });
     _loadAdminData();
+  }
+
+  @override
+  void didUpdateWidget(covariant AdminScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.initialMemberId != widget.initialMemberId) {
+      _pendingOpenMemberId = widget.initialMemberId;
+    }
+    if (oldWidget.initialClassId != widget.initialClassId) {
+      _pendingOpenClassId = widget.initialClassId;
+    }
+
+    if (oldWidget.initialTabIndex != widget.initialTabIndex) {
+      final nextIndex = widget.initialTabIndex.clamp(0, tabs.length - 1);
+      if (tabIndex != nextIndex) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          setState(() => tabIndex = nextIndex);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            _scrollToActiveTab();
+            _openPendingMemberIfNeeded();
+            _openPendingClassIfNeeded();
+          });
+        });
+      } else {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _openPendingMemberIfNeeded();
+          _openPendingClassIfNeeded();
+        });
+      }
+    } else if (oldWidget.initialMemberId != widget.initialMemberId ||
+        oldWidget.initialClassId != widget.initialClassId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _openPendingMemberIfNeeded();
+        _openPendingClassIfNeeded();
+      });
+    }
   }
 
   void _openPendingMemberIfNeeded() {
@@ -111,6 +156,59 @@ class _AdminScreenState extends State<AdminScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _showMemberActions(target!);
+    });
+  }
+
+  void _openPendingClassIfNeeded() {
+    if (tabIndex != 1) {
+      debugPrint('ADMIN DEBUG class open skipped: tabIndex=$tabIndex');
+      return;
+    }
+
+    final rawClassId = _pendingOpenClassId?.trim() ?? '';
+    debugPrint('ADMIN DEBUG raw pending class id="$rawClassId"');
+
+    if (rawClassId.isEmpty) {
+      debugPrint('ADMIN DEBUG pending class id empty');
+      return;
+    }
+
+    final classId = rawClassId.startsWith('tomorrow-risk-')
+        ? rawClassId.substring('tomorrow-risk-'.length)
+        : rawClassId;
+
+    debugPrint('ADMIN DEBUG normalized class id="$classId"');
+    debugPrint('ADMIN DEBUG classes loaded count=${_classes.length}');
+    debugPrint(
+      'ADMIN DEBUG class ids loaded=${_classes.map((e) => (e['id'] ?? '').toString()).take(20).toList()}',
+    );
+
+    Map<String, dynamic>? target;
+    for (final item in _classes) {
+      if ((item['id'] ?? '').toString() == classId) {
+        target = item;
+        break;
+      }
+    }
+
+    _pendingOpenClassId = null;
+
+    if (target == null) {
+      debugPrint('ADMIN DEBUG target class NOT found');
+      return;
+    }
+
+    debugPrint(
+      'ADMIN DEBUG target class found title=${(target['title'] ?? '').toString()} program=${(target['program_name'] ?? '').toString()}',
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Future.delayed(const Duration(milliseconds: 120), () {
+        if (!mounted) return;
+        debugPrint('ADMIN DEBUG opening class actions sheet');
+        _showClassActions(target!);
+      });
     });
   }
 
@@ -1105,6 +1203,7 @@ class _AdminScreenState extends State<AdminScreen> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           _openPendingMemberIfNeeded();
+          _openPendingClassIfNeeded();
         });
       }
     }

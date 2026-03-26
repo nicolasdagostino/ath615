@@ -15,6 +15,7 @@ class DashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenAdminClasses;
   final VoidCallback? onOpenAdminMembers;
   final ValueChanged<String>? onOpenAdminMemberDetail;
+  final ValueChanged<String>? onOpenAdminClassDetail;
 
   const DashboardScreen({
     super.key,
@@ -22,6 +23,7 @@ class DashboardScreen extends StatefulWidget {
     this.onOpenAdminClasses,
     this.onOpenAdminMembers,
     this.onOpenAdminMemberDetail,
+    this.onOpenAdminClassDetail,
   });
 
   @override
@@ -290,10 +292,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       children: [
         for (var i = 0; i < tomorrow.riskClasses.length; i++) ...[
-          DashboardAlertTile(
-            icon: Icons.event_busy_outlined,
-            title: tomorrow.riskClasses[i].title,
-            subtitle: tomorrow.riskClasses[i].subtitle,
+          GestureDetector(
+            onTap: () {
+              final classId = tomorrow.riskClasses[i].id.trim();
+              if (classId.isEmpty) {
+                _showActionMessage('Class detail is not available.');
+                return;
+              }
+              if (widget.onOpenAdminClassDetail != null) {
+                widget.onOpenAdminClassDetail!.call(classId);
+              } else if (widget.onOpenAdminClasses != null) {
+                widget.onOpenAdminClasses!.call();
+              } else {
+                _showActionMessage('Classes navigation is not available.');
+              }
+            },
+            child: DashboardAlertTile(
+              icon: Icons.event_busy_outlined,
+              title: tomorrow.riskClasses[i].title,
+              subtitle: tomorrow.riskClasses[i].subtitle,
+            ),
           ),
           if (i != tomorrow.riskClasses.length - 1) const SizedBox(height: 10),
         ],

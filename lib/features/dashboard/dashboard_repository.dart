@@ -287,7 +287,7 @@ class DashboardRepository {
 
       riskItems.add(
         DashboardRiskClassItem(
-          id: 'tomorrow-risk-$classId',
+          id: classId,
           title: '$hh:$mm · $safeTitle',
           subtitle: '$reserved / $maxSpots booked',
         ),
