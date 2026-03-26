@@ -27,6 +27,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
   List<_NavItemData>? _cachedItems;
   int _bookingScreenSeed = 0;
   int _adminInitialTabIndex = 0;
+  String? _adminInitialMemberId;
 
   @override
   void initState() {
@@ -71,7 +72,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
     return false;
   }
 
-  void _goToAdminTab({int initialTabIndex = 0}) {
+  void _goToAdminTab({int initialTabIndex = 0, String? initialMemberId}) {
     final items = _cachedItems;
     if (items == null) return;
 
@@ -80,6 +81,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
 
     setState(() {
       _adminInitialTabIndex = initialTabIndex;
+      _adminInitialMemberId = initialMemberId;
       _cachedScreens = _screens(_resolvedIsAdmin ?? false);
       index = adminIndex;
     });
@@ -98,12 +100,17 @@ class _BottomNavShellState extends State<BottomNavShell> {
           onOpenAdmin: () => _goToAdminTab(initialTabIndex: 0),
           onOpenAdminClasses: () => _goToAdminTab(initialTabIndex: 1),
           onOpenAdminMembers: () => _goToAdminTab(initialTabIndex: 3),
+          onOpenAdminMemberDetail: (memberId) =>
+              _goToAdminTab(initialTabIndex: 3, initialMemberId: memberId),
         ),
       );
       base.add(
         AdminScreen(
-          key: ValueKey('admin_$_adminInitialTabIndex'),
+          key: ValueKey(
+            'admin_${_adminInitialTabIndex}_${_adminInitialMemberId ?? ''}',
+          ),
           initialTabIndex: _adminInitialTabIndex,
+          initialMemberId: _adminInitialMemberId,
         ),
       );
     }

@@ -329,7 +329,7 @@ class DashboardRepository {
       if (last == null) {
         items.add(
           DashboardMemberActivityItem(
-            id: 'member-$memberId',
+            id: memberId,
             name: name,
             subtitle: 'No booking activity yet',
             priority: 1000,
@@ -352,7 +352,7 @@ class DashboardRepository {
 
       items.add(
         DashboardMemberActivityItem(
-          id: 'member-$memberId',
+          id: memberId,
           name: name,
           subtitle: days >= 10 ? '$days days without activity' : subtitle,
           priority: days >= 10 ? days : -days,

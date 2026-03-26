@@ -14,12 +14,14 @@ class DashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenAdmin;
   final VoidCallback? onOpenAdminClasses;
   final VoidCallback? onOpenAdminMembers;
+  final ValueChanged<String>? onOpenAdminMemberDetail;
 
   const DashboardScreen({
     super.key,
     this.onOpenAdmin,
     this.onOpenAdminClasses,
     this.onOpenAdminMembers,
+    this.onOpenAdminMemberDetail,
   });
 
   @override
@@ -311,6 +313,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
             name: items[i].name,
             subtitle: items[i].subtitle,
             isAtRisk: items[i].isAtRisk,
+            onTap: () {
+              final memberId = items[i].id.trim();
+              if (memberId.isEmpty) {
+                _showActionMessage('Member detail is not available.');
+                return;
+              }
+              if (widget.onOpenAdminMemberDetail != null) {
+                widget.onOpenAdminMemberDetail!.call(memberId);
+              } else if (widget.onOpenAdminMembers != null) {
+                widget.onOpenAdminMembers!.call();
+              } else {
+                _showActionMessage('Members navigation is not available.');
+              }
+            },
           ),
           if (i != items.length - 1) const SizedBox(height: 10),
         ],

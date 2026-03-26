@@ -30,8 +30,13 @@ part 'admin_plan_modal.dart';
 
 class AdminScreen extends StatefulWidget {
   final int initialTabIndex;
+  final String? initialMemberId;
 
-  const AdminScreen({super.key, this.initialTabIndex = 0});
+  const AdminScreen({
+    super.key,
+    this.initialTabIndex = 0,
+    this.initialMemberId,
+  });
 
   @override
   State<AdminScreen> createState() => _AdminScreenState();
@@ -50,6 +55,7 @@ class _AdminScreenState extends State<AdminScreen> {
   final _picker = ImagePicker();
 
   late int tabIndex;
+  String? _pendingOpenMemberId;
   bool _loading = true;
   bool _adminActionBusy = false;
   String? _error;
@@ -77,10 +83,35 @@ class _AdminScreenState extends State<AdminScreen> {
     super.initState();
     _tabChipKeys = List.generate(tabs.length, (_) => GlobalKey());
     tabIndex = widget.initialTabIndex;
+    _pendingOpenMemberId = widget.initialMemberId;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToActiveTab();
     });
     _loadAdminData();
+  }
+
+  void _openPendingMemberIfNeeded() {
+    if (tabIndex != 3) return;
+
+    final memberId = _pendingOpenMemberId?.trim() ?? '';
+    if (memberId.isEmpty) return;
+
+    Map<String, dynamic>? target;
+    for (final member in _members) {
+      if ((member['id'] ?? '').toString() == memberId) {
+        target = member;
+        break;
+      }
+    }
+
+    _pendingOpenMemberId = null;
+
+    if (target == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _showMemberActions(target!);
+    });
   }
 
   void _scrollToActiveTab() {
@@ -1070,6 +1101,10 @@ class _AdminScreenState extends State<AdminScreen> {
       if (mounted) {
         setState(() {
           _loading = false;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _openPendingMemberIfNeeded();
         });
       }
     }
