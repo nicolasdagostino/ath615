@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/admin/admin_screen.dart';
 import '../../features/booking/booking_screen.dart';
+import '../../features/dashboard/dashboard_screen.dart';
 import '../../features/explore/explore_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/workouts/workouts_screen.dart';
@@ -77,6 +78,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
     ];
 
     if (isAdmin) {
+      base.add(const DashboardScreen());
       base.add(const AdminScreen());
     }
 
@@ -104,6 +106,13 @@ class _BottomNavShellState extends State<BottomNavShell> {
     ];
 
     if (isAdmin) {
+      base.add(
+        const _NavItemData(
+          icon: Icons.space_dashboard_outlined,
+          activeIcon: Icons.space_dashboard,
+          label: 'Dashboard',
+        ),
+      );
       base.add(
         const _NavItemData(
           icon: Icons.admin_panel_settings_outlined,
