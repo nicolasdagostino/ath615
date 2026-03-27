@@ -358,54 +358,86 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _actions(DashboardData data) {
-    final inactiveCount = data.memberActivity.where((e) => e.isAtRisk).length;
+    final actions = data.recommendedActions;
 
     return Column(
       children: [
-        DashboardActionTile(
-          icon: Icons.campaign_outlined,
-          title: 'Review tomorrow risk',
-          subtitle:
-              '${data.tomorrow.lowOccupancyTomorrow} classes may need promotion.',
-          onTap: () => _showTomorrowRiskSheet(data.tomorrow),
-        ),
-        const SizedBox(height: 10),
-        DashboardActionTile(
-          icon: Icons.people_alt_outlined,
-          title: 'Check inactive members',
-          subtitle: '$inactiveCount members may need a follow-up message.',
-          onTap: () => _showInactiveMembersSheet(data.memberActivity),
-        ),
-        const SizedBox(height: 10),
-        DashboardActionTile(
-          icon: Icons.today_outlined,
-          title: 'Review today bookings',
-          subtitle:
-              '${data.today.bookingsToday} bookings currently on today schedule.',
-          onTap: () async {
-            await _scrollToToday();
-            if (widget.onOpenAdminClasses != null) {
-              widget.onOpenAdminClasses!.call();
-            }
-          },
-        ),
-        const SizedBox(height: 10),
-        DashboardActionTile(
-          icon: Icons.admin_panel_settings_outlined,
-          title: 'Open admin',
-          subtitle: 'Go to admin tools to manage classes, members and plans.',
-          onTap: () {
-            if (widget.onOpenAdmin != null) {
-              widget.onOpenAdmin!.call();
-            } else {
-              _showActionMessage(
-                'Admin navigation is not available right now.',
-              );
-            }
-          },
-        ),
+        for (var i = 0; i < actions.length; i++) ...[
+          DashboardActionTile(
+            icon: _iconForActionType(actions[i].type),
+            title: actions[i].title,
+            subtitle: actions[i].subtitle,
+            onTap: () async {
+              switch (actions[i].type) {
+                case 'tomorrow_risk':
+                  _showTomorrowRiskSheet(data.tomorrow);
+                  break;
+                case 'inactive_members':
+                  _showInactiveMembersSheet(data.memberActivity);
+                  break;
+                case 'next_class_workout':
+                  final classId = data.nextClass?.id.trim();
+                  if (classId != null &&
+                      classId.isNotEmpty &&
+                      widget.onOpenAdminClassDetail != null) {
+                    widget.onOpenAdminClassDetail!.call(classId, true);
+                  } else if (widget.onOpenAdminClasses != null) {
+                    widget.onOpenAdminClasses!.call();
+                  } else {
+                    _showActionMessage('Classes navigation is not available.');
+                  }
+                  break;
+                case 'today_workout_missing':
+                case 'today_bookings':
+                  await _scrollToToday();
+                  if (widget.onOpenAdminClasses != null) {
+                    widget.onOpenAdminClasses!.call();
+                  } else {
+                    _showActionMessage('Classes navigation is not available.');
+                  }
+                  break;
+                case 'birthday':
+                  _showActionMessage(
+                    'Review today highlights and congratulate them.',
+                  );
+                  await _scrollToToday();
+                  break;
+                case 'open_admin':
+                default:
+                  if (widget.onOpenAdmin != null) {
+                    widget.onOpenAdmin!.call();
+                  } else {
+                    _showActionMessage(
+                      'Admin navigation is not available right now.',
+                    );
+                  }
+                  break;
+              }
+            },
+          ),
+          if (i != actions.length - 1) const SizedBox(height: 10),
+        ],
       ],
     );
+  }
+
+  IconData _iconForActionType(String type) {
+    switch (type) {
+      case 'tomorrow_risk':
+        return Icons.campaign_outlined;
+      case 'inactive_members':
+        return Icons.people_alt_outlined;
+      case 'next_class_workout':
+      case 'today_workout_missing':
+        return Icons.fitness_center_outlined;
+      case 'today_bookings':
+        return Icons.today_outlined;
+      case 'birthday':
+        return Icons.cake_outlined;
+      case 'open_admin':
+      default:
+        return Icons.admin_panel_settings_outlined;
+    }
   }
 
   IconData _iconForType(String type) {
@@ -442,22 +474,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Text('Business insights for your gym.', style: _subtitleStyle()),
           const SizedBox(height: 24),
 
-          DashboardMorningOverview(
-            nextClass: data.nextClass,
-            highlights: data.todayHighlights,
-            milestones: data.milestones,
-            onNextClassTap: () {
-              final classId = data.nextClass?.id.trim();
-              if (classId == null || classId.isEmpty) return;
-              if (widget.onOpenAdminClassDetail != null) {
-                widget.onOpenAdminClassDetail!.call(
-                  classId,
-                  !(data.nextClass?.hasWorkout ?? true),
-                );
-              } else if (widget.onOpenAdminClasses != null) {
-                widget.onOpenAdminClasses!.call();
-              }
-            },
+          KeyedSubtree(
+            key: _todaySectionKey,
+            child: DashboardMorningOverview(
+              nextClass: data.nextClass,
+              highlights: data.todayHighlights,
+              milestones: data.milestones,
+              onNextClassTap: () {
+                final classId = data.nextClass?.id.trim();
+                if (classId == null || classId.isEmpty) return;
+                if (widget.onOpenAdminClassDetail != null) {
+                  widget.onOpenAdminClassDetail!.call(
+                    classId,
+                    !(data.nextClass?.hasWorkout ?? true),
+                  );
+                } else if (widget.onOpenAdminClasses != null) {
+                  widget.onOpenAdminClasses!.call();
+                }
+              },
+            ),
           ),
           const SizedBox(height: 30),
 

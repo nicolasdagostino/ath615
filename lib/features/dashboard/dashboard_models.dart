@@ -172,6 +172,22 @@ class DashboardMilestoneItem {
   });
 }
 
+class DashboardRecommendedAction {
+  final String id;
+  final String type;
+  final String title;
+  final String subtitle;
+  final int priority;
+
+  const DashboardRecommendedAction({
+    required this.id,
+    required this.type,
+    required this.title,
+    required this.subtitle,
+    required this.priority,
+  });
+}
+
 class DashboardData {
   final DashboardTodayStats today;
   final DashboardMemberStats members;
@@ -184,6 +200,7 @@ class DashboardData {
   final DashboardWorkoutStatus workoutStatus;
   final List<DashboardTodayHighlightItem> todayHighlights;
   final List<DashboardMilestoneItem> milestones;
+  final List<DashboardRecommendedAction> recommendedActions;
   final String? gymId;
 
   const DashboardData({
@@ -198,6 +215,7 @@ class DashboardData {
     required this.workoutStatus,
     required this.todayHighlights,
     required this.milestones,
+    required this.recommendedActions,
     required this.gymId,
   });
 }
