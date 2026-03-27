@@ -6,10 +6,14 @@ import 'dashboard_repository.dart';
 import 'widgets/dashboard_action_tile.dart';
 import 'widgets/dashboard_alert_tile.dart';
 import 'widgets/dashboard_kpi_card.dart';
+import 'widgets/dashboard_alerts_section.dart';
 import 'widgets/dashboard_loading_state.dart';
 import 'widgets/dashboard_member_activity_tile.dart';
+import 'widgets/dashboard_member_activity_section.dart';
 import 'widgets/dashboard_morning_overview.dart';
+import 'widgets/dashboard_recommended_actions_section.dart';
 import 'widgets/dashboard_section_header.dart';
+import 'widgets/dashboard_tomorrow_risk_section.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenAdmin;
@@ -267,160 +271,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _alerts(List<DashboardAlertItem> alerts) {
-    if (alerts.isEmpty) {
-      return _emptyPanel('No urgent alerts right now.');
-    }
-
-    return Column(
-      children: [
-        for (var i = 0; i < alerts.length; i++) ...[
-          DashboardAlertTile(
-            icon: _iconForType(alerts[i].type),
-            title: alerts[i].title,
-            subtitle: alerts[i].subtitle,
-          ),
-          if (i != alerts.length - 1) const SizedBox(height: 10),
-        ],
-      ],
-    );
-  }
-
-  Widget _tomorrowRisk(DashboardTomorrowStats tomorrow) {
-    if (tomorrow.riskClasses.isEmpty) {
-      return _emptyPanel('Tomorrow looks healthy right now.');
-    }
-
-    return Column(
-      children: [
-        for (var i = 0; i < tomorrow.riskClasses.length; i++) ...[
-          GestureDetector(
-            onTap: () {
-              final classId = tomorrow.riskClasses[i].id.trim();
-              if (classId.isEmpty) {
-                _showActionMessage('Class detail is not available.');
-                return;
-              }
-              if (widget.onOpenAdminClassDetail != null) {
-                widget.onOpenAdminClassDetail!.call(
-                  classId,
-                  tomorrow.riskClasses[i].needsWorkoutAssignment,
-                );
-              } else if (widget.onOpenAdminClasses != null) {
-                widget.onOpenAdminClasses!.call();
-              } else {
-                _showActionMessage('Classes navigation is not available.');
-              }
-            },
-            child: DashboardAlertTile(
-              icon: Icons.event_busy_outlined,
-              title: tomorrow.riskClasses[i].title,
-              subtitle: tomorrow.riskClasses[i].subtitle,
-            ),
-          ),
-          if (i != tomorrow.riskClasses.length - 1) const SizedBox(height: 10),
-        ],
-      ],
-    );
-  }
-
-  Widget _memberActivity(List<DashboardMemberActivityItem> items) {
-    if (items.isEmpty) {
-      return _emptyPanel('No active member data yet.');
-    }
-
-    return Column(
-      children: [
-        for (var i = 0; i < items.length; i++) ...[
-          DashboardMemberActivityTile(
-            name: items[i].name,
-            subtitle: items[i].subtitle,
-            isAtRisk: items[i].isAtRisk,
-            onTap: () {
-              final memberId = items[i].id.trim();
-              if (memberId.isEmpty) {
-                _showActionMessage('Member detail is not available.');
-                return;
-              }
-              if (widget.onOpenAdminMemberDetail != null) {
-                widget.onOpenAdminMemberDetail!.call(memberId);
-              } else if (widget.onOpenAdminMembers != null) {
-                widget.onOpenAdminMembers!.call();
-              } else {
-                _showActionMessage('Members navigation is not available.');
-              }
-            },
-          ),
-          if (i != items.length - 1) const SizedBox(height: 10),
-        ],
-      ],
-    );
-  }
-
-  Widget _actions(DashboardData data) {
-    final actions = data.recommendedActions;
-
-    return Column(
-      children: [
-        for (var i = 0; i < actions.length; i++) ...[
-          DashboardActionTile(
-            icon: _iconForActionType(actions[i].type),
-            title: actions[i].title,
-            subtitle: actions[i].subtitle,
-            onTap: () async {
-              switch (actions[i].type) {
-                case 'tomorrow_risk':
-                  _showTomorrowRiskSheet(data.tomorrow);
-                  break;
-                case 'inactive_members':
-                  _showInactiveMembersSheet(data.memberActivity);
-                  break;
-                case 'next_class_workout':
-                  final classId = data.nextClass?.id.trim();
-                  if (classId != null &&
-                      classId.isNotEmpty &&
-                      widget.onOpenAdminClassDetail != null) {
-                    widget.onOpenAdminClassDetail!.call(classId, true);
-                  } else if (widget.onOpenAdminClasses != null) {
-                    widget.onOpenAdminClasses!.call();
-                  } else {
-                    _showActionMessage('Classes navigation is not available.');
-                  }
-                  break;
-                case 'today_workout_missing':
-                case 'today_bookings':
-                  await _scrollToToday();
-                  if (widget.onOpenAdminClasses != null) {
-                    widget.onOpenAdminClasses!.call();
-                  } else {
-                    _showActionMessage('Classes navigation is not available.');
-                  }
-                  break;
-                case 'birthday':
-                  _showActionMessage(
-                    'Review today highlights and congratulate them.',
-                  );
-                  await _scrollToToday();
-                  break;
-                case 'open_admin':
-                default:
-                  if (widget.onOpenAdmin != null) {
-                    widget.onOpenAdmin!.call();
-                  } else {
-                    _showActionMessage(
-                      'Admin navigation is not available right now.',
-                    );
-                  }
-                  break;
-              }
-            },
-          ),
-          if (i != actions.length - 1) const SizedBox(height: 10),
-        ],
-      ],
-    );
-  }
-
   IconData _iconForActionType(String type) {
     switch (type) {
       case 'tomorrow_risk':
@@ -504,20 +354,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
             subtitle: 'Classes that may need attention before tomorrow.',
           ),
           const SizedBox(height: 14),
-          _twoCards(
-            left: DashboardKpiCard(
-              label: 'Classes tomorrow',
-              value: data.tomorrow.classesTomorrow.toString(),
-              helper: 'Scheduled for tomorrow',
-            ),
-            right: DashboardKpiCard(
-              label: 'Low occupancy',
-              value: data.tomorrow.lowOccupancyTomorrow.toString(),
-              helper: 'Need promotion or review',
-            ),
+          DashboardTomorrowRiskSection(
+            tomorrow: data.tomorrow,
+            emptyPanel: _emptyPanel,
+            twoCards: _twoCards,
+            onClassTap: (classId, needsWorkoutAssignment) {
+              if (widget.onOpenAdminClassDetail != null) {
+                widget.onOpenAdminClassDetail!.call(
+                  classId,
+                  needsWorkoutAssignment,
+                );
+              } else if (widget.onOpenAdminClasses != null) {
+                widget.onOpenAdminClasses!.call();
+              } else {
+                _showActionMessage('Classes navigation is not available.');
+              }
+            },
+            onUnavailable: () {
+              _showActionMessage('Class detail is not available.');
+            },
           ),
-          const SizedBox(height: 12),
-          _tomorrowRisk(data.tomorrow),
 
           const SizedBox(height: 28),
           _softDivider(),
@@ -528,7 +384,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
             subtitle: 'Quick CRM-style view of your community.',
           ),
           const SizedBox(height: 14),
-          _memberActivity(data.memberActivity),
+          DashboardMemberActivitySection(
+            items: data.memberActivity,
+            emptyPanel: _emptyPanel,
+            onMemberTap: (memberId) {
+              if (widget.onOpenAdminMemberDetail != null) {
+                widget.onOpenAdminMemberDetail!.call(memberId);
+              } else if (widget.onOpenAdminMembers != null) {
+                widget.onOpenAdminMembers!.call();
+              } else {
+                _showActionMessage('Members navigation is not available.');
+              }
+            },
+            onUnavailable: () {
+              _showActionMessage('Member detail is not available.');
+            },
+          ),
 
           const SizedBox(height: 28),
           _softDivider(),
@@ -539,7 +410,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
             subtitle: 'Fast next steps for the owner or admin.',
           ),
           const SizedBox(height: 14),
-          _actions(data),
+          DashboardRecommendedActionsSection(
+            actions: data.recommendedActions,
+            iconForActionType: _iconForActionType,
+            onActionTap: (action) async {
+              switch (action.type) {
+                case 'tomorrow_risk':
+                  _showTomorrowRiskSheet(data.tomorrow);
+                  break;
+                case 'inactive_members':
+                  _showInactiveMembersSheet(data.memberActivity);
+                  break;
+                case 'next_class_workout':
+                  final classId = data.nextClass?.id.trim();
+                  if (classId != null &&
+                      classId.isNotEmpty &&
+                      widget.onOpenAdminClassDetail != null) {
+                    widget.onOpenAdminClassDetail!.call(classId, true);
+                  } else if (widget.onOpenAdminClasses != null) {
+                    widget.onOpenAdminClasses!.call();
+                  } else {
+                    _showActionMessage('Classes navigation is not available.');
+                  }
+                  break;
+                case 'today_workout_missing':
+                case 'today_bookings':
+                  await _scrollToToday();
+                  if (widget.onOpenAdminClasses != null) {
+                    widget.onOpenAdminClasses!.call();
+                  } else {
+                    _showActionMessage('Classes navigation is not available.');
+                  }
+                  break;
+                case 'birthday':
+                  _showActionMessage(
+                    'Review today highlights and congratulate them.',
+                  );
+                  await _scrollToToday();
+                  break;
+                case 'open_admin':
+                default:
+                  if (widget.onOpenAdmin != null) {
+                    widget.onOpenAdmin!.call();
+                  } else {
+                    _showActionMessage(
+                      'Admin navigation is not available right now.',
+                    );
+                  }
+                  break;
+              }
+            },
+          ),
 
           const SizedBox(height: 28),
           _softDivider(),
@@ -550,7 +471,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             subtitle: 'Useful things to review soon.',
           ),
           const SizedBox(height: 14),
-          _alerts(data.alerts),
+          DashboardAlertsSection(
+            alerts: data.alerts,
+            iconForType: _iconForType,
+            emptyPanel: _emptyPanel,
+          ),
         ],
       ),
     );
