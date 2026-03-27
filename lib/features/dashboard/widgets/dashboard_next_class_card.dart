@@ -7,6 +7,8 @@ class DashboardNextClassCard extends StatelessWidget {
   final String occupancyLabel;
   final bool hasWorkout;
   final VoidCallback? onTap;
+  final bool compact;
+  final bool embedded;
 
   const DashboardNextClassCard({
     super.key,
@@ -15,41 +17,75 @@ class DashboardNextClassCard extends StatelessWidget {
     required this.occupancyLabel,
     required this.hasWorkout,
     this.onTap,
+    this.compact = false,
+    this.embedded = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(embedded ? 18 : 22);
+    final bgColor = embedded ? const Color(0xFFF8FAFD) : Colors.white;
+    final borderColor = embedded
+        ? const Color(0xFFE3EAF5)
+        : const Color(0xFFEAECEF);
+
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
+      color: bgColor,
+      borderRadius: radius,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: radius,
         child: Container(
-          padding: const EdgeInsets.all(18),
+          padding: EdgeInsets.fromLTRB(
+            compact ? 16 : 18,
+            compact ? 16 : 18,
+            compact ? 16 : 18,
+            compact ? 14 : 16,
+          ),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFEAECEF)),
+            color: bgColor,
+            borderRadius: radius,
+            border: Border.all(color: borderColor),
+            boxShadow: embedded
+                ? null
+                : const [
+                    BoxShadow(
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                      color: Color(0x080D0D12),
+                    ),
+                  ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Next class',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF064BB3),
+              Container(
+                height: 24,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7F3EA),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'NEXT CLASS',
+                  style: GoogleFonts.barlowCondensed(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFFB59B6A),
+                    letterSpacing: 0.4,
+                  ),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: compact ? 12 : 16),
               Text(
                 title,
                 style: GoogleFonts.barlowCondensed(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
+                  fontSize: compact ? 28 : 30,
+                  fontWeight: FontWeight.w800,
                   color: const Color(0xFF111318),
-                  height: 1,
+                  height: 0.98,
+                  letterSpacing: -0.25,
                 ),
               ),
               const SizedBox(height: 6),
@@ -57,18 +93,30 @@ class DashboardNextClassCard extends StatelessWidget {
                 subtitle,
                 style: GoogleFonts.inter(
                   fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  color: const Color(0xFF6B7280),
-                  height: 1.4,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF667085),
+                  height: 1.45,
                 ),
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: compact ? 14 : 16),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _pill(occupancyLabel),
-                  _pill(hasWorkout ? 'Workout assigned' : 'Workout missing'),
+                  _pill(
+                    occupancyLabel,
+                    bg: const Color(0xFFEFF4FB),
+                    fg: const Color(0xFF064BB3),
+                  ),
+                  _pill(
+                    hasWorkout ? 'Workout assigned' : 'Workout missing',
+                    bg: hasWorkout
+                        ? const Color(0xFFDDF5E5)
+                        : const Color(0xFFFEE4E2),
+                    fg: hasWorkout
+                        ? const Color(0xFF16A34A)
+                        : const Color(0xFFE11D48),
+                  ),
                 ],
               ),
             ],
@@ -78,19 +126,20 @@ class DashboardNextClassCard extends StatelessWidget {
     );
   }
 
-  Widget _pill(String text) {
+  Widget _pill(String text, {required Color bg, required Color fg}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF4FB),
+        color: bg,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         text,
         style: GoogleFonts.inter(
-          fontSize: 13,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF064BB3),
+          color: fg,
+          height: 1.2,
         ),
       ),
     );

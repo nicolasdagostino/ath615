@@ -154,6 +154,24 @@ class DashboardTodayHighlightItem {
   });
 }
 
+class DashboardMilestoneItem {
+  final String id;
+  final String name;
+  final String subtitle;
+  final int classesCount;
+  final int target;
+  final bool reached;
+
+  const DashboardMilestoneItem({
+    required this.id,
+    required this.name,
+    required this.subtitle,
+    required this.classesCount,
+    required this.target,
+    required this.reached,
+  });
+}
+
 class DashboardData {
   final DashboardTodayStats today;
   final DashboardMemberStats members;
@@ -165,6 +183,7 @@ class DashboardData {
   final DashboardNextClassItem? nextClass;
   final DashboardWorkoutStatus workoutStatus;
   final List<DashboardTodayHighlightItem> todayHighlights;
+  final List<DashboardMilestoneItem> milestones;
   final String? gymId;
 
   const DashboardData({
@@ -178,6 +197,7 @@ class DashboardData {
     required this.nextClass,
     required this.workoutStatus,
     required this.todayHighlights,
+    required this.milestones,
     required this.gymId,
   });
 }

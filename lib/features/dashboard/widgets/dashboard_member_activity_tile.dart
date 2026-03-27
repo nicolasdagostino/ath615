@@ -17,17 +17,25 @@ class DashboardMemberActivityTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final iconBg = isAtRisk ? const Color(0xFFFEE4E2) : const Color(0xFFDDF5E5);
+    final iconColor = isAtRisk
+        ? const Color(0xFFE11D48)
+        : const Color(0xFF16A34A);
+    final iconData = isAtRisk
+        ? Icons.person_search_outlined
+        : Icons.check_circle_outline_rounded;
+
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(20),
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Ink(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(color: const Color(0xFFEAECEF), width: 1),
           ),
           child: Row(
@@ -37,20 +45,10 @@ class DashboardMemberActivityTile extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: isAtRisk
-                      ? const Color(0xFFEAF1FB)
-                      : const Color(0xFFF3F5F8),
+                  color: iconBg,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
-                  isAtRisk
-                      ? Icons.person_search_outlined
-                      : Icons.person_outline,
-                  size: 20,
-                  color: isAtRisk
-                      ? const Color(0xFF064BB3)
-                      : const Color(0xFF8F96A3),
-                ),
+                child: Icon(iconData, size: 20, color: iconColor),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -59,33 +57,34 @@ class DashboardMemberActivityTile extends StatelessWidget {
                   children: [
                     Text(
                       name,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                      style: GoogleFonts.barlowCondensed(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
                         color: const Color(0xFF111318),
-                        height: 1.35,
+                        letterSpacing: -0.15,
+                        height: 1.0,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Text(
                       subtitle,
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        fontWeight: FontWeight.w400,
-                        color: const Color(0xFF8F96A3),
-                        height: 1.4,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF667085),
+                        height: 1.45,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Icon(
                 Icons.chevron_right_rounded,
                 size: 22,
                 color: onTap == null
                     ? const Color(0x00000000)
-                    : const Color(0xFF8F96A3),
+                    : const Color(0xFF98A2B3),
               ),
             ],
           ),

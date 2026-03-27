@@ -43,6 +43,7 @@ class DashboardRepository {
       members: members,
       workoutStatus: workoutStatus,
     );
+    final milestones = _buildMilestones(members, bookings);
 
     return DashboardData(
       today: todayStats,
@@ -55,6 +56,7 @@ class DashboardRepository {
       nextClass: nextClass,
       workoutStatus: workoutStatus,
       todayHighlights: todayHighlights,
+      milestones: milestones,
       gymId: gymId,
     );
   }
@@ -561,6 +563,91 @@ class DashboardRepository {
     return items.take(4).toList();
   }
 
+  List<DashboardMilestoneItem> _buildMilestones(
+    List<Map<String, dynamic>> members,
+    List<Map<String, dynamic>> bookings,
+  ) {
+    const thresholds = [10, 50, 100, 500, 1000];
+
+    final activeMembers = members.where((m) => m['is_active'] == true).toList();
+    final activeMemberIds = activeMembers
+        .map((m) => (m['id'] ?? '').toString())
+        .where((id) => id.isNotEmpty)
+        .toSet();
+
+    final attendanceCountByMember = <String, int>{};
+
+    for (final booking in bookings) {
+      final memberId = (booking['member_id'] ?? '').toString();
+      if (!activeMemberIds.contains(memberId)) continue;
+
+      final status = (booking['status'] ?? '').toString().toLowerCase().trim();
+      if (status != 'attended') continue;
+
+      attendanceCountByMember[memberId] =
+          (attendanceCountByMember[memberId] ?? 0) + 1;
+    }
+
+    final reachedItems = <DashboardMilestoneItem>[];
+    final upcomingItems = <DashboardMilestoneItem>[];
+
+    for (final member in activeMembers) {
+      final memberId = (member['id'] ?? '').toString();
+      if (memberId.isEmpty) continue;
+
+      final count = attendanceCountByMember[memberId] ?? 0;
+      final name = _memberName(member);
+
+      if (thresholds.contains(count)) {
+        reachedItems.add(
+          DashboardMilestoneItem(
+            id: 'milestone-reached-$memberId',
+            name: name,
+            subtitle: 'Reached $count classes',
+            classesCount: count,
+            target: count,
+            reached: true,
+          ),
+        );
+        continue;
+      }
+
+      int? nextTarget;
+      for (final threshold in thresholds) {
+        if (count < threshold) {
+          nextTarget = threshold;
+          break;
+        }
+      }
+
+      if (nextTarget == null) continue;
+
+      final remaining = nextTarget - count;
+      if (remaining > 5) continue;
+
+      upcomingItems.add(
+        DashboardMilestoneItem(
+          id: 'milestone-next-$memberId',
+          name: name,
+          subtitle: '$remaining classes left for $nextTarget',
+          classesCount: count,
+          target: nextTarget,
+          reached: false,
+        ),
+      );
+    }
+
+    reachedItems.sort((a, b) => b.target.compareTo(a.target));
+    upcomingItems.sort((a, b) {
+      final aRemaining = a.target - a.classesCount;
+      final bRemaining = b.target - b.classesCount;
+      if (aRemaining != bRemaining) return aRemaining.compareTo(bRemaining);
+      return b.classesCount.compareTo(a.classesCount);
+    });
+
+    return [...reachedItems.take(2), ...upcomingItems.take(2)];
+  }
+
   _WeekPerformance _computeWeekPerformance({
     required List<Map<String, dynamic>> classes,
     required List<Map<String, dynamic>> bookings,
@@ -629,7 +716,6 @@ class DashboardRepository {
     final alerts = <DashboardAlertItem>[];
 
     alerts.addAll(_buildInactiveMemberAlerts(members, bookings));
-    alerts.addAll(_buildBirthdayAlerts(members));
     alerts.addAll(_buildLowOccupancyAlerts(classesToday, bookings));
 
     alerts.sort((a, b) => b.priority.compareTo(a.priority));

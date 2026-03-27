@@ -3,11 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../dashboard_models.dart';
 
-class DashboardTodayHighlightsCard extends StatelessWidget {
-  final List<DashboardTodayHighlightItem> items;
+class DashboardMilestonesCard extends StatelessWidget {
+  final List<DashboardMilestoneItem> items;
   final bool embedded;
 
-  const DashboardTodayHighlightsCard({
+  const DashboardMilestonesCard({
     super.key,
     required this.items,
     this.embedded = false,
@@ -45,13 +45,13 @@ class DashboardTodayHighlightsCard extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEFF4FB),
+                  color: const Color(0xFFF7F3EA),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(
-                  Icons.wb_sunny_outlined,
+                  Icons.emoji_events_outlined,
                   size: 20,
-                  color: Color(0xFF064BB3),
+                  color: Color(0xFFB59B6A),
                 ),
               ),
               const SizedBox(width: 12),
@@ -60,7 +60,7 @@ class DashboardTodayHighlightsCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Today Highlights',
+                      'Milestones',
                       style: GoogleFonts.barlowCondensed(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
@@ -71,7 +71,7 @@ class DashboardTodayHighlightsCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Useful things to check first thing in the morning.',
+                      'Attendance wins worth celebrating.',
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
@@ -87,7 +87,7 @@ class DashboardTodayHighlightsCard extends StatelessWidget {
           const SizedBox(height: 16),
           if (items.isEmpty)
             Text(
-              'Nothing urgent for today.',
+              'No nearby milestones yet.',
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -97,10 +97,10 @@ class DashboardTodayHighlightsCard extends StatelessWidget {
           else
             ...List.generate(items.length, (i) {
               final item = items[i];
-              final accentBg = item.type == 'birthday'
+              final iconBg = item.reached
                   ? const Color(0xFFF7F3EA)
                   : const Color(0xFFEFF4FB);
-              final accentColor = item.type == 'birthday'
+              final iconColor = item.reached
                   ? const Color(0xFFB59B6A)
                   : const Color(0xFF064BB3);
 
@@ -125,13 +125,15 @@ class DashboardTodayHighlightsCard extends StatelessWidget {
                         width: 42,
                         height: 42,
                         decoration: BoxDecoration(
-                          color: accentBg,
+                          color: iconBg,
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Icon(
-                          _icon(item.type),
+                          item.reached
+                              ? Icons.emoji_events_outlined
+                              : Icons.flag_outlined,
                           size: 20,
-                          color: accentColor,
+                          color: iconColor,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -140,7 +142,7 @@ class DashboardTodayHighlightsCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              item.title,
+                              item.name,
                               style: GoogleFonts.barlowCondensed(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
@@ -169,16 +171,5 @@ class DashboardTodayHighlightsCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  IconData _icon(String type) {
-    switch (type) {
-      case 'birthday':
-        return Icons.cake_outlined;
-      case 'workout':
-        return Icons.fitness_center_outlined;
-      default:
-        return Icons.info_outline;
-    }
   }
 }

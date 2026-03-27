@@ -21,12 +21,14 @@ class NotificationRepository {
         .eq('id', userNotificationId);
   }
 
-  Future<List<Map<String, dynamic>>> adminNotifications() async {
-    final data = await sb
-        .from('notifications')
-        .select()
-        .order('created_at', ascending: false);
+  Future<List<Map<String, dynamic>>> adminNotifications({String? gymId}) async {
+    dynamic query = sb.from('notifications').select();
 
+    if (gymId != null && gymId.trim().isNotEmpty) {
+      query = query.eq('gym_id', gymId.trim());
+    }
+
+    final data = await query.order('created_at', ascending: false);
     return List<Map<String, dynamic>>.from(data);
   }
 

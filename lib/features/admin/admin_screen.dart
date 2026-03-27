@@ -15,6 +15,7 @@ import '../../core/supabase/profile_repository.dart';
 import '../../core/supabase/program_repository.dart';
 import '../../core/supabase/storage_repository.dart';
 import '../../core/supabase/workout_repository.dart';
+import '../../features/notifications/admin_notifications_tab.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/input_field.dart';
 import '../../shared/widgets/primary_button.dart';
@@ -4658,7 +4659,7 @@ class _AdminScreenState extends State<AdminScreen> {
                     if (tabIndex == 2) _workoutsTab(),
                     if (tabIndex == 3) _membersTab(),
                     if (tabIndex == 4) _plansTab(),
-                    if (tabIndex == 5) _placeholderTab('Notifications'),
+                    if (tabIndex == 5) const AdminNotificationsTab(),
                   ],
                 ),
               ),

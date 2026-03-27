@@ -8,9 +8,8 @@ import 'widgets/dashboard_alert_tile.dart';
 import 'widgets/dashboard_kpi_card.dart';
 import 'widgets/dashboard_loading_state.dart';
 import 'widgets/dashboard_member_activity_tile.dart';
-import 'widgets/dashboard_next_class_card.dart';
+import 'widgets/dashboard_morning_overview.dart';
 import 'widgets/dashboard_section_header.dart';
-import 'widgets/dashboard_today_highlights_card.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenAdmin;
@@ -422,6 +421,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Widget _softDivider() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      height: 1,
+      color: const Color(0xFFEAECEF),
+    );
+  }
+
   Widget _content(DashboardData data) {
     return RefreshIndicator(
       onRefresh: _refresh,
@@ -435,143 +442,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Text('Business insights for your gym.', style: _subtitleStyle()),
           const SizedBox(height: 24),
 
-          if (data.nextClass != null) ...[
-            DashboardNextClassCard(
-              title: data.nextClass!.title,
-              subtitle: data.nextClass!.subtitle,
-              occupancyLabel: data.nextClass!.occupancyLabel,
-              hasWorkout: data.nextClass!.hasWorkout,
-              onTap: () {
-                final classId = data.nextClass!.id.trim();
-                if (classId.isEmpty) return;
-                if (widget.onOpenAdminClassDetail != null) {
-                  widget.onOpenAdminClassDetail!.call(
-                    classId,
-                    !data.nextClass!.hasWorkout,
-                  );
-                } else if (widget.onOpenAdminClasses != null) {
-                  widget.onOpenAdminClasses!.call();
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
+          DashboardMorningOverview(
+            nextClass: data.nextClass,
+            highlights: data.todayHighlights,
+            milestones: data.milestones,
+            onNextClassTap: () {
+              final classId = data.nextClass?.id.trim();
+              if (classId == null || classId.isEmpty) return;
+              if (widget.onOpenAdminClassDetail != null) {
+                widget.onOpenAdminClassDetail!.call(
+                  classId,
+                  !(data.nextClass?.hasWorkout ?? true),
+                );
+              } else if (widget.onOpenAdminClasses != null) {
+                widget.onOpenAdminClasses!.call();
+              }
+            },
+          ),
+          const SizedBox(height: 30),
 
-          DashboardTodayHighlightsCard(items: data.todayHighlights),
-          const SizedBox(height: 28),
+          _softDivider(),
+          const SizedBox(height: 22),
 
-          KeyedSubtree(
-            key: _todaySectionKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const DashboardSectionHeader(
-                  title: 'Today',
-                  subtitle: 'Quick operational snapshot.',
-                ),
-                const SizedBox(height: 14),
-                _twoCards(
-                  left: DashboardKpiCard(
-                    label: 'Classes',
-                    value: data.today.classesToday.toString(),
-                    helper: 'Scheduled today',
-                  ),
-                  right: DashboardKpiCard(
-                    label: 'Bookings',
-                    value: data.today.bookingsToday.toString(),
-                    helper: 'Reserved spots',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _twoCards(
-                  left: DashboardKpiCard(
-                    label: 'Attendance',
-                    value: data.today.attendanceToday.toString(),
-                    helper: 'Checked in',
-                  ),
-                  right: DashboardKpiCard(
-                    label: 'Full classes',
-                    value: data.today.fullClassesToday.toString(),
-                    helper: 'At capacity',
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 28),
-          const DashboardSectionHeader(
-            title: 'Members',
-            subtitle: 'How your community is moving.',
-          ),
-          const SizedBox(height: 14),
-          _twoCards(
-            left: DashboardKpiCard(
-              label: 'Active members',
-              value: data.members.activeMembers.toString(),
-              helper: 'Currently enabled profiles',
-            ),
-            right: DashboardKpiCard(
-              label: 'New this month',
-              value: data.members.newMembersThisMonth.toString(),
-              helper: 'Joined during current month',
-            ),
-          ),
-
-          const SizedBox(height: 28),
-          const DashboardSectionHeader(
-            title: 'Engagement',
-            subtitle: 'Useful retention signals.',
-          ),
-          const SizedBox(height: 14),
-          _twoCards(
-            left: DashboardKpiCard(
-              label: 'Inactive 7d',
-              value: data.engagement.inactive7Days.toString(),
-              helper: 'No recent booking activity',
-            ),
-            right: DashboardKpiCard(
-              label: 'Inactive 14d',
-              value: data.engagement.inactive14Days.toString(),
-              helper: 'Longer inactivity window',
-            ),
-          ),
-
-          const SizedBox(height: 28),
-          const DashboardSectionHeader(
-            title: 'Performance',
-            subtitle: 'Weekly business indicators.',
-          ),
-          const SizedBox(height: 14),
-          _twoCards(
-            left: DashboardKpiCard(
-              label: 'Bookings this week',
-              value: data.performance.bookingsThisWeek.toString(),
-              helper: _deltaInt(
-                data.performance.bookingsThisWeek,
-                data.performance.bookingsLastWeek,
-              ),
-            ),
-            right: DashboardKpiCard(
-              label: 'Attendance rate',
-              value: _percent(data.performance.attendanceRate),
-              helper: _deltaPercentPoints(
-                data.performance.attendanceRate,
-                data.performance.attendanceRateLastWeek,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          DashboardKpiCard(
-            label: 'Avg athletes / class',
-            value: _decimal(data.performance.avgAthletesPerClass),
-            helper: _deltaDecimal(
-              data.performance.avgAthletesPerClass,
-              data.performance.avgAthletesPerClassLastWeek,
-            ),
-          ),
-
-          const SizedBox(height: 28),
           const DashboardSectionHeader(
             title: 'Tomorrow risk',
             subtitle: 'Classes that may need attention before tomorrow.',
@@ -593,6 +485,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _tomorrowRisk(data.tomorrow),
 
           const SizedBox(height: 28),
+          _softDivider(),
+          const SizedBox(height: 22),
+
           const DashboardSectionHeader(
             title: 'Members activity',
             subtitle: 'Quick CRM-style view of your community.',
@@ -601,6 +496,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _memberActivity(data.memberActivity),
 
           const SizedBox(height: 28),
+          _softDivider(),
+          const SizedBox(height: 22),
+
           const DashboardSectionHeader(
             title: 'Recommended actions',
             subtitle: 'Fast next steps for the owner or admin.',
@@ -609,6 +507,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _actions(data),
 
           const SizedBox(height: 28),
+          _softDivider(),
+          const SizedBox(height: 22),
+
           const DashboardSectionHeader(
             title: 'Alerts',
             subtitle: 'Useful things to review soon.',
