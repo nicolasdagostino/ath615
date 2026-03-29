@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'core/theme/app_theme.dart';
 import 'core/supabase/supabase_bootstrap.dart';
 import 'core/supabase/auth_deep_link_handler.dart';
@@ -6,9 +7,15 @@ import 'features/auth/auth_gate.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/debug_session_screen.dart';
 import 'features/auth/set_new_password_screen.dart';
+import 'firebase_options.dart';
+import 'core/notifications/push_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  PushNotificationService.initialize();
   await SupabaseBootstrap.init();
   await AuthDeepLinkHandler.start();
   runApp(const Ath615App());

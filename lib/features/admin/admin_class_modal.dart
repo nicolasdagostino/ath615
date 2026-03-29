@@ -1089,7 +1089,9 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                         ),
                                         Switch.adaptive(
                                           value: recurrenceEnabled,
-                                          activeColor: const Color(0xFFB59B6A),
+                                          activeThumbColor: const Color(
+                                            0xFFB59B6A,
+                                          ),
                                           onChanged: (value) {
                                             setLocalState(() {
                                               recurrenceEnabled = value;
@@ -1537,7 +1539,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                         );
                                       }
 
-                                      if (!mounted) return;
+                                      if (!context.mounted) return;
                                       Navigator.pop(context);
                                     },
                                   ),

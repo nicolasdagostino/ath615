@@ -233,50 +233,6 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
-  Widget _brandMark() {
-    return SizedBox(
-      width: 132,
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          'ATHLETE LAB',
-          style: _font(
-            18,
-            weight: FontWeight.w800,
-            color: const Color(0xFF0E0E11),
-            letterSpacing: -0.3,
-            height: 1.0,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _softChip(String text, {bool gold = false}) {
-    return Container(
-      height: 30,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: gold ? const Color(0xFFF7F3EA) : const Color(0xFFF7F8FA),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        text.toUpperCase(),
-        style: _font(
-          11,
-          weight: FontWeight.w700,
-          letterSpacing: 0.8,
-          color: gold ? const Color(0xFFB59B6A) : const Color(0xFF667085),
-        ),
-      ),
-    );
-  }
-
-  Widget _subtleDivider() {
-    return const Divider(height: 1, color: Color(0xFFEFF1F4));
-  }
-
   Widget _topHeader() {
     final subtitle = tabs[tabIndex];
 
@@ -1031,7 +987,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                         'Member created. Invitation email sent.',
                                   );
 
-                                  if (!mounted) return;
+                                  if (!sheetContext.mounted) return;
                                   Navigator.pop(sheetContext);
                                 },
                               ),
@@ -1207,36 +1163,6 @@ class _AdminScreenState extends State<AdminScreen> {
         });
       }
     }
-  }
-
-  Widget _sectionTitle(
-    String title,
-    String buttonText,
-    VoidCallback onPressed,
-  ) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            title,
-            style: _font(
-              18,
-              weight: FontWeight.w700,
-              color: const Color(0xFF111318),
-              letterSpacing: -0.2,
-            ),
-          ),
-        ),
-        SizedBox(
-          width: 104,
-          child: PrimaryButton(
-            text: buttonText,
-            compact: true,
-            onPressed: _adminActionBusy ? null : onPressed,
-          ),
-        ),
-      ],
-    );
   }
 
   Future<void> _createProgram({
@@ -2793,24 +2719,6 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
-  Widget _placeholderTab(String title) {
-    return AppCard(
-      padding: const EdgeInsets.all(20),
-      child: Text(
-        '$title connection can stay as it is for now.',
-        style: const TextStyle(fontSize: 14, color: Color(0xFF667085)),
-      ),
-    );
-  }
-
-  Color _parseColor(String hex) {
-    final value = hex.replaceAll('#', '').trim();
-    if (value.length == 6) {
-      return Color(int.parse('FF$value', radix: 16));
-    }
-    return const Color(0xFF064BB3);
-  }
-
   void _showAssignPlanModal(Map<String, dynamic> member) {
     if (_plans.isEmpty) return;
 
@@ -3397,7 +3305,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                     ),
                                     successMessage: 'Plan assigned',
                                   );
-                                  if (!mounted) return;
+                                  if (!context.mounted) return;
                                   Navigator.pop(context);
                                 },
                               ),
@@ -3674,6 +3582,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           onTap: _adminActionBusy
                               ? null
                               : () async {
+                                  if (!context.mounted) return;
                                   Navigator.pop(context);
                                   await _runAdminAction(
                                     () => _updateMemberActiveStatus(
@@ -3696,6 +3605,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           onTap: _adminActionBusy
                               ? null
                               : () async {
+                                  if (!context.mounted) return;
                                   Navigator.pop(context);
                                   await _runAdminAction(
                                     () => _updateMemberActiveStatus(
@@ -3716,6 +3626,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           onTap: _adminActionBusy
                               ? null
                               : () async {
+                                  if (!context.mounted) return;
                                   Navigator.pop(context);
                                   await _runAdminAction(
                                     () => _updateMemberRole(
@@ -3736,6 +3647,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           onTap: _adminActionBusy
                               ? null
                               : () async {
+                                  if (!context.mounted) return;
                                   Navigator.pop(context);
                                   await _runAdminAction(
                                     () => _updateMemberRole(
@@ -4313,19 +4225,22 @@ class _AdminScreenState extends State<AdminScreen> {
                                   height: 132,
                                   width: double.infinity,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    height: 132,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF2F4F7),
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: const Icon(
-                                      Icons.image_not_supported_outlined,
-                                      size: 32,
-                                      color: Color(0xFF6B7280),
-                                    ),
-                                  ),
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Container(
+                                        height: 132,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF2F4F7),
+                                          borderRadius: BorderRadius.circular(
+                                            14,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.image_not_supported_outlined,
+                                          size: 32,
+                                          color: Color(0xFF6B7280),
+                                        ),
+                                      ),
                                 ),
                               ),
                             ],
@@ -4666,39 +4581,6 @@ class _AdminScreenState extends State<AdminScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _PlanActionButton extends StatelessWidget {
-  final IconData icon;
-  final bool danger;
-  final VoidCallback? onTap;
-
-  const _PlanActionButton({
-    required this.icon,
-    this.danger = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: onTap,
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF2F4F7),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(
-          icon,
-          size: 20,
-          color: danger ? const Color(0xFFE11D48) : const Color(0xFF475467),
-        ),
       ),
     );
   }

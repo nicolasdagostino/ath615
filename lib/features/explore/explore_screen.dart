@@ -367,7 +367,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           child: Image.network(
             imageUrl,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => _placeholder(),
+            errorBuilder: (context, error, stackTrace) => _placeholder(),
           ),
         ),
       );

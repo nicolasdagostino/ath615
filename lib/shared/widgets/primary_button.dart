@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-import '../../core/constants/app_colors.dart';
 
 class PrimaryButton extends StatefulWidget {
   final String text;

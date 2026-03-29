@@ -400,7 +400,7 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                                       successMessage:
                                           'Workout assigned to class',
                                     );
-                                    if (!mounted) return;
+                                    if (!context.mounted) return;
                                     Navigator.pop(context);
                                   },
                                 ),

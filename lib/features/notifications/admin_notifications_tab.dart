@@ -332,7 +332,7 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
 
                 if (isEdit) {
                   await _repo.updateNotification(
-                    id: item!['id'].toString(),
+                    id: item['id'].toString(),
                     type: type,
                     status: status,
                     title: title,
@@ -352,9 +352,10 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                   );
                 }
 
-                if (!mounted) return;
+                if (!sheetContext.mounted) return;
                 Navigator.of(sheetContext).pop();
                 await _load();
+                if (!mounted) return;
                 _toast(
                   isEdit ? 'Notification updated.' : 'Notification created.',
                 );

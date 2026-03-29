@@ -215,7 +215,7 @@ class _SetNewPasswordScreenState extends State<SetNewPasswordScreen> {
                   style: _font(
                     16,
                     weight: FontWeight.w500,
-                    color: AppColors.authText.withOpacity(0.82),
+                    color: AppColors.authText.withValues(alpha: 0.82),
                     height: 1.25,
                     letterSpacing: -0.1,
                   ),

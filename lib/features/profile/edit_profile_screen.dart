@@ -49,10 +49,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
 
       await _reload();
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       _toast('Profile photo updated');
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       _toast(e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -97,8 +101,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           .where((e) => e.isNotEmpty)
           .toList();
       if (parts.length == 1) return parts.first[0].toUpperCase();
-      if (parts.length >= 2)
+      if (parts.length >= 2) {
         return (parts.first[0] + parts.last[0]).toUpperCase();
+      }
     }
     return 'A';
   }
@@ -434,10 +439,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       await _saveProfileFields({fieldKey: value});
       await _reload();
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       _toast('$title updated');
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       _toast(e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -559,10 +568,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ).toIso8601String().split('T').first,
       });
       await _reload();
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       _toast('Date of birth updated');
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       _toast(e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -737,10 +750,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       await Supabase.instance.client.auth.updateUser(
         UserAttributes(password: password),
       );
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       _toast('Password updated');
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       _toast(
         e
             .toString()

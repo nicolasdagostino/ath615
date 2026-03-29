@@ -51,7 +51,7 @@ class _TagChipState extends State<TagChip> {
               const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: _pressed ? bg.withOpacity(0.88) : bg,
+            color: _pressed ? bg.withValues(alpha: 0.88) : bg,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(

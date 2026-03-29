@@ -7,7 +7,6 @@ import '../../shared/widgets/input_field.dart';
 import '../../shared/widgets/primary_button.dart';
 import 'forgot_password_screen.dart';
 import 'no_account_info_screen.dart';
-import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -82,8 +81,9 @@ class _LoginScreenState extends State<LoginScreen> {
       PageRouteBuilder(
         opaque: false,
         barrierDismissible: false,
-        pageBuilder: (_, __, ___) => const ForgotPasswordScreen(),
-        transitionsBuilder: (_, animation, __, child) {
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const ForgotPasswordScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final curved = CurvedAnimation(
             parent: animation,
             curve: Curves.easeOutCubic,
@@ -104,19 +104,14 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _openRegister() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const RegisterScreen()));
-  }
-
   void _openNoAccountInfo() {
     Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
         barrierDismissible: false,
-        pageBuilder: (_, __, ___) => const NoAccountInfoScreen(),
-        transitionsBuilder: (_, animation, __, child) {
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const NoAccountInfoScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final curved = CurvedAnimation(
             parent: animation,
             curve: Curves.easeOutCubic,
@@ -252,7 +247,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: _font(
                     16,
                     weight: FontWeight.w500,
-                    color: AppColors.authText.withOpacity(0.82),
+                    color: AppColors.authText.withValues(alpha: 0.82),
                     height: 1.25,
                     letterSpacing: -0.1,
                   ),

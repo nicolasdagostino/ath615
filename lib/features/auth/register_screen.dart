@@ -214,7 +214,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: _font(
                   16,
                   weight: FontWeight.w500,
-                  color: AppColors.authText.withOpacity(0.82),
+                  color: AppColors.authText.withValues(alpha: 0.82),
                   height: 1.25,
                   letterSpacing: -0.1,
                 ),
@@ -295,7 +295,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: GoogleFonts.barlowCondensed(
                         fontSize: 15,
                         height: 1.25,
-                        color: AppColors.authText.withOpacity(0.72),
+                        color: AppColors.authText.withValues(alpha: 0.72),
                         fontWeight: FontWeight.w500,
                       ),
                       children: [

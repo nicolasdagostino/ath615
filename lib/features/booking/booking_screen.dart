@@ -636,7 +636,7 @@ class _BookingScreenState extends State<BookingScreen> {
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 4),
               itemCount: _days().length,
-              separatorBuilder: (_, __) => const SizedBox(width: 2),
+              separatorBuilder: (context, index) => const SizedBox(width: 2),
               itemBuilder: (context, i) => _dayChip(_days()[i]),
             ),
           ),
@@ -657,7 +657,6 @@ class _BookingScreenState extends State<BookingScreen> {
         titleRaw.toLowerCase() == programRaw.toLowerCase();
 
     final overline = sameTitleAndProgram ? null : programRaw.toUpperCase();
-    final title = sameTitleAndProgram ? programRaw : titleRaw;
 
     String timeLabel = '-';
     try {

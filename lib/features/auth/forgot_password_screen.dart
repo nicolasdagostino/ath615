@@ -126,7 +126,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final canSubmit = !_loading && _emailCtrl.text.trim().isNotEmpty;
 
     return Scaffold(
-      backgroundColor: Colors.black.withOpacity(0.25),
+      backgroundColor: Colors.black.withValues(alpha: 0.25),
       body: Stack(
         children: [
           Positioned.fill(
@@ -144,7 +144,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     margin: const EdgeInsets.symmetric(horizontal: 32),
                     height: 22,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.82),
+                      color: Colors.white.withValues(alpha: 0.82),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(20),
                       ),
@@ -204,7 +204,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             style: _font(
                               16,
                               weight: FontWeight.w500,
-                              color: AppColors.authText.withOpacity(0.82),
+                              color: AppColors.authText.withValues(alpha: 0.82),
                               height: 1.25,
                               letterSpacing: -0.1,
                             ),

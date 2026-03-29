@@ -608,7 +608,7 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                       );
                                     }
 
-                                    if (!mounted) return;
+                                    if (!context.mounted) return;
                                     Navigator.pop(context);
                                   },
                                 ),

@@ -204,7 +204,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final avatarUrl = (profile['avatar_url'] ?? '').toString().trim();
           final avatarDisplayUrl = avatarUrl.isEmpty
               ? ''
-              : '${avatarUrl}${avatarUrl.contains('?') ? '&' : '?'}v=${DateTime.now().millisecondsSinceEpoch}';
+              : '$avatarUrl${avatarUrl.contains('?') ? '&' : '?'}v=${DateTime.now().millisecondsSinceEpoch}';
 
           final totalClasses = (stats['classes_count'] ?? 0).toString();
           final recordsCount = (stats['prs_count'] ?? 0).toString();
@@ -485,7 +485,6 @@ class _ProfilePrimaryCard extends StatelessWidget {
 
 class _PrimaryActionRow extends StatelessWidget {
   final String title;
-  final String? subtitle;
   final VoidCallback? onTap;
   final bool danger;
   final bool compact;
@@ -493,7 +492,6 @@ class _PrimaryActionRow extends StatelessWidget {
 
   const _PrimaryActionRow({
     required this.title,
-    this.subtitle,
     this.onTap,
     this.danger = false,
     this.compact = false,
@@ -521,9 +519,6 @@ class _PrimaryActionRow extends StatelessWidget {
     final titleColor = danger
         ? const Color(0xFFB42318)
         : const Color(0xFF111318);
-    final subtitleColor = danger
-        ? const Color(0xFFCC6B5A)
-        : const Color(0xFF98A2B3);
 
     return InkWell(
       borderRadius: BorderRadius.circular(18),
@@ -559,60 +554,6 @@ class _PrimaryActionRow extends StatelessWidget {
                     : const Color(0xFF98A2B3),
               ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SecondaryMenuRow extends StatelessWidget {
-  final String title;
-  final VoidCallback? onTap;
-
-  const _SecondaryMenuRow({required this.title, this.onTap});
-
-  TextStyle _font(
-    double size, {
-    FontWeight weight = FontWeight.w500,
-    Color color = const Color(0xFF111318),
-    double? height,
-    double? letterSpacing,
-  }) {
-    return GoogleFonts.barlowCondensed(
-      fontSize: size,
-      fontWeight: weight,
-      color: color,
-      height: height,
-      letterSpacing: letterSpacing,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                title,
-                style: _font(
-                  20,
-                  weight: FontWeight.w600,
-                  color: const Color(0xFF111318),
-                  letterSpacing: -0.15,
-                ),
-              ),
-            ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              size: 28,
-              color: Color(0xFF98A2B3),
-            ),
           ],
         ),
       ),

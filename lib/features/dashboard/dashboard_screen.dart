@@ -3,9 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'dashboard_models.dart';
 import 'dashboard_repository.dart';
-import 'widgets/dashboard_action_tile.dart';
 import 'widgets/dashboard_alert_tile.dart';
-import 'widgets/dashboard_kpi_card.dart';
 import 'widgets/dashboard_alerts_section.dart';
 import 'widgets/dashboard_loading_state.dart';
 import 'widgets/dashboard_member_activity_tile.dart';
@@ -216,37 +214,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       color: const Color(0xFF8F96A3),
       height: 1.45,
     );
-  }
-
-  String _percent(double value) {
-    if (value.isNaN || value.isInfinite) return '0%';
-    return '${value.toStringAsFixed(0)}%';
-  }
-
-  String _decimal(double value) {
-    if (value.isNaN || value.isInfinite) return '0.0';
-    return value.toStringAsFixed(1);
-  }
-
-  String _deltaInt(int current, int previous) {
-    final diff = current - previous;
-    if (diff == 0) return 'No change vs last week';
-    final sign = diff > 0 ? '+' : '';
-    return '$sign$diff vs last week';
-  }
-
-  String _deltaPercentPoints(double current, double previous) {
-    final diff = current - previous;
-    if (diff.abs() < 0.05) return 'No change vs last week';
-    final sign = diff > 0 ? '+' : '';
-    return '$sign${diff.toStringAsFixed(0)} pts vs last week';
-  }
-
-  String _deltaDecimal(double current, double previous) {
-    final diff = current - previous;
-    if (diff.abs() < 0.05) return 'No change vs last week';
-    final sign = diff > 0 ? '+' : '';
-    return '$sign${diff.toStringAsFixed(1)} vs last week';
   }
 
   Widget _twoCards({required Widget left, required Widget right}) {

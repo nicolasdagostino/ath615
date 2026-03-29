@@ -605,14 +605,17 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                         ? Image.network(
                                             imageUrl,
                                             fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) =>
-                                                const Center(
-                                                  child: Icon(
-                                                    Icons.image_outlined,
-                                                    size: 40,
-                                                    color: Color(0xFF6B7280),
-                                                  ),
-                                                ),
+                                            errorBuilder:
+                                                (context, error, stackTrace) =>
+                                                    const Center(
+                                                      child: Icon(
+                                                        Icons.image_outlined,
+                                                        size: 40,
+                                                        color: Color(
+                                                          0xFF6B7280,
+                                                        ),
+                                                      ),
+                                                    ),
                                           )
                                         : Center(
                                             child: Column(
@@ -731,7 +734,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                             );
                                           }
 
-                                          if (!mounted) return;
+                                          if (!context.mounted) return;
                                           Navigator.pop(context);
                                         } finally {
                                           if (mounted) {

@@ -1197,7 +1197,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                           }
                                         }
 
-                                        if (!mounted) return;
+                                        if (!sheetContext.mounted) return;
                                         Navigator.pop(sheetContext);
                                         await _load();
                                         if (!mounted) return;
@@ -1639,7 +1639,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 class _CountPill extends StatelessWidget {
   final String label;
 
-  _CountPill({required this.label});
+  const _CountPill({required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -1667,7 +1667,7 @@ class _MiniTag extends StatelessWidget {
   final String text;
   final Color color;
 
-  _MiniTag({required this.text, required this.color});
+  const _MiniTag({required this.text, required this.color});
 
   @override
   Widget build(BuildContext context) {

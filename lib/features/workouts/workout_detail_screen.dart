@@ -257,7 +257,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
           child: Image.network(
             imageUrl,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => _imagePlaceholder(),
+            errorBuilder: (context, error, stackTrace) => _imagePlaceholder(),
           ),
         ),
       );
@@ -751,22 +751,6 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
     );
   }
 
-  String _resolvedWorkoutTitle({
-    required String title,
-    required String program,
-    required String dateIso,
-  }) {
-    final cleanTitle = title.trim();
-    if (cleanTitle.isEmpty) return program;
-
-    final digitsOnly = cleanTitle.replaceAll(RegExp(r'\D'), '');
-    final dateDigits = dateIso.replaceAll('-', '');
-
-    if (digitsOnly == dateDigits) return program;
-
-    return cleanTitle;
-  }
-
   @override
   Widget build(BuildContext context) {
     final workout = _workout;
@@ -800,12 +784,6 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
     final program = (workout['program_name'] ?? 'Workout').toString();
     final author = (workout['created_by_name'] ?? 'Athlete 615').toString();
     final dateIso = (workout['workout_date'] ?? '').toString();
-    final rawTitle = (workout['title'] ?? 'Workout').toString();
-    final title = _resolvedWorkoutTitle(
-      title: rawTitle,
-      program: program,
-      dateIso: dateIso,
-    );
     final description = (workout['description'] ?? '').toString().trim();
     final type = (workout['workout_type'] ?? '').toString().trim();
     final timeCap = (workout['time_cap_minutes'] ?? '').toString().trim();

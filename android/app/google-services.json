@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "750860892649",
+    "project_id": "athlete-lab-app",
+    "storage_bucket": "athlete-lab-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:750860892649:android:c9cf0a258adf28de69b378",
+        "android_client_info": {
+          "package_name": "com.example.ath615"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8PhX9LU1RATgfmJt75eZGUaarok8gYdM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

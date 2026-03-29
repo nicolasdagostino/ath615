@@ -50,9 +50,7 @@ class _AuthGateState extends State<AuthGate> {
             if (roleSnapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(
                 body: Center(
-                  child: CircularProgressIndicator(
-                    color: const Color(0xFFB59B6A),
-                  ),
+                  child: CircularProgressIndicator(color: Color(0xFFB59B6A)),
                 ),
               );
             }

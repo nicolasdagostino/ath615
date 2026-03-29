@@ -232,7 +232,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
           child: Image.network(
             imageUrl,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => _imagePlaceholder(),
+            errorBuilder: (context, error, stackTrace) => _imagePlaceholder(),
           ),
         ),
       );
@@ -755,29 +755,6 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     );
   }
 
-  String _resolvedWorkoutTitle({
-    required String title,
-    required String program,
-    required String dateIso,
-  }) {
-    final cleanTitle = title.trim();
-    if (cleanTitle.isEmpty) return program;
-
-    final digitsOnly = cleanTitle.replaceAll(RegExp(r'\D'), '');
-    final dateDigits = dateIso.replaceAll('-', '');
-
-    if (digitsOnly == dateDigits ||
-        digitsOnly.length == 8 &&
-            digitsOnly ==
-                dateDigits.substring(6) +
-                    dateDigits.substring(4, 6) +
-                    dateDigits.substring(0, 4)) {
-      return program;
-    }
-
-    return cleanTitle;
-  }
-
   Widget _workoutCard(Map<String, dynamic> item) {
     final workoutId = item['id'].toString();
     final comments = _commentsByWorkout[workoutId] ?? [];
@@ -791,13 +768,6 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
       final d = DateTime.parse(dateIso);
       formattedDate = DateFormat('MMMM d, yyyy').format(d);
     } catch (_) {}
-
-    final rawTitle = (item['title'] ?? 'Workout').toString();
-    final title = _resolvedWorkoutTitle(
-      title: rawTitle,
-      program: program,
-      dateIso: dateIso,
-    );
 
     final description = (item['description'] ?? '').toString().trim();
     final type = (item['workout_type'] ?? '').toString().trim();

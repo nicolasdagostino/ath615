@@ -35,7 +35,7 @@ class NoAccountInfoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black.withOpacity(0.25),
+      backgroundColor: Colors.black.withValues(alpha: 0.25),
       body: Stack(
         children: [
           Positioned.fill(
@@ -53,7 +53,7 @@ class NoAccountInfoScreen extends StatelessWidget {
                     margin: const EdgeInsets.symmetric(horizontal: 32),
                     height: 22,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.82),
+                      color: Colors.white.withValues(alpha: 0.82),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(20),
                       ),
@@ -109,9 +109,9 @@ class NoAccountInfoScreen extends StatelessWidget {
                                         begin: Alignment.topCenter,
                                         end: Alignment.bottomCenter,
                                         colors: [
-                                          Colors.black.withOpacity(0.10),
-                                          Colors.black.withOpacity(0.18),
-                                          Colors.black.withOpacity(0.48),
+                                          Colors.black.withValues(alpha: 0.10),
+                                          Colors.black.withValues(alpha: 0.18),
+                                          Colors.black.withValues(alpha: 0.48),
                                         ],
                                       ),
                                     ),
@@ -125,12 +125,16 @@ class NoAccountInfoScreen extends StatelessWidget {
                                         vertical: 7,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.30),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.30,
+                                        ),
                                         borderRadius: BorderRadius.circular(
                                           999,
                                         ),
                                         border: Border.all(
-                                          color: Colors.white.withOpacity(0.20),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.20,
+                                          ),
                                         ),
                                       ),
                                       child: Text(
@@ -168,8 +172,8 @@ class NoAccountInfoScreen extends StatelessWidget {
                                           style: _font(
                                             15,
                                             weight: FontWeight.w700,
-                                            color: Colors.white.withOpacity(
-                                              0.96,
+                                            color: Colors.white.withValues(
+                                              alpha: 0.96,
                                             ),
                                             letterSpacing: 0.8,
                                           ),
@@ -198,7 +202,7 @@ class NoAccountInfoScreen extends StatelessWidget {
                           style: _font(
                             16,
                             weight: FontWeight.w500,
-                            color: AppColors.authText.withOpacity(0.84),
+                            color: AppColors.authText.withValues(alpha: 0.84),
                             height: 1.28,
                             letterSpacing: -0.1,
                           ),
@@ -209,7 +213,7 @@ class NoAccountInfoScreen extends StatelessWidget {
                           style: _font(
                             16,
                             weight: FontWeight.w500,
-                            color: AppColors.authText.withOpacity(0.84),
+                            color: AppColors.authText.withValues(alpha: 0.84),
                             height: 1.28,
                             letterSpacing: -0.1,
                           ),

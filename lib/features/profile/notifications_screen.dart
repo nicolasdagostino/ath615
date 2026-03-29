@@ -1,10 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../core/supabase/notification_repository.dart';
 import '../../shared/widgets/app_card.dart';
 
-class NotificationsScreen extends StatelessWidget {
+class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
+
+  @override
+  State<NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends State<NotificationsScreen> {
+  final _repo = NotificationRepository();
+
+  bool _loading = true;
+  bool _busy = false;
+  String? _error;
+  List<Map<String, dynamic>> _items = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
 
   TextStyle _font(
     double size, {
@@ -19,6 +38,283 @@ class NotificationsScreen extends StatelessWidget {
       color: color,
       height: height,
       letterSpacing: letterSpacing,
+    );
+  }
+
+  Future<void> _load() async {
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
+
+    try {
+      final rows = await _repo.myNotifications();
+      if (!mounted) return;
+      setState(() {
+        _items = rows;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString().replaceFirst('Exception: ', '');
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _markRead(Map<String, dynamic> item) async {
+    final id = (item['id'] ?? '').toString().trim();
+    final isRead = item['is_read'] == true;
+    if (id.isEmpty || isRead || _busy) return;
+
+    setState(() {
+      _busy = true;
+    });
+
+    try {
+      await _repo.markAsRead(id);
+      if (!mounted) return;
+      setState(() {
+        _items = _items.map((row) {
+          final sameId = (row['id'] ?? '').toString() == id;
+          if (!sameId) return row;
+          final updated = Map<String, dynamic>.from(row);
+          updated['is_read'] = true;
+          updated['read_at'] = DateTime.now().toIso8601String();
+          return updated;
+        }).toList();
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+        });
+      }
+    }
+  }
+
+  int get _unreadCount =>
+      _items.where((item) => item['is_read'] != true).length;
+
+  String _timeLabel(String? raw) {
+    final parsed = raw == null ? null : DateTime.tryParse(raw)?.toLocal();
+    if (parsed == null) return 'Just now';
+
+    final diff = DateTime.now().difference(parsed);
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
+    if (diff.inHours < 24) return '${diff.inHours} h ago';
+    if (diff.inDays == 1) return '1 day ago';
+    if (diff.inDays < 7) return '${diff.inDays} days ago';
+    return '${parsed.day}/${parsed.month}/${parsed.year}';
+  }
+
+  IconData _iconForType(String type) {
+    switch (type) {
+      case 'birthday':
+        return Icons.cake_outlined;
+      case 'milestone':
+      case 'milestone_reached':
+        return Icons.emoji_events_outlined;
+      case 'class_reminder':
+        return Icons.calendar_today_outlined;
+      case 'workout_published':
+      case 'workout':
+        return Icons.fitness_center_outlined;
+      case 'comment':
+        return Icons.mode_comment_outlined;
+      default:
+        return Icons.notifications_outlined;
+    }
+  }
+
+  Color _iconBgForType(String type, bool unread) {
+    if (unread) return const Color(0xFFF7F3EA);
+    return const Color(0xFFF8FAFC);
+  }
+
+  Color _iconColorForType(String type, bool unread) {
+    if (unread) return const Color(0xFFB59B6A);
+    return const Color(0xFF667085);
+  }
+
+  String _title(Map<String, dynamic> item) {
+    final notification = Map<String, dynamic>.from(
+      (item['notifications'] as Map?) ?? const {},
+    );
+    final value = (notification['title'] ?? '').toString().trim();
+    return value.isEmpty ? 'Notification' : value;
+  }
+
+  String _message(Map<String, dynamic> item) {
+    final notification = Map<String, dynamic>.from(
+      (item['notifications'] as Map?) ?? const {},
+    );
+    final value = (notification['message'] ?? '').toString().trim();
+    return value.isEmpty ? 'No details available.' : value;
+  }
+
+  String _type(Map<String, dynamic> item) {
+    final notification = Map<String, dynamic>.from(
+      (item['notifications'] as Map?) ?? const {},
+    );
+    return (notification['type'] ?? '').toString().trim().toLowerCase();
+  }
+
+  Widget _summaryCard() {
+    final unread = _unreadCount;
+    final hasUnread = unread > 0;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: hasUnread ? const Color(0xFFF7F3EA) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: hasUnread ? const Color(0xFFEADFCB) : const Color(0xFFE7ECF2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            hasUnread
+                ? Icons.notifications_active_outlined
+                : Icons.notifications_none_outlined,
+            size: 18,
+            color: hasUnread
+                ? const Color(0xFFB59B6A)
+                : const Color(0xFF667085),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            hasUnread ? '$unread unread notifications' : 'All caught up',
+            style: _font(
+              13,
+              weight: FontWeight.w700,
+              color: hasUnread
+                  ? const Color(0xFF8A6C3F)
+                  : const Color(0xFF667085),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _emptyState() {
+    return AppCard(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'No notifications yet',
+            style: _font(
+              20,
+              weight: FontWeight.w800,
+              color: const Color(0xFF111318),
+              letterSpacing: -0.2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Your gym updates, milestones, reminders and announcements will appear here.',
+            style: _font(
+              14,
+              weight: FontWeight.w500,
+              color: const Color(0xFF667085),
+              height: 1.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _errorState() {
+    return AppCard(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Could not load notifications',
+            style: _font(
+              20,
+              weight: FontWeight.w800,
+              color: const Color(0xFF111318),
+              letterSpacing: -0.2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            _error ?? 'Unknown error',
+            style: _font(
+              14,
+              weight: FontWeight.w500,
+              color: const Color(0xFF667085),
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 12),
+          FilledButton(onPressed: _load, child: const Text('Retry')),
+        ],
+      ),
+    );
+  }
+
+  Widget _body() {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
+        children: [
+          _summaryCard(),
+          const SizedBox(height: 14),
+          if (_error != null)
+            _errorState()
+          else if (_items.isEmpty)
+            _emptyState()
+          else
+            ...List.generate(_items.length, (index) {
+              final item = _items[index];
+              final unread = item['is_read'] != true;
+              final type = _type(item);
+
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: index == _items.length - 1 ? 0 : 12,
+                ),
+                child: GestureDetector(
+                  onTap: () => _markRead(item),
+                  child: _NotificationCard(
+                    icon: _iconForType(type),
+                    iconBg: _iconBgForType(type, unread),
+                    iconColor: _iconColorForType(type, unread),
+                    title: _title(item),
+                    subtitle: _message(item),
+                    time: _timeLabel(
+                      (item['created_at'] ?? item['read_at'])?.toString(),
+                    ),
+                    unread: unread,
+                  ),
+                ),
+              );
+            }),
+        ],
+      ),
     );
   }
 
@@ -90,99 +386,7 @@ class NotificationsScreen extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF7F3EA),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFEADFCB)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.notifications_active_outlined,
-                        size: 18,
-                        color: Color(0xFFB59B6A),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '2 unread notifications',
-                        style: _font(
-                          13,
-                          weight: FontWeight.w700,
-                          color: const Color(0xFF8A6C3F),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-                const _NotificationCard(
-                  icon: Icons.calendar_today_outlined,
-                  iconBg: Color(0xFFF7F3EA),
-                  iconColor: Color(0xFFB59B6A),
-                  title: 'Class Reminder',
-                  subtitle: 'Your CrossFit class starts in 30 minutes',
-                  time: '30 min ago',
-                  unread: true,
-                ),
-                const SizedBox(height: 12),
-                const _NotificationCard(
-                  icon: Icons.emoji_events_outlined,
-                  iconBg: Color(0xFFF7F3EA),
-                  iconColor: Color(0xFFB59B6A),
-                  title: 'New Personal Record!',
-                  subtitle: 'You set a new PR for Back Squat: 315 lbs',
-                  time: '2 hours ago',
-                  unread: true,
-                ),
-                const SizedBox(height: 12),
-                const _NotificationCard(
-                  icon: Icons.mode_comment_outlined,
-                  iconBg: Color(0xFFF8FAFC),
-                  iconColor: Color(0xFF667085),
-                  title: 'New Comment',
-                  subtitle: 'Sarah commented on your workout: "Great job! 🔥"',
-                  time: '4 hours ago',
-                ),
-                const SizedBox(height: 12),
-                const _NotificationCard(
-                  icon: Icons.group_outlined,
-                  iconBg: Color(0xFFF8FAFC),
-                  iconColor: Color(0xFF667085),
-                  title: 'Mike Johnson',
-                  subtitle: 'Started following you',
-                  time: '1 day ago',
-                ),
-                const SizedBox(height: 12),
-                const _NotificationCard(
-                  icon: Icons.calendar_today_outlined,
-                  iconBg: Color(0xFFF8FAFC),
-                  iconColor: Color(0xFF667085),
-                  title: 'Class Cancelled',
-                  subtitle:
-                      "Tomorrow's 6:00 AM CrossFit class has been cancelled",
-                  time: '1 day ago',
-                ),
-                const SizedBox(height: 12),
-                const _NotificationCard(
-                  icon: Icons.emoji_events_outlined,
-                  iconBg: Color(0xFFF8FAFC),
-                  iconColor: Color(0xFF667085),
-                  title: 'Milestone Unlocked',
-                  subtitle: "You've completed 100 classes! Keep it up! 🎯",
-                  time: '2 days ago',
-                ),
-              ],
-            ),
-          ),
+          Expanded(child: _body()),
         ],
       ),
     );
