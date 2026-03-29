@@ -14,43 +14,50 @@ Deno.serve(async (req) => {
       return json({ error: 'Method not allowed' }, 405)
     }
 
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return json({ error: 'Missing Authorization header' }, 401)
-    }
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+    const internalSecret = Deno.env.get('INTERNAL_FUNCTION_SECRET')!
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey)
 
-    const token = authHeader.replace('Bearer ', '')
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`,
+    const internalHeader = req.headers.get('x-internal-function-secret')
+    const isInternalCall =
+      !!internalHeader && internalHeader === internalSecret
+
+    if (!isInternalCall) {
+      const authHeader = req.headers.get('Authorization')
+      if (!authHeader) {
+        return json({ error: 'Missing Authorization header' }, 401)
+      }
+
+      const token = authHeader.replace('Bearer ', '')
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      },
-    })
+      })
 
-    const {
-      data: { user },
-      error: userError,
-    } = await userClient.auth.getUser()
+      const {
+        data: { user },
+        error: userError,
+      } = await userClient.auth.getUser()
 
-    if (userError || !user) {
-      return json({ error: 'Unauthorized' }, 401)
-    }
+      if (userError || !user) {
+        return json({ error: 'Unauthorized' }, 401)
+      }
 
-    const { data: me, error: meError } = await adminClient
-      .from('profiles')
-      .select('id, role, gym_id')
-      .eq('id', user.id)
-      .maybeSingle()
+      const { data: me, error: meError } = await adminClient
+        .from('profiles')
+        .select('id, role, gym_id')
+        .eq('id', user.id)
+        .maybeSingle()
 
-    if (meError || !me || me.role !== 'admin') {
-      return json({ error: 'Only admins can send push notifications' }, 403)
+      if (meError || !me || me.role !== 'admin') {
+        return json({ error: 'Only admins can send push notifications' }, 403)
+      }
     }
 
     const body = await req.json()
@@ -71,27 +78,10 @@ Deno.serve(async (req) => {
     if (!message) return json({ error: 'message is required' }, 400)
     if (userIds.length === 0) return json({ error: 'userIds is required' }, 400)
 
-    const { data: targetProfiles, error: targetProfilesError } = await adminClient
-      .from('profiles')
-      .select('id, gym_id')
-      .in('id', userIds)
-
-    if (targetProfilesError) {
-      return json({ error: targetProfilesError.message }, 400)
-    }
-
-    const allowedUserIds = (targetProfiles ?? [])
-      .filter((p) => p.gym_id === me.gym_id)
-      .map((p) => p.id)
-
-    if (allowedUserIds.length === 0) {
-      return json({ error: 'No valid users found in your gym' }, 400)
-    }
-
     const { data: deviceTokens, error: tokensError } = await adminClient
       .from('device_tokens')
       .select('id, member_id, token, platform')
-      .in('member_id', allowedUserIds)
+      .in('member_id', userIds)
 
     if (tokensError) {
       return json({ error: tokensError.message }, 400)
@@ -119,8 +109,6 @@ Deno.serve(async (req) => {
 
     return json({
       ok: true,
-      requestedUsers: userIds.length,
-      matchedUsers: allowedUserIds.length,
       tokensFound: tokens.length,
       sent: result.sent.length,
       failed: result.failed.length,

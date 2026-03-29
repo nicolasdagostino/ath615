@@ -19,6 +19,12 @@ class PushNotificationService {
     try {
       await _requestPermissions();
       await FirebaseMessaging.instance.setAutoInitEnabled(true);
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
 
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 

@@ -328,23 +328,26 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
               try {
                 final scheduled = scheduledCtrl.text.trim().isEmpty
                     ? null
-                    : '\${scheduledCtrl.text.trim()}T09:00:00';
+                    : '${scheduledCtrl.text.trim()}T09:00:00';
+
+                late final String notifId;
 
                 if (isEdit) {
+                  notifId = item['id'].toString();
                   await _repo.updateNotification(
-                    id: item['id'].toString(),
+                    id: notifId,
                     type: type,
-                    status: status,
+                    status: status == 'published' ? 'draft' : status,
                     title: title,
                     message: message,
                     recipientsScope: recipientsScope,
                     scheduledForIso: scheduled,
                   );
                 } else {
-                  await _repo.createNotification(
+                  notifId = await _repo.createNotification(
                     gymId: _gymId!,
                     type: type,
-                    status: status,
+                    status: status == 'published' ? 'draft' : status,
                     title: title,
                     message: message,
                     recipientsScope: recipientsScope,
@@ -352,12 +355,22 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                   );
                 }
 
+                if (status == 'published') {
+                  await _repo.publishNotification(notifId);
+                }
+
                 if (!sheetContext.mounted) return;
                 Navigator.of(sheetContext).pop();
                 await _load();
                 if (!mounted) return;
                 _toast(
-                  isEdit ? 'Notification updated.' : 'Notification created.',
+                  status == 'published'
+                      ? (isEdit
+                            ? 'Notification published.'
+                            : 'Notification created & published.')
+                      : (isEdit
+                            ? 'Notification updated.'
+                            : 'Notification created.'),
                 );
               } catch (e) {
                 _toast(
@@ -476,6 +489,14 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                             DropdownMenuItem(
                               value: 'scheduled',
                               child: Text('Scheduled'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'published',
+                              child: Text('Publish now'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'sent',
+                              child: Text('Sent'),
                             ),
                           ],
                           onChanged: (value) {
