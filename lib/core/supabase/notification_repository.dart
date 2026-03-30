@@ -106,6 +106,7 @@ class NotificationRepository {
     required String gymId,
     required String workoutTitle,
     required String workoutDate,
+    String? programName,
   }) async {
     if (gymId.trim().isEmpty || workoutDate.trim().isEmpty) return;
 
@@ -115,11 +116,21 @@ class NotificationRepository {
 
     final isToday = workoutDate.trim() == todayIso;
     final scheduledIso = '${workoutDate.trim()}T00:00:00';
+    final cleanProgramName = (programName ?? '').trim();
+    final hasProgram = cleanProgramName.isNotEmpty;
+    final cleanWorkoutTitle = workoutTitle.trim();
 
-    final title = "Today's workout is ready";
-    final message = workoutTitle.trim().isEmpty
-        ? "Check today's WOD"
-        : "Today's WOD is '$workoutTitle'";
+    final title = hasProgram
+        ? '$cleanProgramName workout is ready'
+        : "Today's workout is ready";
+
+    final message = cleanWorkoutTitle.isEmpty
+        ? (hasProgram
+              ? "Check today's $cleanProgramName WOD"
+              : "Check today's WOD")
+        : (hasProgram
+              ? "Today's $cleanProgramName WOD is '$cleanWorkoutTitle'"
+              : "Today's WOD is '$cleanWorkoutTitle'");
 
     final id = await createNotification(
       gymId: gymId,

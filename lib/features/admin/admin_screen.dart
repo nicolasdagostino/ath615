@@ -2348,13 +2348,31 @@ class _AdminScreenState extends State<AdminScreen> {
           );
     }
 
+    final selectedProgramName = programId != null && programId.trim().isNotEmpty
+        ? (_programs.cast<Map<String, dynamic>?>().firstWhere(
+                    (item) =>
+                        (item?['id'] ?? '').toString().trim() ==
+                        programId.trim(),
+                    orElse: () => null,
+                  )?['name'] ??
+                  '')
+              .toString()
+              .trim()
+        : '';
+
     try {
       await _notificationRepo.publishWorkoutNotificationIfNeeded(
         gymId: gymId,
         workoutTitle: title.trim(),
         workoutDate: workoutDate.trim(),
+        programName: selectedProgramName,
       );
-    } catch (_) {}
+    } catch (e) {
+      _toast(
+        'Workout notification error: ${e.toString().replaceFirst('Exception: ', '')}',
+      );
+      rethrow;
+    }
 
     if (autoAssignedCount > 0) {
       _toast(
@@ -2411,12 +2429,6 @@ class _AdminScreenState extends State<AdminScreen> {
       timeCapMinutes: null,
       workoutType: workoutType.trim().isEmpty ? null : workoutType.trim(),
       imageUrl: imageUrl,
-    );
-
-    await _notificationRepo.publishWorkoutNotificationIfNeeded(
-      gymId: gymId,
-      workoutTitle: title.trim(),
-      workoutDate: workoutDate.trim(),
     );
   }
 
