@@ -2363,8 +2363,10 @@ class _AdminScreenState extends State<AdminScreen> {
     try {
       await _notificationRepo.publishWorkoutNotificationIfNeeded(
         gymId: gymId,
+        workoutId: workoutId,
         workoutTitle: title.trim(),
         workoutDate: workoutDate.trim(),
+        programId: programId,
         programName: selectedProgramName,
       );
     } catch (e) {

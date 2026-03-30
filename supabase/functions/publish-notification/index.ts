@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
 
     const { data: notification, error: notificationError } = await adminClient
       .from('notifications')
-      .select('id, gym_id, title, message, recipients_scope, status')
+      .select('id, gym_id, title, message, recipients_scope, status, metadata')
       .eq('id', notificationId)
       .maybeSingle()
 
@@ -154,8 +154,28 @@ Deno.serve(async (req) => {
           title: notification.title,
           message: notification.message,
           data: {
-            type: scope === 'athletes' ? 'announcement' : 'notification',
+            type:
+              ((notification.metadata ?? {}) as Record<string, unknown>).pushType
+                ?.toString()
+                ?.trim() ||
+              (scope === 'athletes' ? 'announcement' : 'notification'),
             notificationId: notification.id.toString(),
+            workoutId:
+              ((notification.metadata ?? {}) as Record<string, unknown>).workoutId
+                ?.toString()
+                ?.trim() || '',
+            programId:
+              ((notification.metadata ?? {}) as Record<string, unknown>).programId
+                ?.toString()
+                ?.trim() || '',
+            programName:
+              ((notification.metadata ?? {}) as Record<string, unknown>).programName
+                ?.toString()
+                ?.trim() || '',
+            workoutDate:
+              ((notification.metadata ?? {}) as Record<string, unknown>).workoutDate
+                ?.toString()
+                ?.trim() || '',
           },
         }),
       })

@@ -9,6 +9,7 @@ import 'features/auth/debug_session_screen.dart';
 import 'features/auth/set_new_password_screen.dart';
 import 'firebase_options.dart';
 import 'core/notifications/push_notification_service.dart';
+import 'core/notifications/push_navigation.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +28,7 @@ class Ath615App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorKey: AuthDeepLinkHandler.navigatorKey,
+      navigatorKey: PushNavigation.navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Ath615',
       theme: AppTheme.build(),

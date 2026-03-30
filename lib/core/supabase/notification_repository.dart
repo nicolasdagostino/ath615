@@ -40,6 +40,7 @@ class NotificationRepository {
     String recipientsScope = 'all_users',
     String status = 'draft',
     String? scheduledForIso,
+    Map<String, dynamic>? metadata,
   }) async {
     final user = sb.auth.currentUser;
 
@@ -54,6 +55,7 @@ class NotificationRepository {
           'message': message,
           'recipients_scope': recipientsScope,
           'scheduled_for': scheduledForIso,
+          'metadata': metadata ?? <String, dynamic>{},
         })
         .select()
         .single();
@@ -104,8 +106,10 @@ class NotificationRepository {
   // 🔥 NUEVA LÓGICA CORRECTA
   Future<void> publishWorkoutNotificationIfNeeded({
     required String gymId,
+    required String workoutId,
     required String workoutTitle,
     required String workoutDate,
+    String? programId,
     String? programName,
   }) async {
     if (gymId.trim().isEmpty || workoutDate.trim().isEmpty) return;
@@ -140,6 +144,13 @@ class NotificationRepository {
       recipientsScope: 'all_users',
       status: isToday ? 'draft' : 'scheduled',
       scheduledForIso: scheduledIso,
+      metadata: {
+        'pushType': 'workout_published',
+        'workoutId': workoutId,
+        'programId': (programId ?? '').trim(),
+        'programName': cleanProgramName,
+        'workoutDate': workoutDate.trim(),
+      },
     );
 
     if (isToday) {

@@ -4,6 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
 import '../supabase/device_token_repository.dart';
+import 'push_navigation.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -38,7 +39,16 @@ class PushNotificationService {
         debugPrint(
           'PUSH OPENED title=${message.notification?.title} data=${message.data}',
         );
+        unawaited(PushNavigation.handleMessageData(message.data));
       });
+
+      final initialMessage = await _messaging.getInitialMessage();
+      if (initialMessage != null) {
+        debugPrint(
+          'PUSH INITIAL title=${initialMessage.notification?.title} data=${initialMessage.data}',
+        );
+        unawaited(PushNavigation.handleMessageData(initialMessage.data));
+      }
 
       unawaited(_logTokenWhenReady());
     } catch (e, st) {
