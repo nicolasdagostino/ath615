@@ -144,6 +144,24 @@ class ClassRepository {
     }
   }
 
+  Future<int> deleteFutureClassesForProgramSlot(String classId) async {
+    final result = await sb.rpc(
+      'admin_delete_future_classes_for_program_slot',
+      params: {'p_class_id': classId},
+    );
+
+    final ok = result['ok'] == true;
+    if (!ok) {
+      throw Exception(
+        (result['message'] ?? 'Could not delete future classes').toString(),
+      );
+    }
+
+    final deletedCount = result['deleted_count'];
+    if (deletedCount is int) return deletedCount;
+    return int.tryParse(deletedCount.toString()) ?? 0;
+  }
+
   Future<void> bookClass(String classId) async {
     final user = sb.auth.currentUser;
     if (user == null) throw Exception('Not authenticated');

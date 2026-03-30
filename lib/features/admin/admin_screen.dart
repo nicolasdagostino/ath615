@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/supabase/class_repository.dart';
 import '../../core/supabase/admin_member_repository.dart';
+import '../../core/supabase/notification_repository.dart';
 import '../../core/supabase/auth_repository.dart';
 import '../../core/supabase/gym_repository.dart';
 import '../../core/supabase/membership_repository.dart';
@@ -51,6 +52,7 @@ class _AdminScreenState extends State<AdminScreen> {
   final _membershipRepo = MembershipRepository();
   final _authRepo = AuthRepository();
   final _adminMemberRepo = AdminMemberRepository();
+  final _notificationRepo = NotificationRepository();
   final _profileRepo = ProfileRepository();
   final _classRepo = ClassRepository();
   final _programRepo = ProgramRepository();
@@ -1647,7 +1649,7 @@ class _AdminScreenState extends State<AdminScreen> {
                     actionTile(
                       icon: Icons.delete_outline_rounded,
                       title: 'Delete class',
-                      subtitle: 'Remove this class from the schedule',
+                      subtitle: 'Remove only this class',
                       iconBg: const Color(0xFFFEE4E2),
                       iconColor: const Color(0xFFE11D48),
                       titleColor: const Color(0xFFE11D48),
@@ -1659,6 +1661,46 @@ class _AdminScreenState extends State<AdminScreen> {
                                 () => _deleteClass(item['id'].toString()),
                                 successMessage: 'Class deleted',
                               );
+                            },
+                    ),
+                    const SizedBox(height: 10),
+                    actionTile(
+                      icon: Icons.delete_sweep_rounded,
+                      title: 'Delete this and future',
+                      subtitle:
+                          'Remove future classes for this program and time',
+                      iconBg: const Color(0xFFFEE4E2),
+                      iconColor: const Color(0xFFE11D48),
+                      titleColor: const Color(0xFFE11D48),
+                      onTap: _adminActionBusy
+                          ? null
+                          : () async {
+                              Navigator.pop(context);
+
+                              setState(() {
+                                _adminActionBusy = true;
+                              });
+
+                              try {
+                                final deleted =
+                                    await _deleteFutureClassesForProgramSlot(
+                                      item['id'].toString(),
+                                    );
+                                await _loadAdminData();
+                                if (!mounted) return;
+                                _toast('$deleted classes deleted');
+                              } catch (e) {
+                                if (!mounted) return;
+                                _toast(
+                                  e.toString().replaceFirst('Exception: ', ''),
+                                );
+                              } finally {
+                                if (mounted) {
+                                  setState(() {
+                                    _adminActionBusy = false;
+                                  });
+                                }
+                              }
                             },
                     ),
                     const SizedBox(height: 14),
@@ -2243,12 +2285,15 @@ class _AdminScreenState extends State<AdminScreen> {
     await _classRepo.deleteClass(id);
   }
 
+  Future<int> _deleteFutureClassesForProgramSlot(String classId) async {
+    return _classRepo.deleteFutureClassesForProgramSlot(classId);
+  }
+
   Future<void> _createWorkout({
     required String? programId,
     required String title,
     required String description,
     required String workoutDate,
-    required String timeCapMinutes,
     required String workoutType,
     String? imageUrl,
   }) async {
@@ -2263,25 +2308,59 @@ class _AdminScreenState extends State<AdminScreen> {
       throw Exception('Workout date is required');
     }
 
-    final parsedTimeCap = timeCapMinutes.trim().isEmpty
-        ? null
-        : int.tryParse(timeCapMinutes.trim());
+    if (programId != null && programId.trim().isNotEmpty) {
+      final existing = await _workoutRepo.findExistingWorkoutForProgramOnDate(
+        gymId: gymId,
+        programId: programId.trim(),
+        workoutDate: workoutDate.trim(),
+      );
 
-    if (timeCapMinutes.trim().isNotEmpty && parsedTimeCap == null) {
-      throw Exception('Invalid time cap');
+      if (existing != null) {
+        final existingTitle = (existing['title'] ?? 'Workout')
+            .toString()
+            .trim();
+        throw Exception(
+          'Ya existe un WOD para este programa en esa fecha: $existingTitle',
+        );
+      }
     }
 
-    await _workoutRepo.createWorkout(
+    final workoutId = await _workoutRepo.createWorkout(
       gymId: gymId,
       programId: programId,
       title: title.trim(),
       description: description.trim().isEmpty ? null : description.trim(),
       workoutDate: workoutDate.trim(),
-      timeCapMinutes: parsedTimeCap,
+      timeCapMinutes: null,
       workoutType: workoutType.trim().isEmpty ? null : workoutType.trim(),
       createdBy: null,
       imageUrl: imageUrl,
     );
+
+    var autoAssignedCount = 0;
+    if (programId != null && programId.trim().isNotEmpty) {
+      autoAssignedCount = await _workoutRepo
+          .autoAssignWorkoutToProgramClassesOnDate(
+            gymId: gymId,
+            programId: programId.trim(),
+            workoutId: workoutId,
+            workoutDate: workoutDate.trim(),
+          );
+    }
+
+    try {
+      await _notificationRepo.publishWorkoutNotificationIfNeeded(
+        gymId: gymId,
+        workoutTitle: title.trim(),
+        workoutDate: workoutDate.trim(),
+      );
+    } catch (_) {}
+
+    if (autoAssignedCount > 0) {
+      _toast(
+        'Workout created and auto-assigned to $autoAssignedCount classes.',
+      );
+    }
   }
 
   Future<void> _updateWorkout({
@@ -2290,7 +2369,6 @@ class _AdminScreenState extends State<AdminScreen> {
     required String title,
     required String description,
     required String workoutDate,
-    required String timeCapMinutes,
     required String workoutType,
     String? imageUrl,
   }) async {
@@ -2301,12 +2379,27 @@ class _AdminScreenState extends State<AdminScreen> {
       throw Exception('Workout date is required');
     }
 
-    final parsedTimeCap = timeCapMinutes.trim().isEmpty
-        ? null
-        : int.tryParse(timeCapMinutes.trim());
+    final gymId = await _resolvedGymIdForAdmin();
+    if (gymId == null || gymId.isEmpty) {
+      throw Exception('Could not determine gym id');
+    }
 
-    if (timeCapMinutes.trim().isNotEmpty && parsedTimeCap == null) {
-      throw Exception('Invalid time cap');
+    if (programId != null && programId.trim().isNotEmpty) {
+      final existing = await _workoutRepo.findExistingWorkoutForProgramOnDate(
+        gymId: gymId,
+        programId: programId.trim(),
+        workoutDate: workoutDate.trim(),
+        excludeWorkoutId: id,
+      );
+
+      if (existing != null) {
+        final existingTitle = (existing['title'] ?? 'Workout')
+            .toString()
+            .trim();
+        throw Exception(
+          'Ya existe un WOD para este programa en esa fecha: $existingTitle',
+        );
+      }
     }
 
     await _workoutRepo.updateWorkout(
@@ -2315,9 +2408,15 @@ class _AdminScreenState extends State<AdminScreen> {
       title: title.trim(),
       description: description.trim().isEmpty ? null : description.trim(),
       workoutDate: workoutDate.trim(),
-      timeCapMinutes: parsedTimeCap,
+      timeCapMinutes: null,
       workoutType: workoutType.trim().isEmpty ? null : workoutType.trim(),
       imageUrl: imageUrl,
+    );
+
+    await _notificationRepo.publishWorkoutNotificationIfNeeded(
+      gymId: gymId,
+      workoutTitle: title.trim(),
+      workoutDate: workoutDate.trim(),
     );
   }
 
@@ -4141,7 +4240,6 @@ class _AdminScreenState extends State<AdminScreen> {
             final type = (item['workout_type'] ?? '').toString().trim();
             final title = (item['title'] ?? 'Workout').toString();
             final description = (item['description'] ?? '').toString().trim();
-            final timeCap = (item['time_cap_minutes'] ?? '').toString().trim();
             final imageUrl = (item['image_url'] ?? '').toString().trim();
 
             String meta = program;
@@ -4149,9 +4247,6 @@ class _AdminScreenState extends State<AdminScreen> {
             if (type.isNotEmpty) meta = '$meta · $type';
 
             String? subMeta;
-            if (timeCap.isNotEmpty) {
-              subMeta = 'Time cap: $timeCap min';
-            }
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -4190,10 +4285,10 @@ class _AdminScreenState extends State<AdminScreen> {
                                 height: 1.35,
                               ),
                             ),
-                            if (subMeta != null) ...[
+                            if ((subMeta ?? '').isNotEmpty) ...[
                               const SizedBox(height: 6),
                               Text(
-                                subMeta,
+                                subMeta ?? '',
                                 style: _font(
                                   13,
                                   weight: FontWeight.w500,

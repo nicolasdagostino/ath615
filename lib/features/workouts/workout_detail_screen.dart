@@ -786,7 +786,6 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
     final dateIso = (workout['workout_date'] ?? '').toString();
     final description = (workout['description'] ?? '').toString().trim();
     final type = (workout['workout_type'] ?? '').toString().trim();
-    final timeCap = (workout['time_cap_minutes'] ?? '').toString().trim();
     final imageUrl = (workout['image_url'] ?? '').toString();
     final likes = (workout['likes_count'] ?? 0).toString();
     final commentsCount = _comments.length.toString();
@@ -892,36 +891,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                           const SizedBox(height: 16),
                           _parsedDescription(description),
                         ],
-                        if (timeCap.isNotEmpty) ...[
-                          const SizedBox(height: 14),
-                          Row(
-                            children: [
-                              Container(
-                                width: 34,
-                                height: 34,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF7F3EA),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.timer_outlined,
-                                  size: 18,
-                                  color: Color(0xFFB59B6A),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                'TIME CAP: $timeCap MIN',
-                                style: _font(
-                                  13,
-                                  weight: FontWeight.w700,
-                                  color: const Color(0xFF111318),
-                                  letterSpacing: 0.6,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+
                         const SizedBox(height: 18),
                         _imageSection(imageUrl),
                         const SizedBox(height: 14),

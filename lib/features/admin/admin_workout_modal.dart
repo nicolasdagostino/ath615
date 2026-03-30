@@ -19,9 +19,6 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
           item?['workout_date']?.toString() ??
           DateFormat('yyyy-MM-dd').format(DateTime.now()),
     );
-    final timeCapCtrl = TextEditingController(
-      text: item?['time_cap_minutes']?.toString() ?? '',
-    );
     final typeCtrl = TextEditingController(
       text: item?['workout_type']?.toString() ?? '',
     );
@@ -523,36 +520,20 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                 textInputAction: TextInputAction.next,
                               ),
                               const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: styledField(
-                                      label: 'Workout Date',
-                                      controller: dateCtrl,
-                                      hint: '2026-03-15',
-                                      readOnly: true,
-                                      onTap: () async {
-                                        await pickDate(context, dateCtrl);
-                                        setLocalState(() {});
-                                      },
-                                      suffixIcon: const Icon(
-                                        Icons.calendar_today_rounded,
-                                        size: 18,
-                                        color: Color(0xFF98A2B3),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: styledField(
-                                      label: 'Time Cap',
-                                      controller: timeCapCtrl,
-                                      hint: '12',
-                                      keyboardType: TextInputType.number,
-                                      textInputAction: TextInputAction.next,
-                                    ),
-                                  ),
-                                ],
+                              styledField(
+                                label: 'Workout Date',
+                                controller: dateCtrl,
+                                hint: '2026-03-15',
+                                readOnly: true,
+                                onTap: () async {
+                                  await pickDate(context, dateCtrl);
+                                  setLocalState(() {});
+                                },
+                                suffixIcon: const Icon(
+                                  Icons.calendar_today_rounded,
+                                  size: 18,
+                                  color: Color(0xFF98A2B3),
+                                ),
                               ),
                               const SizedBox(height: 12),
                               styledField(
@@ -710,8 +691,6 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                                 description:
                                                     descriptionCtrl.text,
                                                 workoutDate: dateCtrl.text,
-                                                timeCapMinutes:
-                                                    timeCapCtrl.text,
                                                 workoutType: typeCtrl.text,
                                                 imageUrl: finalImageUrl,
                                               ),
@@ -725,8 +704,6 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                                 description:
                                                     descriptionCtrl.text,
                                                 workoutDate: dateCtrl.text,
-                                                timeCapMinutes:
-                                                    timeCapCtrl.text,
                                                 workoutType: typeCtrl.text,
                                                 imageUrl: finalImageUrl,
                                               ),

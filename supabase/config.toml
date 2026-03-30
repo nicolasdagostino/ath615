@@ -13,3 +13,13 @@ entrypoint = "./functions/send-push/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/publish-notification/index.ts"
+
+[functions.send-birthday-notifications]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/send-birthday-notifications/index.ts"
+
+[functions.publish-scheduled-notifications]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/publish-scheduled-notifications/index.ts"

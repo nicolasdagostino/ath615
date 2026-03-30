@@ -13,11 +13,6 @@ Deno.serve(async (req) => {
       return json({ error: 'Method not allowed' }, 405)
     }
 
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return json({ error: 'Missing Authorization header' }, 401)
-    }
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -25,32 +20,47 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey)
 
-    const token = authHeader.replace('Bearer ', '')
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`,
+    const internalHeader = req.headers.get('x-internal-function-secret')
+    const isInternalCall =
+      !!internalHeader && internalHeader === internalSecret
+
+    let callerGymId: string | null = null
+
+    if (!isInternalCall) {
+      const authHeader = req.headers.get('Authorization')
+      if (!authHeader) {
+        return json({ error: 'Missing Authorization header' }, 401)
+      }
+
+      const token = authHeader.replace('Bearer ', '')
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      },
-    })
+      })
 
-    const {
-      data: { user },
-      error: userError,
-    } = await userClient.auth.getUser()
+      const {
+        data: { user },
+        error: userError,
+      } = await userClient.auth.getUser()
 
-    if (userError || !user) {
-      return json({ error: 'Unauthorized' }, 401)
-    }
+      if (userError || !user) {
+        return json({ error: 'Unauthorized' }, 401)
+      }
 
-    const { data: me, error: meError } = await adminClient
-      .from('profiles')
-      .select('id, role, gym_id')
-      .eq('id', user.id)
-      .maybeSingle()
+      const { data: me, error: meError } = await adminClient
+        .from('profiles')
+        .select('id, role, gym_id')
+        .eq('id', user.id)
+        .maybeSingle()
 
-    if (meError || !me || me.role !== 'admin') {
-      return json({ error: 'Only admins can publish notifications' }, 403)
+      if (meError || !me || me.role !== 'admin') {
+        return json({ error: 'Only admins can publish notifications' }, 403)
+      }
+
+      callerGymId = (me.gym_id ?? '').toString()
     }
 
     const body = await req.json()
@@ -70,14 +80,14 @@ Deno.serve(async (req) => {
       return json({ error: 'Notification not found' }, 404)
     }
 
-    if (notification.gym_id !== me.gym_id) {
+    if (!isInternalCall && callerGymId != notification.gym_id) {
       return json({ error: 'Notification does not belong to your gym' }, 403)
     }
 
     let profileQuery = adminClient
       .from('profiles')
       .select('id, role, is_active')
-      .eq('gym_id', me.gym_id)
+      .eq('gym_id', notification.gym_id)
       .eq('is_active', true)
 
     const scope = (notification.recipients_scope ?? 'all_users').toString()
@@ -85,7 +95,12 @@ Deno.serve(async (req) => {
     if (scope === 'athletes') {
       profileQuery = profileQuery.in('role', ['athlete', 'member'])
     } else {
-      profileQuery = profileQuery.in('role', ['athlete', 'member', 'admin', 'coach'])
+      profileQuery = profileQuery.in('role', [
+        'athlete',
+        'member',
+        'admin',
+        'coach',
+      ])
     }
 
     const { data: recipients, error: recipientsError } = await profileQuery
@@ -99,13 +114,34 @@ Deno.serve(async (req) => {
       .filter(Boolean)
 
     if (memberIds.length > 0) {
-      const rows = memberIds.map((memberId) => ({
-        member_id: memberId,
-        notification_id: notification.id,
-        is_read: false,
-      }))
+      const existingRows = await adminClient
+        .from('user_notifications')
+        .select('member_id')
+        .eq('notification_id', notification.id)
 
-      await adminClient.from('user_notifications').insert(rows)
+      const existingMemberIds = new Set(
+        ((existingRows.data ?? []) as Array<{ member_id: string | null }>)
+          .map((row) => (row.member_id ?? '').toString())
+          .filter(Boolean),
+      )
+
+      const rows = memberIds
+        .filter((memberId) => !existingMemberIds.has(memberId))
+        .map((memberId) => ({
+          member_id: memberId,
+          notification_id: notification.id,
+          is_read: false,
+        }))
+
+      if (rows.length > 0) {
+        const { error: insertError } = await adminClient
+          .from('user_notifications')
+          .insert(rows)
+
+        if (insertError) {
+          return json({ error: insertError.message }, 400)
+        }
+      }
 
       const pushRes = await fetch(`${supabaseUrl}/functions/v1/send-push`, {
         method: 'POST',
@@ -118,7 +154,7 @@ Deno.serve(async (req) => {
           title: notification.title,
           message: notification.message,
           data: {
-            type: 'announcement',
+            type: scope === 'athletes' ? 'announcement' : 'notification',
             notificationId: notification.id.toString(),
           },
         }),

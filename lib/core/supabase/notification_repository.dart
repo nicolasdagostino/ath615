@@ -100,4 +100,39 @@ class NotificationRepository {
       throw Exception('Failed to publish notification');
     }
   }
+
+  // 🔥 NUEVA LÓGICA CORRECTA
+  Future<void> publishWorkoutNotificationIfNeeded({
+    required String gymId,
+    required String workoutTitle,
+    required String workoutDate,
+  }) async {
+    if (gymId.trim().isEmpty || workoutDate.trim().isEmpty) return;
+
+    final now = DateTime.now();
+    final todayIso =
+        '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+
+    final isToday = workoutDate.trim() == todayIso;
+    final scheduledIso = '${workoutDate.trim()}T00:00:00';
+
+    final title = "Today's workout is ready";
+    final message = workoutTitle.trim().isEmpty
+        ? "Check today's WOD"
+        : "Today's WOD is '$workoutTitle'";
+
+    final id = await createNotification(
+      gymId: gymId,
+      type: 'announcement',
+      title: title,
+      message: message,
+      recipientsScope: 'all_users',
+      status: isToday ? 'draft' : 'scheduled',
+      scheduledForIso: scheduledIso,
+    );
+
+    if (isToday) {
+      await publishNotification(id);
+    }
+  }
 }

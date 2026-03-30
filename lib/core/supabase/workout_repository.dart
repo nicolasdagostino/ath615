@@ -102,7 +102,69 @@ class WorkoutRepository {
     return List<Map<String, dynamic>>.from(data);
   }
 
-  Future<void> createWorkout({
+  Future<Map<String, dynamic>?> findExistingWorkoutForProgramOnDate({
+    required String gymId,
+    required String programId,
+    required String workoutDate,
+    String? excludeWorkoutId,
+  }) async {
+    if (programId.trim().isEmpty) return null;
+
+    dynamic query = sb
+        .from('workouts')
+        .select('id, title, workout_date, program_id')
+        .eq('gym_id', gymId)
+        .eq('program_id', programId)
+        .eq('workout_date', workoutDate);
+
+    if (excludeWorkoutId != null && excludeWorkoutId.trim().isNotEmpty) {
+      query = query.neq('id', excludeWorkoutId.trim());
+    }
+
+    final data = await query.limit(1).maybeSingle();
+    if (data == null) return null;
+    return Map<String, dynamic>.from(data);
+  }
+
+  Future<int> autoAssignWorkoutToProgramClassesOnDate({
+    required String gymId,
+    required String programId,
+    required String workoutId,
+    required String workoutDate,
+  }) async {
+    if (programId.trim().isEmpty) return 0;
+
+    final startIso = '${workoutDate.trim()}T00:00:00';
+    final endIso = '${workoutDate.trim()}T23:59:59';
+
+    final classes = await sb
+        .from('v_classes_with_spots')
+        .select('id, workout_id')
+        .eq('gym_id', gymId)
+        .eq('program_id', programId)
+        .eq('status', 'scheduled')
+        .gte('starts_at', startIso)
+        .lte('starts_at', endIso)
+        .order('starts_at', ascending: true);
+
+    var assigned = 0;
+
+    for (final raw in classes) {
+      final item = Map<String, dynamic>.from(raw);
+      final classId = (item['id'] ?? '').toString().trim();
+      final currentWorkoutId = (item['workout_id'] ?? '').toString().trim();
+
+      if (classId.isEmpty) continue;
+      if (currentWorkoutId.isNotEmpty) continue;
+
+      await assignWorkoutToClass(classId: classId, workoutId: workoutId);
+      assigned++;
+    }
+
+    return assigned;
+  }
+
+  Future<String> createWorkout({
     required String gymId,
     String? programId,
     required String title,
@@ -139,18 +201,28 @@ class WorkoutRepository {
 
     final isBenchmark = benchmarkNames.any((n) => lower.contains(n));
 
-    await sb.from('workouts').insert({
-      'gym_id': gymId,
-      'program_id': (programId == null || programId.isEmpty) ? null : programId,
-      'title': title,
-      'description': description,
-      'workout_date': workoutDate,
-      'time_cap_minutes': timeCapMinutes,
-      'workout_type': workoutType,
-      'created_by': (createdBy == null || createdBy.isEmpty) ? null : createdBy,
-      'image_url': (imageUrl == null || imageUrl.isEmpty) ? null : imageUrl,
-      'is_benchmark': isBenchmark,
-    });
+    final res = await sb
+        .from('workouts')
+        .insert({
+          'gym_id': gymId,
+          'program_id': (programId == null || programId.isEmpty)
+              ? null
+              : programId,
+          'title': title,
+          'description': description,
+          'workout_date': workoutDate,
+          'time_cap_minutes': timeCapMinutes,
+          'workout_type': workoutType,
+          'created_by': (createdBy == null || createdBy.isEmpty)
+              ? null
+              : createdBy,
+          'image_url': (imageUrl == null || imageUrl.isEmpty) ? null : imageUrl,
+          'is_benchmark': isBenchmark,
+        })
+        .select('id')
+        .single();
+
+    return res['id'].toString();
   }
 
   Future<void> updateWorkout({
