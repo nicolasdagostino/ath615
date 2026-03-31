@@ -40,7 +40,7 @@ class _BookingScreenState extends State<BookingScreen> {
     _selectedDay = DateTime.now();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_daysScrollController.hasClients) return;
-      _daysScrollController.jumpTo(56 * 8.5);
+      _daysScrollController.jumpTo(0);
     });
     _load();
   }
@@ -199,6 +199,19 @@ class _BookingScreenState extends State<BookingScreen> {
     return (booking['status'] ?? '').toString() == 'booked';
   }
 
+  
+  bool _canCancelBooking(Map<String, dynamic> item) {
+    try {
+      final startsAt = DateTime.parse(
+        item['starts_at'].toString(),
+      ).toLocal();
+
+      return DateTime.now().isBefore(startsAt);
+    } catch (_) {
+      return false;
+    }
+  }
+
   bool _isCheckedIn(Map<String, dynamic> classItem) {
     final booking = _bookingForClass(classItem['id'].toString());
     if (booking == null) return false;
@@ -207,6 +220,37 @@ class _BookingScreenState extends State<BookingScreen> {
 
   bool _canCheckIn(Map<String, dynamic> classItem) {
     if (!_isBooked(classItem)) return false;
+
+    try {
+      final startsAt = DateTime.parse(
+        classItem['starts_at'].toString(),
+      ).toLocal();
+      final durationMinutes = _asInt(classItem['duration_minutes'], 60);
+      final checkInOpensAt = startsAt.subtract(const Duration(minutes: 10));
+      final checkInClosesAt = startsAt.add(Duration(minutes: durationMinutes));
+      final now = DateTime.now();
+
+      return !now.isBefore(checkInOpensAt) && !now.isAfter(checkInClosesAt);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  
+  bool _isClassFinished(Map<String, dynamic> item) {
+    try {
+      final startsAt = DateTime.parse(item['starts_at'].toString()).toLocal();
+      final duration = _asInt(item['duration_minutes'], 60);
+      final endsAt = startsAt.add(Duration(minutes: duration));
+
+      return DateTime.now().isAfter(endsAt);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  bool _isBookingClosed(Map<String, dynamic> classItem) {
+    if (_isBooked(classItem) || _isCheckedIn(classItem)) return false;
 
     try {
       final startsAt = DateTime.parse(
@@ -357,14 +401,11 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   List<DateTime> _days() {
-    final base = DateTime(
-      _selectedDay.year,
-      _selectedDay.month,
-      _selectedDay.day,
-    );
+    final now = DateTime.now();
+    final base = DateTime(now.year, now.month, now.day);
     return List.generate(
-      21,
-      (i) => DateTime(base.year, base.month, base.day - 10 + i),
+      14,
+      (i) => DateTime(base.year, base.month, base.day + i),
     );
   }
 
@@ -645,6 +686,50 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  String _classTimeStatus(Map<String, dynamic> item) {
+    try {
+      final startsAt = DateTime.parse(item['starts_at'].toString()).toLocal();
+      final duration = _asInt(item['duration_minutes'], 60);
+      final endsAt = startsAt.add(Duration(minutes: duration));
+
+      final now = DateTime.now();
+
+      if (now.isAfter(endsAt)) {
+        return 'Finished';
+      }
+
+      if (now.isAfter(startsAt) && now.isBefore(endsAt)) {
+        return 'In progress';
+      }
+
+      final diff = startsAt.difference(now);
+
+      final today = DateTime(now.year, now.month, now.day);
+      final classDay = DateTime(startsAt.year, startsAt.month, startsAt.day);
+
+      if (classDay.isAfter(today)) {
+        final daysDiff = classDay.difference(today).inDays;
+
+        if (daysDiff == 1) {
+          return 'Tomorrow';
+        }
+
+        return 'In ${daysDiff} days';
+      }
+
+      final hours = diff.inHours;
+      final minutes = diff.inMinutes % 60;
+
+      if (hours <= 0) {
+        return 'Starts in ${minutes} min';
+      }
+
+      return 'Starts in ${hours}h ${minutes}m';
+    } catch (_) {
+      return '';
+    }
+  }
+
   Widget _classCard(Map<String, dynamic> item) {
     final titleRaw = (item['title'] ?? 'Class').toString().trim();
     final programRaw = (item['program_name'] ?? 'Class').toString().trim();
@@ -682,15 +767,29 @@ class _BookingScreenState extends State<BookingScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Text(
-                    timeLabel,
-                    style: _font(
-                      31,
-                      weight: FontWeight.w900,
-                      color: const Color(0xFF111318),
-                      letterSpacing: -1.0,
-                      height: 1.0,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        timeLabel,
+                        style: _font(
+                          31,
+                          weight: FontWeight.w900,
+                          color: const Color(0xFF111318),
+                          letterSpacing: -1.0,
+                          height: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _classTimeStatus(item),
+                        style: _font(
+                          12,
+                          weight: FontWeight.w600,
+                          color: const Color(0xFF8F96A3),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 if (topStatus == 'checked_in')
@@ -756,13 +855,19 @@ class _BookingScreenState extends State<BookingScreen> {
                     ? null
                     : () => _checkIn(item),
               )
-            else if (_isBooked(item))
+            else if (_isBooked(item) && _canCancelBooking(item))
               _actionButton(
                 text: 'Cancel booking',
                 onPressed: _busyClassId == item['id'].toString()
                     ? null
                     : () => _cancelBooking(item),
               )
+            else if (_isClassFinished(item))
+              _actionButton(text: 'Class finished', onPressed: null)
+            else if (_isBookingClosed(item))
+              _actionButton(text: 'Booking closed', onPressed: null)
+            else if (_activeMembership == null)
+              _actionButton(text: 'Membership required', onPressed: null)
             else if (_asInt(item['remaining_spots'], 0) <= 0)
               _actionButton(text: 'Class full', onPressed: null)
             else
