@@ -32,23 +32,43 @@ class ClassRepository {
       return [];
     }
 
-    final start = '${dateIso}T00:00:00';
-    final end = '${dateIso}T23:59:59';
+    final targetDate = DateTime.tryParse('${dateIso}T00:00:00');
+    if (targetDate == null) return [];
 
-    dynamic query = sb
+    final rangeStart = targetDate.subtract(const Duration(days: 1)).toUtc();
+    final rangeEnd = targetDate.add(const Duration(days: 2)).toUtc();
+
+    final data = await sb
         .from('v_classes_with_spots')
         .select('*')
-        .gte('starts_at', start)
-        .lte('starts_at', end)
-        .eq('status', 'scheduled');
+        .eq('status', 'scheduled')
+        .gte('starts_at', rangeStart.toIso8601String())
+        .lte('starts_at', rangeEnd.toIso8601String())
+        .order('starts_at', ascending: true);
 
-    if (!includePast && dateIso == todayIso) {
-      query = query.gte('starts_at', now.toUtc().toIso8601String());
+    String localDateIso(DateTime value) {
+      final local = value.toLocal();
+      final y = local.year.toString().padLeft(4, '0');
+      final m = local.month.toString().padLeft(2, '0');
+      final d = local.day.toString().padLeft(2, '0');
+      return '$y-$m-$d';
     }
 
-    final data = await query.order('starts_at', ascending: true);
+    final items = List<Map<String, dynamic>>.from(data).where((item) {
+      final startsAtRaw = (item['starts_at'] ?? '').toString().trim();
+      final startsAt = DateTime.tryParse(startsAtRaw);
+      if (startsAt == null) return false;
 
-    return List<Map<String, dynamic>>.from(data);
+      if (localDateIso(startsAt) != dateIso) return false;
+      if (!includePast &&
+          dateIso == todayIso &&
+          startsAt.toLocal().isBefore(now)) {
+        return false;
+      }
+      return true;
+    }).toList();
+
+    return items;
   }
 
   Future<void> createClass({
@@ -62,7 +82,7 @@ class ClassRepository {
     required int maxSpots,
     String? location,
   }) async {
-    await sb.from('classes').insert({
+    final inserted = await sb.from('classes').insert({
       'gym_id': gymId,
       'program_id': programId,
       'coach_id': (coachId == null || coachId.isEmpty) ? null : coachId,
@@ -73,7 +93,32 @@ class ClassRepository {
       'max_spots': maxSpots,
       'location': location,
       'status': 'scheduled',
-    });
+    }).select('id, starts_at').single();
+
+    final classId = inserted['id'].toString();
+    final startsAt = DateTime.parse(inserted['starts_at'].toString()).toLocal();
+
+    final workoutDate =
+        '${startsAt.year.toString().padLeft(4, '0')}-${startsAt.month.toString().padLeft(2, '0')}-${startsAt.day.toString().padLeft(2, '0')}';
+
+    // 🔍 buscar workout existente para ese día + programa
+    final existingWorkout = await sb
+        .from('workouts')
+        .select('id')
+        .eq('gym_id', gymId)
+        .eq('program_id', programId)
+        .eq('workout_date', workoutDate)
+        .maybeSingle();
+
+    if (existingWorkout != null) {
+      final workoutId = existingWorkout['id'].toString();
+
+      await sb.from('classes').update({
+        'workout_id': workoutId,
+      }).eq('id', classId);
+
+      print('✅ Auto-assigned workout to new class');
+    }
   }
 
   Future<void> updateClass({

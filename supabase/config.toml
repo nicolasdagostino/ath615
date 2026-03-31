@@ -23,3 +23,8 @@ entrypoint = "./functions/send-birthday-notifications/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/publish-scheduled-notifications/index.ts"
+
+[functions.send-post-class-reminders]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/send-post-class-reminders/index.ts"

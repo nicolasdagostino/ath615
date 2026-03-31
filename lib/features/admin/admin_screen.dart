@@ -68,6 +68,7 @@ class _AdminScreenState extends State<AdminScreen> {
   bool _loading = true;
   bool _adminActionBusy = false;
   String? _error;
+  String _classesFilter = 'today';
 
   List<Map<String, dynamic>> _plans = [];
   List<Map<String, dynamic>> _members = [];
@@ -3823,6 +3824,7 @@ class _AdminScreenState extends State<AdminScreen> {
           ],
         ),
         const SizedBox(height: 12),
+        const SizedBox(height: 12),
         if (_loading)
           const Center(child: CircularProgressIndicator())
         else if (_programs.isEmpty)
@@ -3950,7 +3952,107 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
+  List<Map<String, dynamic>> _filterClassesList(
+    List<Map<String, dynamic>> items,
+  ) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    bool sameDay(DateTime a, DateTime b) =>
+        a.year == b.year && a.month == b.month && a.day == b.day;
+
+    final filtered = items.where((item) {
+      final raw = (item['starts_at'] ?? '').toString().trim();
+      final dt = DateTime.tryParse(raw)?.toLocal();
+      if (dt == null) return false;
+
+      final classDay = DateTime(dt.year, dt.month, dt.day);
+
+      if (_classesFilter == 'today') {
+        return sameDay(dt, now);
+      }
+
+      if (_classesFilter == 'upcoming') {
+        return classDay.isAfter(today);
+      }
+
+      if (_classesFilter == 'past') {
+        return classDay.isBefore(today);
+      }
+
+      return true;
+    }).toList();
+
+    filtered.sort((a, b) {
+      final da = DateTime.parse(a['starts_at'].toString()).toLocal();
+      final db = DateTime.parse(b['starts_at'].toString()).toLocal();
+      if (_classesFilter == 'past') {
+        return db.compareTo(da);
+      }
+      return da.compareTo(db);
+    });
+
+    return filtered;
+  }
+
+  Widget _buildClassesFilterTabs() {
+    Widget chip(String key, String label) {
+      final selected = _classesFilter == key;
+      return Expanded(
+        child: GestureDetector(
+          onTap: () => setState(() => _classesFilter = key),
+          child: Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: selected ? const Color(0xFF111318) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: selected
+                    ? const Color(0xFF111318)
+                    : const Color(0xFFEAECEF),
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              label,
+              style: _font(
+                13,
+                weight: FontWeight.w800,
+                color: selected ? Colors.white : const Color(0xFF111318),
+                letterSpacing: 0.1,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        chip('today', 'TODAY'),
+        const SizedBox(width: 8),
+        chip('upcoming', 'UPCOMING'),
+        const SizedBox(width: 8),
+        chip('past', 'PAST'),
+      ],
+    );
+  }
+
   Widget _classesTab() {
+    final filteredClasses = _filterClassesList(_classes);
+
+    final emptyTitle = _classesFilter == 'today'
+        ? 'No classes today'
+        : _classesFilter == 'upcoming'
+        ? 'No upcoming classes'
+        : 'No past classes';
+
+    final emptySubtitle = _classesFilter == 'today'
+        ? 'No classes scheduled for today yet.'
+        : _classesFilter == 'upcoming'
+        ? 'No classes scheduled for tomorrow or later.'
+        : 'No past classes to review yet.';
+
     return Column(
       children: [
         Row(
@@ -3990,9 +4092,12 @@ class _AdminScreenState extends State<AdminScreen> {
           ],
         ),
         const SizedBox(height: 12),
+        _buildClassesFilterTabs(),
+        const SizedBox(height: 12),
+        const SizedBox(height: 12),
         if (_loading)
           const Center(child: CircularProgressIndicator())
-        else if (_classes.isEmpty)
+        else if (filteredClasses.isEmpty)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 22),
@@ -4018,7 +4123,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'No classes yet',
+                  emptyTitle,
                   style: _font(
                     18,
                     weight: FontWeight.w800,
@@ -4028,7 +4133,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Create your first class to start managing bookings and attendance.',
+                  emptySubtitle,
                   textAlign: TextAlign.center,
                   style: _font(
                     14,
@@ -4042,7 +4147,7 @@ class _AdminScreenState extends State<AdminScreen> {
             ),
           )
         else
-          ..._classes.map((item) {
+          ...filteredClasses.map((item) {
             final dt = DateTime.tryParse(
               item['starts_at'].toString(),
             )?.toLocal();

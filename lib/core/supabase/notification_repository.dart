@@ -136,6 +136,22 @@ class NotificationRepository {
               ? "Today's $cleanProgramName WOD is '$cleanWorkoutTitle'"
               : "Today's WOD is '$cleanWorkoutTitle'");
 
+    final existing = await sb
+        .from('notifications')
+        .select('id')
+        .eq('gym_id', gymId)
+        .eq('type', 'announcement')
+        .contains('metadata', {
+          'pushType': 'workout_published',
+          'workoutDate': workoutDate.trim(),
+          if (hasProgram) 'programName': cleanProgramName,
+        })
+        .limit(1);
+
+    if (existing.isNotEmpty) {
+      return; // ⛔ already sent
+    }
+
     final id = await createNotification(
       gymId: gymId,
       type: 'announcement',
@@ -149,6 +165,7 @@ class NotificationRepository {
         'workoutId': workoutId,
         'programId': (programId ?? '').trim(),
         'programName': cleanProgramName,
+        'workoutTitle': cleanWorkoutTitle,
         'workoutDate': workoutDate.trim(),
       },
     );

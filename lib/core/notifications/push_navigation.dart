@@ -17,7 +17,8 @@ class PushNavigation {
     final nav = navigatorKey.currentState;
     if (nav == null) return;
 
-    if (type == 'workout_published' && workoutId.isNotEmpty) {
+    if ((type == 'workout_published' || type == 'workout_comment_reminder') &&
+        workoutId.isNotEmpty) {
       nav.push(
         MaterialPageRoute(
           builder: (_) => WorkoutDetailScreen(workoutId: workoutId),
