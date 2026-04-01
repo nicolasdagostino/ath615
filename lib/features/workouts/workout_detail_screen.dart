@@ -305,6 +305,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
     required String text,
     required String timeAgo,
     required Color avatarColor,
+    required String avatarUrl,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -314,7 +315,12 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
           CircleAvatar(
             radius: 17,
             backgroundColor: avatarColor,
-            child: const Icon(Icons.person, size: 16, color: Colors.white),
+            backgroundImage: avatarUrl.isNotEmpty
+                ? NetworkImage(avatarUrl)
+                : null,
+            child: avatarUrl.isEmpty
+                ? const Icon(Icons.person, size: 16, color: Colors.white)
+                : null,
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -972,11 +978,17 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                               ).toLocal();
                             } catch (_) {}
 
+                            final avatarUrl =
+                                (comment['author_avatar_url'] ?? '')
+                                    .toString()
+                                    .trim();
+
                             return _commentBubble(
                               name: name,
                               text: text,
                               timeAgo: _timeAgo(createdAt),
                               avatarColor: const Color(0xFF0F766E),
+                              avatarUrl: avatarUrl,
                             );
                           }),
                         _commentComposer(),
