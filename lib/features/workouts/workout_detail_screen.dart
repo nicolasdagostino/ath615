@@ -8,6 +8,7 @@ import '../../core/supabase/workout_comment_repository.dart';
 import '../../core/supabase/workout_like_repository.dart';
 import '../../core/supabase/workout_repository.dart';
 import '../../shared/widgets/app_card.dart';
+import '../../shared/widgets/role_guard.dart';
 
 class WorkoutDetailScreen extends StatefulWidget {
   final Map<String, dynamic>? initialWorkout;
@@ -848,10 +849,12 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                                 ],
                               ),
                             ),
-                            const Icon(
-                              Icons.more_horiz_rounded,
-                              color: Color(0xFF98A2B3),
-                              size: 22,
+                            const RoleGuard(
+                              child: Icon(
+                                Icons.more_horiz_rounded,
+                                color: Color(0xFF98A2B3),
+                                size: 22,
+                              ),
                             ),
                           ],
                         ),
