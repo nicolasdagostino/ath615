@@ -7,6 +7,7 @@ import '../../core/supabase/supabase_bootstrap.dart';
 import '../../core/supabase/workout_comment_repository.dart';
 import '../../core/supabase/workout_like_repository.dart';
 import '../../core/supabase/workout_repository.dart';
+import '../../core/supabase/profile_repository.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/role_guard.dart';
 
@@ -19,6 +20,7 @@ class WorkoutsScreen extends StatefulWidget {
 
 class _WorkoutsScreenState extends State<WorkoutsScreen> {
   final _repo = WorkoutRepository();
+  final _profileRepo = ProfileRepository();
   final _commentRepo = WorkoutCommentRepository();
   final _likeRepo = WorkoutLikeRepository();
 
@@ -26,6 +28,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
 
   bool _loading = true;
   String? _error;
+  String _currentUserAvatarUrl = '';
   List<Map<String, dynamic>> _workouts = [];
   final Map<String, List<Map<String, dynamic>>> _commentsByWorkout = {};
   final Map<String, bool> _likedByWorkout = {};
@@ -35,6 +38,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
   @override
   void initState() {
     super.initState();
+    _loadCurrentUserAvatar();
     _subscribeRealtime();
     _loadToday();
   }
@@ -366,6 +370,20 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     );
   }
 
+  Future<void> _loadCurrentUserAvatar() async {
+    try {
+      final profile = await _profileRepo.getMyProfile();
+      if (!mounted || profile == null) return;
+
+      final avatarUrl = (profile['avatar_url'] ?? '').toString().trim();
+      if (avatarUrl == _currentUserAvatarUrl) return;
+
+      setState(() {
+        _currentUserAvatarUrl = avatarUrl;
+      });
+    } catch (_) {}
+  }
+
   String _timeAgo(DateTime dt) {
     final now = DateTime.now();
     final diff = now.difference(dt);
@@ -387,6 +405,17 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        CircleAvatar(
+          radius: 18,
+          backgroundColor: const Color(0xFF0F766E),
+          backgroundImage: _currentUserAvatarUrl.isNotEmpty
+              ? NetworkImage(_currentUserAvatarUrl)
+              : null,
+          child: _currentUserAvatarUrl.isEmpty
+              ? const Icon(Icons.person, size: 16, color: Colors.white)
+              : null,
+        ),
+        const SizedBox(width: 10),
         Expanded(
           child: Material(
             color: Colors.white,

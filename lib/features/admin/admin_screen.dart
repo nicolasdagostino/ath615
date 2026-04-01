@@ -3952,36 +3952,44 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
+  bool _isTodayClass(DateTime dt, DateTime now) {
+    return dt.year == now.year && dt.month == now.month && dt.day == now.day;
+  }
+
+  bool _matchesClassesFilter(Map<String, dynamic> item, String filter) {
+    final raw = (item['starts_at'] ?? '').toString().trim();
+    final dt = DateTime.tryParse(raw)?.toLocal();
+    if (dt == null) return false;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final classDay = DateTime(dt.year, dt.month, dt.day);
+
+    if (filter == 'today') {
+      return _isTodayClass(dt, now);
+    }
+
+    if (filter == 'upcoming') {
+      return classDay.isAfter(today);
+    }
+
+    if (filter == 'past') {
+      return classDay.isBefore(today);
+    }
+
+    return true;
+  }
+
+  int _countClassesForFilter(String filter) {
+    return _classes.where((item) => _matchesClassesFilter(item, filter)).length;
+  }
+
   List<Map<String, dynamic>> _filterClassesList(
     List<Map<String, dynamic>> items,
   ) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    bool sameDay(DateTime a, DateTime b) =>
-        a.year == b.year && a.month == b.month && a.day == b.day;
-
-    final filtered = items.where((item) {
-      final raw = (item['starts_at'] ?? '').toString().trim();
-      final dt = DateTime.tryParse(raw)?.toLocal();
-      if (dt == null) return false;
-
-      final classDay = DateTime(dt.year, dt.month, dt.day);
-
-      if (_classesFilter == 'today') {
-        return sameDay(dt, now);
-      }
-
-      if (_classesFilter == 'upcoming') {
-        return classDay.isAfter(today);
-      }
-
-      if (_classesFilter == 'past') {
-        return classDay.isBefore(today);
-      }
-
-      return true;
-    }).toList();
+    final filtered = items
+        .where((item) => _matchesClassesFilter(item, _classesFilter))
+        .toList();
 
     filtered.sort((a, b) {
       final da = DateTime.parse(a['starts_at'].toString()).toLocal();
@@ -3998,6 +4006,7 @@ class _AdminScreenState extends State<AdminScreen> {
   Widget _buildClassesFilterTabs() {
     Widget chip(String key, String label) {
       final selected = _classesFilter == key;
+      final count = _countClassesForFilter(key);
       return Expanded(
         child: GestureDetector(
           onTap: () => setState(() => _classesFilter = key),
@@ -4014,7 +4023,7 @@ class _AdminScreenState extends State<AdminScreen> {
             ),
             alignment: Alignment.center,
             child: Text(
-              label,
+              '$label ($count)',
               style: _font(
                 13,
                 weight: FontWeight.w800,
