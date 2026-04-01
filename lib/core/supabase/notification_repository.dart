@@ -119,7 +119,14 @@ class NotificationRepository {
         '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 
     final isToday = workoutDate.trim() == todayIso;
-    final scheduledIso = '${workoutDate.trim()}T00:00:00';
+    final parts = workoutDate.trim().split('-');
+    final scheduledIso = parts.length == 3
+        ? DateTime(
+            int.parse(parts[0]),
+            int.parse(parts[1]),
+            int.parse(parts[2]),
+          ).toUtc().toIso8601String()
+        : '${workoutDate.trim()}T00:00:00';
     final cleanProgramName = (programName ?? '').trim();
     final hasProgram = cleanProgramName.isNotEmpty;
     final cleanWorkoutTitle = workoutTitle.trim();
