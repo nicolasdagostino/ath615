@@ -29,7 +29,7 @@ class DashboardAlertsSection extends StatelessWidget {
             title: alerts[i].title,
             subtitle: alerts[i].subtitle,
           ),
-          if (i != alerts.length - 1) const SizedBox(height: 10),
+          if (i != alerts.length - 1) const SizedBox(height: 8),
         ],
       ],
     );
