@@ -669,7 +669,14 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                       setLocalState(() => saving = true);
 
                       try {
+                        final memberGymId =
+                            (data.profile['gym_id'] ?? '').toString().trim();
+                        if (memberGymId.isEmpty) {
+                          throw Exception('Gym not found');
+                        }
+
                         await _repo.updateMemberProfile(
+                          gymId: memberGymId,
                           memberId: memberId,
                           fullName: fullNameCtrl.text,
                           email: emailCtrl.text,

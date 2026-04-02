@@ -251,6 +251,7 @@ class WorkoutRepository {
   }
 
   Future<void> updateWorkout({
+    required String gymId,
     required String id,
     String? programId,
     required String title,
@@ -300,11 +301,15 @@ class WorkoutRepository {
           'image_url': (imageUrl == null || imageUrl.isEmpty) ? null : imageUrl,
           'is_benchmark': isBenchmark,
         })
-        .eq('id', id);
+        .eq('id', id)
+        .eq('gym_id', gymId);
   }
 
-  Future<void> deleteWorkout(String id) async {
-    await sb.from('workouts').delete().eq('id', id);
+  Future<void> deleteWorkout({
+    required String gymId,
+    required String id,
+  }) async {
+    await sb.from('workouts').delete().eq('id', id).eq('gym_id', gymId);
   }
 
   Future<void> assignWorkoutToClass({

@@ -64,6 +64,7 @@ class NotificationRepository {
   }
 
   Future<void> updateNotification({
+    required String gymId,
     required String id,
     String? type,
     String? status,
@@ -81,11 +82,18 @@ class NotificationRepository {
     if (recipientsScope != null) payload['recipients_scope'] = recipientsScope;
     if (scheduledForIso != null) payload['scheduled_for'] = scheduledForIso;
 
-    await sb.from('notifications').update(payload).eq('id', id);
+    await sb
+        .from('notifications')
+        .update(payload)
+        .eq('id', id)
+        .eq('gym_id', gymId);
   }
 
-  Future<void> deleteNotification(String id) async {
-    await sb.from('notifications').delete().eq('id', id);
+  Future<void> deleteNotification({
+    required String gymId,
+    required String id,
+  }) async {
+    await sb.from('notifications').delete().eq('id', id).eq('gym_id', gymId);
   }
 
   Future<void> publishNotification(String id) async {

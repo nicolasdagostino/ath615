@@ -127,6 +127,7 @@ class ClassRepository {
   }
 
   Future<void> updateClass({
+    required String gymId,
     required String id,
     required String programId,
     String? coachId,
@@ -151,11 +152,15 @@ class ClassRepository {
           'location': location,
           'status': status,
         })
-        .eq('id', id);
+        .eq('id', id)
+        .eq('gym_id', gymId);
   }
 
-  Future<void> deleteClass(String id) async {
-    await sb.from('classes').delete().eq('id', id);
+  Future<void> deleteClass({
+    required String gymId,
+    required String id,
+  }) async {
+    await sb.from('classes').delete().eq('id', id).eq('gym_id', gymId);
   }
 
   Future<void> createRecurringClasses({

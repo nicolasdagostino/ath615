@@ -9,6 +9,7 @@ AdminMemberDetailRepository();
 
 
   Future<void> updateMemberProfile({
+    required String gymId,
     required String memberId,
     required String fullName,
     required String email,
@@ -16,13 +17,17 @@ AdminMemberDetailRepository();
     required String notes,
     required bool isActive,
   }) async {
-    await sb.from('profiles').update({
-      'full_name': fullName.trim(),
-      'email': email.trim(),
-      'phone': phone.trim(),
-      'notes': notes.trim(),
-      'is_active': isActive,
-    }).eq('id', memberId);
+    await sb
+        .from('profiles')
+        .update({
+          'full_name': fullName.trim(),
+          'email': email.trim(),
+          'phone': phone.trim(),
+          'notes': notes.trim(),
+          'is_active': isActive,
+        })
+        .eq('id', memberId)
+        .eq('gym_id', gymId);
   }
 
   Future<AdminMemberDetailData> loadMemberDetail(String memberId) async {

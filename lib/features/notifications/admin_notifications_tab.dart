@@ -165,6 +165,7 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                 if (isEdit) {
                   notifId = item['id'].toString();
                   await _repo.updateNotification(
+                    gymId: _gymId!,
                     id: notifId,
                     type: type,
                     status: targetStatus,
@@ -513,7 +514,7 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
 
     setState(() => _busy = true);
     try {
-      await _repo.deleteNotification(id);
+      await _repo.deleteNotification(gymId: _gymId!, id: id);
       await _load();
       _toast('Notification deleted.');
     } catch (e) {

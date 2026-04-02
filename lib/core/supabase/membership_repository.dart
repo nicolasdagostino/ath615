@@ -64,6 +64,7 @@ class MembershipRepository {
   }
 
   Future<void> updatePlan({
+    required String gymId,
     required String id,
     required String name,
     required String planType,
@@ -86,11 +87,15 @@ class MembershipRepository {
           'booking_window_days': bookingWindowDays,
           'description': description,
         })
-        .eq('id', id);
+        .eq('id', id)
+        .eq('gym_id', gymId);
   }
 
-  Future<void> deletePlan(String id) async {
-    await sb.from('membership_plans').delete().eq('id', id);
+  Future<void> deletePlan({
+    required String gymId,
+    required String id,
+  }) async {
+    await sb.from('membership_plans').delete().eq('id', id).eq('gym_id', gymId);
   }
 
   Future<void> updateMemberMembership({

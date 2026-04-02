@@ -26,6 +26,7 @@ class ProgramRepository {
   }
 
   Future<void> updateProgram({
+    required String gymId,
     required String id,
     required String name,
     String? description,
@@ -38,10 +39,14 @@ class ProgramRepository {
           'description': description,
           'color_hex': colorHex,
         })
-        .eq('id', id);
+        .eq('id', id)
+        .eq('gym_id', gymId);
   }
 
-  Future<void> deleteProgram(String id) async {
-    await sb.from('programs').delete().eq('id', id);
+  Future<void> deleteProgram({
+    required String gymId,
+    required String id,
+  }) async {
+    await sb.from('programs').delete().eq('id', id).eq('gym_id', gymId);
   }
 }

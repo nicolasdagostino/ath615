@@ -1188,6 +1188,7 @@ class _AdminScreenState extends State<AdminScreen> {
     }
 
     await _programRepo.updateProgram(
+      gymId: _adminGymId!,
       id: id,
       name: name.trim(),
       description: description.trim().isEmpty ? null : description.trim(),
@@ -1196,7 +1197,7 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Future<void> _deleteProgram(String id) async {
-    await _programRepo.deleteProgram(id);
+    await _programRepo.deleteProgram(gymId: _adminGymId!, id: id);
   }
 
   void _showWorkoutActions(Map<String, dynamic> item) {
@@ -2044,6 +2045,7 @@ class _AdminScreenState extends State<AdminScreen> {
     if (parsedWindow == null) throw Exception('Invalid booking window');
 
     await _membershipRepo.updatePlan(
+      gymId: _adminGymId!,
       id: id,
       name: name.trim(),
       planType: type.trim(),
@@ -2057,7 +2059,7 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Future<void> _deletePlan(String id) async {
-    await _membershipRepo.deletePlan(id);
+    await _membershipRepo.deletePlan(gymId: _adminGymId!, id: id);
   }
 
   Future<void> _assignPlanToMember({
@@ -2087,7 +2089,11 @@ class _AdminScreenState extends State<AdminScreen> {
     required String profileId,
     required String role,
   }) async {
-    await _profileRepo.updateRole(profileId: profileId, role: role);
+    await _profileRepo.updateRole(
+      gymId: _adminGymId!,
+      profileId: profileId,
+      role: role,
+    );
   }
 
   Future<void> _createClass({
@@ -2259,6 +2265,7 @@ class _AdminScreenState extends State<AdminScreen> {
     final startsAtIso = _buildUtcIsoFromDateAndTime(date, time);
 
     await _classRepo.updateClass(
+      gymId: _adminGymId!,
       id: id,
       programId: programId,
       coachId: (coachId ?? '').trim().isEmpty ? null : coachId,
@@ -2273,7 +2280,7 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Future<void> _deleteClass(String id) async {
-    await _classRepo.deleteClass(id);
+    await _classRepo.deleteClass(gymId: _adminGymId!, id: id);
   }
 
   Future<int> _deleteFutureClassesForProgramSlot(String classId) async {
@@ -2414,6 +2421,7 @@ class _AdminScreenState extends State<AdminScreen> {
     }
 
     await _workoutRepo.updateWorkout(
+      gymId: _adminGymId!,
       id: id,
       programId: programId,
       title: title.trim(),
@@ -2426,7 +2434,7 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Future<void> _deleteWorkout(String id) async {
-    await _workoutRepo.deleteWorkout(id);
+    await _workoutRepo.deleteWorkout(gymId: _adminGymId!, id: id);
   }
 
   Future<void> _assignWorkoutToClass({
@@ -3444,6 +3452,7 @@ class _AdminScreenState extends State<AdminScreen> {
     required bool isActive,
   }) async {
     await _profileRepo.updateMemberActiveStatus(
+      gymId: _adminGymId!,
       profileId: profileId,
       isActive: isActive,
     );

@@ -86,19 +86,26 @@ class ProfileRepository {
   }
 
   Future<void> updateRole({
+    required String gymId,
     required String profileId,
     required String role,
   }) async {
-    await sb.from('profiles').update({'role': role}).eq('id', profileId);
+    await sb
+        .from('profiles')
+        .update({'role': role})
+        .eq('id', profileId)
+        .eq('gym_id', gymId);
   }
 
   Future<void> updateMemberActiveStatus({
+    required String gymId,
     required String profileId,
     required bool isActive,
   }) async {
     await sb
         .from('profiles')
         .update({'is_active': isActive})
-        .eq('id', profileId);
+        .eq('id', profileId)
+        .eq('gym_id', gymId);
   }
 }
