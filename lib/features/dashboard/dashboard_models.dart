@@ -140,6 +140,16 @@ class DashboardWorkoutStatus {
   });
 }
 
+class DashboardPendingAttendanceStats {
+  final int pendingClasses;
+  final int pendingBookings;
+
+  const DashboardPendingAttendanceStats({
+    required this.pendingClasses,
+    required this.pendingBookings,
+  });
+}
+
 class DashboardTodayHighlightItem {
   final String id;
   final String title;
@@ -198,6 +208,7 @@ class DashboardData {
   final List<DashboardAlertItem> alerts;
   final DashboardNextClassItem? nextClass;
   final DashboardWorkoutStatus workoutStatus;
+  final DashboardPendingAttendanceStats pendingAttendance;
   final List<DashboardTodayHighlightItem> todayHighlights;
   final List<DashboardMilestoneItem> milestones;
   final List<DashboardRecommendedAction> recommendedActions;
@@ -213,6 +224,7 @@ class DashboardData {
     required this.alerts,
     required this.nextClass,
     required this.workoutStatus,
+    required this.pendingAttendance,
     required this.todayHighlights,
     required this.milestones,
     required this.recommendedActions,

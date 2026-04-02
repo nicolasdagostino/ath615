@@ -12,6 +12,7 @@ import 'widgets/dashboard_morning_overview.dart';
 import 'widgets/dashboard_recommended_actions_section.dart';
 import 'widgets/dashboard_section_header.dart';
 import 'widgets/dashboard_tomorrow_risk_section.dart';
+import 'pending_attendance/pending_attendance_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenAdmin;
@@ -245,6 +246,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return Icons.campaign_outlined;
       case 'inactive_members':
         return Icons.people_alt_outlined;
+      case 'pending_attendance':
+        return Icons.fact_check_outlined;
       case 'next_class_workout':
       case 'today_workout_missing':
         return Icons.fitness_center_outlined;
@@ -364,6 +367,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 break;
               case 'inactive_members':
                 _showInactiveMembersSheet(data.memberActivity);
+                break;
+              case 'pending_attendance':
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => PendingAttendanceScreen(gymId: data.gymId),
+                  ),
+                );
+                await _refresh();
                 break;
               case 'next_class_workout':
                 final classId = data.nextClass?.id.trim();

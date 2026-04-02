@@ -316,6 +316,40 @@ DashboardNextClassItem? dashboardBuildNextClass(
   );
 }
 
+DashboardPendingAttendanceStats dashboardBuildPendingAttendance(
+  List<Map<String, dynamic>> bookings,
+) {
+  final now = DateTime.now();
+  final pendingClassIds = <String>{};
+  var pendingBookings = 0;
+
+  for (final booking in bookings) {
+    final status = (booking['status'] ?? '').toString().toLowerCase().trim();
+    if (status != 'booked') continue;
+
+    final classId = (booking['class_id'] ?? '').toString().trim();
+    if (classId.isEmpty) continue;
+
+    final classData = booking['classes'];
+    if (classData is! Map) continue;
+
+    final startsAt = DateTime.tryParse(
+      (classData['starts_at'] ?? '').toString(),
+    )?.toLocal();
+    if (startsAt == null) continue;
+
+    if (!startsAt.isBefore(now)) continue;
+
+    pendingClassIds.add(classId);
+    pendingBookings++;
+  }
+
+  return DashboardPendingAttendanceStats(
+    pendingClasses: pendingClassIds.length,
+    pendingBookings: pendingBookings,
+  );
+}
+
 DashboardWorkoutStatus dashboardBuildWorkoutStatus({
   required List<Map<String, dynamic>> classesToday,
   required List<Map<String, dynamic>> todayWorkouts,
@@ -536,6 +570,7 @@ List<DashboardRecommendedAction> dashboardBuildRecommendedActions({
   required List<DashboardMemberActivityItem> memberActivity,
   required DashboardNextClassItem? nextClass,
   required DashboardWorkoutStatus workoutStatus,
+  required DashboardPendingAttendanceStats pendingAttendance,
   required List<DashboardTodayHighlightItem> todayHighlights,
   required DashboardTodayStats today,
 }) {
@@ -550,6 +585,22 @@ List<DashboardRecommendedAction> dashboardBuildRecommendedActions({
         subtitle:
             '${tomorrow.lowOccupancyTomorrow} classes may need promotion or review.',
         priority: 100 + tomorrow.lowOccupancyTomorrow,
+      ),
+    );
+  }
+
+  if (pendingAttendance.pendingClasses > 0) {
+    final subtitle = pendingAttendance.pendingBookings > 0
+        ? '${pendingAttendance.pendingClasses} past classes still have ${pendingAttendance.pendingBookings} unreviewed bookings.'
+        : '${pendingAttendance.pendingClasses} past classes still need attendance review.';
+
+    actions.add(
+      DashboardRecommendedAction(
+        id: 'pending-attendance',
+        type: 'pending_attendance',
+        title: 'Review pending attendance',
+        subtitle: subtitle,
+        priority: 96 + pendingAttendance.pendingClasses,
       ),
     );
   }

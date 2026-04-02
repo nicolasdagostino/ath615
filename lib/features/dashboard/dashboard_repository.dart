@@ -55,6 +55,7 @@ class DashboardRepository {
       classesToday: classesToday,
       todayWorkouts: todayWorkouts,
     );
+    final pendingAttendance = dashboardBuildPendingAttendance(bookings);
     final todayHighlights = dashboardBuildTodayHighlights(
       members: members,
       workoutStatus: workoutStatus,
@@ -65,6 +66,7 @@ class DashboardRepository {
       memberActivity: memberActivity,
       nextClass: nextClass,
       workoutStatus: workoutStatus,
+      pendingAttendance: pendingAttendance,
       todayHighlights: todayHighlights,
       today: todayStats,
     );
@@ -79,6 +81,7 @@ class DashboardRepository {
       alerts: alerts,
       nextClass: nextClass,
       workoutStatus: workoutStatus,
+      pendingAttendance: pendingAttendance,
       todayHighlights: todayHighlights,
       milestones: milestones,
       recommendedActions: recommendedActions,
