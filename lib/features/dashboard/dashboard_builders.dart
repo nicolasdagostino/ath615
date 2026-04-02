@@ -642,7 +642,7 @@ List<DashboardRecommendedAction> dashboardBuildRecommendedActions({
   }
 
   actions.sort((a, b) => b.priority.compareTo(a.priority));
-  return actions.take(4).toList();
+  return actions.take(3).toList();
 }
 
 List<DashboardAlertItem> dashboardBuildAlerts({
@@ -652,12 +652,11 @@ List<DashboardAlertItem> dashboardBuildAlerts({
 }) {
   final alerts = <DashboardAlertItem>[];
 
-  alerts.addAll(dashboardBuildBirthdayAlerts(members));
   alerts.addAll(dashboardBuildInactiveMemberAlerts(members, bookings));
   alerts.addAll(dashboardBuildLowOccupancyAlerts(classesToday, bookings));
 
   alerts.sort((a, b) => b.priority.compareTo(a.priority));
-  return alerts.take(6).toList();
+  return alerts.take(5).toList();
 }
 
 List<DashboardAlertItem> dashboardBuildBirthdayAlerts(

@@ -418,6 +418,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
           iconForType: _iconForType,
           emptyPanel: _emptyPanel,
         ),
+        const SizedBox(height: 28),
+        _softDivider(),
+        const SizedBox(height: 22),
+        const DashboardSectionHeader(
+          title: 'Tomorrow risk',
+          subtitle: 'Classes that may need attention before tomorrow.',
+        ),
+        const SizedBox(height: 14),
+        DashboardTomorrowRiskSection(
+          tomorrow: data.tomorrow,
+          emptyPanel: _emptyPanel,
+          twoCards: _twoCards,
+          onClassTap: (classId, needsWorkoutAssignment) {
+            if (widget.onOpenAdminClassDetail != null) {
+              widget.onOpenAdminClassDetail!.call(
+                classId,
+                needsWorkoutAssignment,
+              );
+            } else if (widget.onOpenAdminClasses != null) {
+              widget.onOpenAdminClasses!.call();
+            } else {
+              _showActionMessage('Classes navigation is not available.');
+            }
+          },
+          onUnavailable: () {
+            _showActionMessage('Class detail is not available.');
+          },
+        ),
       ],
     );
   }
