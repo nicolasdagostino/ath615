@@ -26,13 +26,21 @@ class MembershipRepository {
   }
 
   Future<List<Map<String, dynamic>>> listMemberMemberships(
-    String memberId,
-  ) async {
-    final data = await sb
+    String memberId, {
+    String? gymId,
+  }) async {
+    dynamic query = sb
         .from('member_memberships')
-        .select('*, membership_plans(name, plan_type, billing_period)')
-        .eq('member_id', memberId)
-        .order('created_at', ascending: false);
+        .select(
+          '*, membership_plans!inner(name, plan_type, billing_period, gym_id)',
+        )
+        .eq('member_id', memberId);
+
+    if (gymId != null && gymId.trim().isNotEmpty) {
+      query = query.eq('membership_plans.gym_id', gymId.trim());
+    }
+
+    final data = await query.order('created_at', ascending: false);
 
     return List<Map<String, dynamic>>.from(data);
   }

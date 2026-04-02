@@ -7,8 +7,13 @@ import '../../shared/widgets/app_card.dart';
 
 class ClassAttendanceScreen extends StatefulWidget {
   final Map<String, dynamic> classItem;
+  final String? gymId;
 
-  const ClassAttendanceScreen({super.key, required this.classItem});
+  const ClassAttendanceScreen({
+    super.key,
+    required this.classItem,
+    this.gymId,
+  });
 
   @override
   State<ClassAttendanceScreen> createState() => _ClassAttendanceScreenState();

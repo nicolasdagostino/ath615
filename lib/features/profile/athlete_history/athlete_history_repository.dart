@@ -1,12 +1,16 @@
 import '../../../core/supabase/supabase_bootstrap.dart';
+import '../../../core/supabase/gym_repository.dart';
 import 'athlete_history_models.dart';
 
 class AthleteHistoryRepository {
+  final _gymRepository = GymRepository();
   Future<List<AthleteHistoryEntry>> listMyPastHistory() async {
     final user = sb.auth.currentUser;
     if (user == null) throw Exception('Not authenticated');
 
-    final data = await sb
+    final gymId = await _gymRepository.resolveGymId();
+
+    dynamic query = sb
         .from('class_bookings')
         .select('''
           id,
@@ -15,18 +19,24 @@ class AthleteHistoryRepository {
           status,
           created_at,
           updated_at,
-          classes (
+          classes!inner(
             id,
             title,
             description,
             starts_at,
             duration_minutes,
             location,
-            status
+            status,
+            gym_id
           )
         ''')
-        .eq('member_id', user.id)
-        .order('created_at', ascending: false);
+        .eq('member_id', user.id);
+
+    if (gymId != null && gymId.trim().isNotEmpty) {
+      query = query.eq('classes.gym_id', gymId.trim());
+    }
+
+    final data = await query.order('created_at', ascending: false);
 
     final rows = List<Map<String, dynamic>>.from(data);
     final classIds = rows
@@ -37,10 +47,16 @@ class AthleteHistoryRepository {
 
     final programNamesByClassId = <String, String>{};
     if (classIds.isNotEmpty) {
-      final classViewRows = await sb
+      dynamic classViewQuery = sb
           .from('v_classes_with_spots')
           .select('id, program_name')
           .inFilter('id', classIds);
+
+      if (gymId != null && gymId.trim().isNotEmpty) {
+        classViewQuery = classViewQuery.eq('gym_id', gymId.trim());
+      }
+
+      final classViewRows = await classViewQuery;
 
       for (final rawView in List<Map<String, dynamic>>.from(classViewRows)) {
         final classId = (rawView['id'] ?? '').toString().trim();

@@ -30,14 +30,20 @@ AdminMemberDetailRepository();
         .eq('gym_id', gymId);
   }
 
-  Future<AdminMemberDetailData> loadMemberDetail(String memberId) async {
+  Future<AdminMemberDetailData> loadMemberDetail({
+    required String gymId,
+    required String memberId,
+  }) async {
+    final resolvedGymId = gymId.trim();
     final id = memberId.trim();
+    if (resolvedGymId.isEmpty) throw Exception('Gym not found');
     if (id.isEmpty) throw Exception('Member not found');
 
     final profile = await sb
         .from('profiles')
         .select('id, gym_id, full_name, email, phone, is_active, member_since, notes')
         .eq('id', id)
+        .eq('gym_id', resolvedGymId)
         .maybeSingle();
 
     if (profile == null) {
@@ -48,10 +54,14 @@ AdminMemberDetailRepository();
         .from('v_active_member_memberships')
         .select('*')
         .eq('member_id', id)
+        .eq('gym_id', resolvedGymId)
         .order('created_at', ascending: false)
         .limit(1)
         .maybeSingle();
-    final membershipHistory = await _membershipRepository.listMemberMemberships(id);
+    final membershipHistory = await _membershipRepository.listMemberMemberships(
+      id,
+      gymId: resolvedGymId,
+    );
 
     final rows = await sb
         .from('class_bookings')
@@ -60,14 +70,16 @@ AdminMemberDetailRepository();
           class_id,
           status,
           created_at,
-          classes(
+          classes!inner(
             id,
             title,
             starts_at,
-            location
+            location,
+            gym_id
           )
         ''')
         .eq('member_id', id)
+        .eq('classes.gym_id', resolvedGymId)
         .order('created_at', ascending: false)
         .limit(40);
 
@@ -83,6 +95,7 @@ AdminMemberDetailRepository();
       final classMetaRows = await sb
           .from('v_classes_with_spots')
           .select('id, program_name, coach_name')
+          .eq('gym_id', resolvedGymId)
           .inFilter('id', classIds);
 
       for (final raw in List<Map<String, dynamic>>.from(classMetaRows)) {

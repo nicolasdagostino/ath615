@@ -15,9 +15,14 @@ import 'widgets/admin_member_membership_card.dart';
 import 'widgets/admin_member_recent_history_section.dart';
 
 class AdminMemberDetailScreen extends StatefulWidget {
+  final String gymId;
   final String memberId;
 
-  const AdminMemberDetailScreen({super.key, required this.memberId});
+  const AdminMemberDetailScreen({
+    super.key,
+    required this.gymId,
+    required this.memberId,
+  });
 
   @override
   State<AdminMemberDetailScreen> createState() =>
@@ -69,7 +74,10 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     });
 
     try {
-      final data = await _repo.loadMemberDetail(widget.memberId);
+      final data = await _repo.loadMemberDetail(
+        gymId: widget.gymId,
+        memberId: widget.memberId,
+      );
       if (!mounted) return;
       setState(() {
         _data = data;
@@ -363,7 +371,10 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       if (!mounted) return;
       await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => ClassAttendanceScreen(classItem: classItem),
+          builder: (_) => ClassAttendanceScreen(
+            classItem: classItem,
+            gymId: widget.gymId,
+          ),
         ),
       );
       await _load();

@@ -1,11 +1,15 @@
 import 'supabase_bootstrap.dart';
+import 'gym_repository.dart';
 
 class BookingRepository {
+  final _gymRepository = GymRepository();
   Future<List<Map<String, dynamic>>> listMyBookings() async {
     final user = sb.auth.currentUser;
     if (user == null) throw Exception('Not authenticated');
 
-    final data = await sb
+    final gymId = await _gymRepository.resolveGymId();
+
+    dynamic query = sb
         .from('class_bookings')
         .select('''
           id,
@@ -13,7 +17,7 @@ class BookingRepository {
           member_id,
           status,
           created_at,
-          classes (
+          classes!inner(
             id,
             title,
             description,
@@ -23,11 +27,17 @@ class BookingRepository {
             location,
             status,
             program_id,
-            coach_id
+            coach_id,
+            gym_id
           )
         ''')
-        .eq('member_id', user.id)
-        .order('created_at', ascending: false);
+        .eq('member_id', user.id);
+
+    if (gymId != null && gymId.trim().isNotEmpty) {
+      query = query.eq('classes.gym_id', gymId.trim());
+    }
+
+    final data = await query.order('created_at', ascending: false);
 
     return List<Map<String, dynamic>>.from(data);
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'dashboard_models.dart';
+import '../../core/supabase/gym_repository.dart';
 import 'dashboard_repository.dart';
 import 'widgets/dashboard_alert_tile.dart';
 import 'widgets/dashboard_alerts_section.dart';
@@ -37,6 +38,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  final _gymRepository = GymRepository();
   final _repo = DashboardRepository();
   final _scrollController = ScrollController();
   final _todaySectionKey = GlobalKey();
@@ -510,7 +512,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
           onMemberTap: (memberId) async {
             await Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (_) => AdminMemberDetailScreen(memberId: memberId),
+                builder: (_) => FutureBuilder<String?>(
+                  future: _gymRepository.resolveGymId(),
+                  builder: (context, snapshot) {
+                    final gymId = (snapshot.data ?? '').trim();
+                    if (gymId.isEmpty) {
+                      return const Scaffold(
+                        body: Center(child: Text('Gym not found')),
+                      );
+                    }
+                    return AdminMemberDetailScreen(
+                      gymId: gymId,
+                      memberId: memberId,
+                    );
+                  },
+                ),
               ),
             );
             await _refresh();

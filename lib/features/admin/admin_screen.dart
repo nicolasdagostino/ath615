@@ -1620,7 +1620,10 @@ class _AdminScreenState extends State<AdminScreen> {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) =>
-                                ClassAttendanceScreen(classItem: item),
+                                ClassAttendanceScreen(
+                                  classItem: item,
+                                  gymId: _adminGymId,
+                                ),
                           ),
                         );
                       },
@@ -2616,6 +2619,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         await Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => AdminMemberDetailScreen(
+                              gymId: _adminGymId!,
                               memberId: memberId,
                             ),
                           ),

@@ -7,12 +7,14 @@ class ClassRosterScreen extends StatefulWidget {
   final String classId;
   final String classTitle;
   final String? classTime;
+  final String? gymId;
 
   const ClassRosterScreen({
     super.key,
     required this.classId,
     required this.classTitle,
     this.classTime,
+    this.gymId,
   });
 
   @override
@@ -44,11 +46,23 @@ class _ClassRosterScreenState extends State<ClassRosterScreen> {
       try {
         rows = await _attendanceRepo.listClassBookings(widget.classId);
       } catch (_) {
-        final data = await sb
+        dynamic fallbackQuery = sb
             .from('class_bookings')
-            .select('id,status,member_id,profiles(full_name,email)')
-            .eq('class_id', widget.classId)
-            .order('created_at', ascending: true);
+            .select('''
+              id,
+              status,
+              member_id,
+              classes!inner(id, gym_id),
+              profiles(full_name,email)
+            ''')
+            .eq('class_id', widget.classId);
+
+        final fallbackGymId = (widget.gymId ?? '').trim();
+        if (fallbackGymId.isNotEmpty) {
+          fallbackQuery = fallbackQuery.eq('classes.gym_id', fallbackGymId);
+        }
+
+        final data = await fallbackQuery.order('created_at', ascending: true);
 
         rows = List<Map<String, dynamic>>.from(data);
       }
