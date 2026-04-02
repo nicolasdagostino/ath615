@@ -18,6 +18,10 @@ class BookingScreen extends StatefulWidget {
 }
 
 class _BookingScreenState extends State<BookingScreen> {
+  static const int _athleteVisibleDays = 14;
+  static const int _adminPastDays = 7;
+  static const int _adminFutureDays = 14;
+
   final _classRepo = ClassRepository();
   final _bookingRepo = BookingRepository();
   final _attendanceRepo = ClassAttendanceRepository();
@@ -39,8 +43,8 @@ class _BookingScreenState extends State<BookingScreen> {
     super.initState();
     _selectedDay = DateTime.now();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_daysScrollController.hasClients) return;
-      _daysScrollController.jumpTo(0);
+      if (!mounted) return;
+      _scrollToSelectedDay();
     });
     _load();
   }
@@ -88,6 +92,28 @@ class _BookingScreenState extends State<BookingScreen> {
       height: height,
       letterSpacing: letterSpacing,
     );
+  }
+
+  Color _programColor(String programName) {
+    final value = programName.trim().toLowerCase();
+
+    if (value.contains('crossfit') || value.contains('wod')) {
+      return const Color(0xFF245BEB);
+    }
+    if (value.contains('hyrox') || value.contains('engine')) {
+      return const Color(0xFF16A34A);
+    }
+    if (value.contains('strength') || value.contains('barbell')) {
+      return const Color(0xFFB54708);
+    }
+    if (value.contains('gymnastics')) {
+      return const Color(0xFF7A5AF8);
+    }
+    if (value.contains('conditioning')) {
+      return const Color(0xFF0891B2);
+    }
+
+    return const Color(0xFF667085);
   }
 
   void _showToast(String message, {bool isError = false}) {
@@ -141,6 +167,11 @@ class _BookingScreenState extends State<BookingScreen> {
         _myBookings = bookings;
         _activeMembership = activeMembership;
         _isAdmin = isAdmin;
+      });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _scrollToSelectedDay(animated: true);
       });
     } catch (e) {
       if (!mounted) return;
@@ -403,27 +434,37 @@ class _BookingScreenState extends State<BookingScreen> {
   List<DateTime> _days() {
     final now = DateTime.now();
     final base = DateTime(now.year, now.month, now.day);
+    final startOffset = _isAdmin ? -_adminPastDays : 0;
+    final totalDays = _isAdmin
+        ? (_adminPastDays + _adminFutureDays + 1)
+        : _athleteVisibleDays;
+
     return List.generate(
-      14,
-      (i) => DateTime(base.year, base.month, base.day + i),
+      totalDays,
+      (i) => DateTime(base.year, base.month, base.day + startOffset + i),
     );
   }
 
-  Color _programColor(String name) {
-    switch (name.toLowerCase()) {
-      case 'crossfit':
-        return const Color(0xFF9C865A);
-      case 'strength':
-        return const Color(0xFF7A7F8A);
-      case 'payhim 30':
-        return const Color(0xFFB08D57);
-      case 'olympic lifting':
-        return const Color(0xFF6F8F7A);
-      case 'hyrox':
-        return const Color(0xFF6B7280);
-      default:
-        return const Color(0xFF9C865A);
+  void _scrollToSelectedDay({bool animated = false}) {
+    if (!_daysScrollController.hasClients) return;
+
+    final days = _days();
+    final selectedIso = _dateIso(_selectedDay);
+    final selectedIndex = days.indexWhere((d) => _dateIso(d) == selectedIso);
+    if (selectedIndex < 0) return;
+
+    final target = (selectedIndex * 54.0) - 108.0;
+
+    if (animated) {
+      _daysScrollController.animateTo(
+        target,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+      );
+      return;
     }
+
+    _daysScrollController.jumpTo(target);
   }
 
   String _dayName(DateTime d) {
@@ -442,6 +483,10 @@ class _BookingScreenState extends State<BookingScreen> {
       onTap: () {
         setState(() {
           _selectedDay = d;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _scrollToSelectedDay(animated: true);
         });
         _load();
       },

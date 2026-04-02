@@ -8,6 +8,7 @@ import '../../core/supabase/auth_repository.dart';
 import '../../core/supabase/profile_repository.dart';
 import '../../shared/widgets/app_card.dart';
 import 'achievements_screen.dart';
+import 'athlete_history/athlete_history_screen.dart';
 import 'edit_profile_screen.dart';
 import 'notifications_screen.dart';
 
@@ -318,6 +319,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (_) => const AchievementsScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                          const _SoftDivider(),
+                          _PrimaryActionRow(
+                            title: 'Class history',
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const AthleteHistoryScreen(),
                                 ),
                               );
                             },

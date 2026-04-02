@@ -28,7 +28,7 @@ class ClassRepository {
     final todayIso =
         '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 
-    if (dateIso.compareTo(todayIso) < 0) {
+    if (!includePast && dateIso.compareTo(todayIso) < 0) {
       return [];
     }
 
