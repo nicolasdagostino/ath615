@@ -28,3 +28,8 @@ entrypoint = "./functions/publish-scheduled-notifications/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/send-post-class-reminders/index.ts"
+
+
+[functions.cleanup-old-notifications]
+verify_jwt = false
+entrypoint = "./functions/cleanup-old-notifications/index.ts"

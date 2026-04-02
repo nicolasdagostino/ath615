@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -6,6 +5,8 @@ import 'widgets/admin_notification_editor_sheet.dart';
 import '../../core/supabase/gym_repository.dart';
 import '../../core/supabase/notification_repository.dart';
 import '../../shared/widgets/app_card.dart';
+import '../../shared/widgets/primary_button.dart';
+import '../../shared/widgets/secondary_button.dart';
 import 'widgets/admin_notification_date_sheet.dart';
 
 class AdminNotificationsTab extends StatefulWidget {
@@ -24,6 +25,7 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
   String? _error;
   String? _gymId;
   List<Map<String, dynamic>> _items = [];
+  String _selectedFilter = 'all';
 
   @override
   void initState() {
@@ -72,12 +74,34 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
   }
 
   void _toast(String text, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(text),
-        backgroundColor: isError ? const Color(0xFFB42318) : null,
-      ),
-    );
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            text,
+            style: _font(
+              14,
+              weight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: -0.08,
+            ),
+          ),
+          behavior: SnackBarBehavior.floating,
+          elevation: 0,
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          backgroundColor: isError
+              ? const Color(0xFF111318)
+              : const Color(0xFF111318),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
   }
 
   Future<void> _openNotificationModal({Map<String, dynamic>? item}) async {
@@ -115,7 +139,10 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            Future<void> save() async {
+            Future<void> saveWithStatus({
+              required String targetStatus,
+              required bool publishAfterSave,
+            }) async {
               final title = titleCtrl.text.trim();
               final message = messageCtrl.text.trim();
               if (title.isEmpty || message.isEmpty) {
@@ -140,7 +167,7 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                   await _repo.updateNotification(
                     id: notifId,
                     type: type,
-                    status: status == 'published' ? 'draft' : status,
+                    status: targetStatus,
                     title: title,
                     message: message,
                     recipientsScope: recipientsScope,
@@ -150,7 +177,7 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                   notifId = await _repo.createNotification(
                     gymId: _gymId!,
                     type: type,
-                    status: status == 'published' ? 'draft' : status,
+                    status: targetStatus,
                     title: title,
                     message: message,
                     recipientsScope: recipientsScope,
@@ -158,7 +185,7 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                   );
                 }
 
-                if (status == 'published') {
+                if (publishAfterSave) {
                   await _repo.publishNotification(notifId);
                 }
 
@@ -167,13 +194,13 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                 await _load();
                 if (!mounted) return;
                 _toast(
-                  status == 'published'
+                  publishAfterSave
                       ? (isEdit
                             ? 'Notification published.'
                             : 'Notification created & published.')
                       : (isEdit
-                            ? 'Notification updated.'
-                            : 'Notification created.'),
+                            ? 'Notification saved.'
+                            : 'Notification created as draft.'),
                 );
               } catch (e) {
                 _toast(
@@ -184,6 +211,10 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                 if (mounted) setState(() => _busy = false);
               }
             }
+
+            final effectivePrimaryLabel = status == 'published'
+                ? 'Publish now'
+                : 'Save changes';
 
             return AdminNotificationEditorSheet(
               isEdit: isEdit,
@@ -198,7 +229,26 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                 await pickScheduledDate();
                 setModalState(() {});
               },
-              onSave: save,
+              onSaveDraft: () async {
+                await saveWithStatus(
+                  targetStatus: 'draft',
+                  publishAfterSave: false,
+                );
+              },
+              onPrimaryAction: () async {
+                if (status == 'published') {
+                  await saveWithStatus(
+                    targetStatus: 'draft',
+                    publishAfterSave: true,
+                  );
+                } else {
+                  await saveWithStatus(
+                    targetStatus: status == 'sent' ? 'draft' : status,
+                    publishAfterSave: false,
+                  );
+                }
+              },
+              primaryLabel: effectivePrimaryLabel,
               onStatusChanged: (value) {
                 setModalState(() => status = value);
               },
@@ -207,6 +257,165 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
               },
             );
           },
+        );
+      },
+    );
+  }
+
+  Future<void> _showNotificationActions(Map<String, dynamic> item) async {
+    final status = (item['status'] ?? 'draft').toString();
+    final canPublish = status == 'draft' || status == 'scheduled';
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        Widget actionTile({
+          required IconData icon,
+          required Color iconColor,
+          required String title,
+          required String subtitle,
+          required VoidCallback onTap,
+        }) {
+          return InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: onTap,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE8ECF1)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: iconColor.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(icon, size: 20, color: iconColor),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: _font(
+                            16,
+                            weight: FontWeight.w800,
+                            color: const Color(0xFF111318),
+                            letterSpacing: -0.15,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle,
+                          style: _font(
+                            12,
+                            weight: FontWeight.w500,
+                            color: const Color(0xFF667085),
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFF6F7F9),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 42,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD7DBE1),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Notification actions',
+                      style: _font(
+                        22,
+                        weight: FontWeight.w800,
+                        color: const Color(0xFF111318),
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Manage this message without leaving the list.',
+                      style: _font(
+                        13,
+                        weight: FontWeight.w500,
+                        color: const Color(0xFF667085),
+                        height: 1.35,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    actionTile(
+                      icon: Icons.edit_outlined,
+                      iconColor: const Color(0xFF6B7280),
+                      title: 'Edit notification',
+                      subtitle: 'Update title, message, audience or schedule.',
+                      onTap: () async {
+                        Navigator.of(sheetContext).pop();
+                        await _openNotificationModal(item: item);
+                      },
+                    ),
+                    if (canPublish) ...[
+                      const SizedBox(height: 10),
+                      actionTile(
+                        icon: Icons.send_rounded,
+                        iconColor: const Color(0xFFB59B6A),
+                        title: 'Publish now',
+                        subtitle: 'Send this notification immediately.',
+                        onTap: () async {
+                          Navigator.of(sheetContext).pop();
+                          await _publishNow(item);
+                        },
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+                    actionTile(
+                      icon: Icons.delete_outline,
+                      iconColor: const Color(0xFFE11D48),
+                      title: 'Delete notification',
+                      subtitle: 'Remove this notification from the admin list.',
+                      onTap: () async {
+                        Navigator.of(sheetContext).pop();
+                        await _deleteNotification(item);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         );
       },
     );
@@ -256,21 +465,38 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                   Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton(
+                        child: SecondaryButton(
+                          text: 'Cancel',
+                          compact: true,
+                          radius: 16,
+                          textStyle: _font(
+                            16,
+                            weight: FontWeight.w700,
+                            color: const Color(0xFF344054),
+                            letterSpacing: -0.15,
+                          ),
                           onPressed: () =>
                               Navigator.of(sheetContext).pop(false),
-                          child: const Text('Cancel'),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
                       Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.of(sheetContext).pop(true),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE11D48),
-                            foregroundColor: Colors.white,
+                        child: PrimaryButton(
+                          text: 'Delete',
+                          compact: true,
+                          radius: 16,
+                          backgroundColor: const Color(0xFFE11D48),
+                          pressedColor: const Color(0xFFC81E44),
+                          disabledColor: const Color(0xFFF1A9B8),
+                          textColor: Colors.white,
+                          textStyle: _font(
+                            16,
+                            weight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: -0.15,
                           ),
-                          child: const Text('Delete'),
+                          boxShadow: const [],
+                          onPressed: () => Navigator.of(sheetContext).pop(true),
                         ),
                       ),
                     ],
@@ -333,6 +559,71 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
     }
   }
 
+  String _filterLabel(String value) {
+    switch (value) {
+      case 'draft':
+        return 'Draft';
+      case 'scheduled':
+        return 'Scheduled';
+      case 'sent':
+        return 'Sent';
+      default:
+        return 'All';
+    }
+  }
+
+  List<Map<String, dynamic>> get _filteredItems {
+    if (_selectedFilter == 'all') return _items;
+    return _items
+        .where(
+          (item) => (item['status'] ?? '').toString().trim() == _selectedFilter,
+        )
+        .toList();
+  }
+
+  Future<void> _publishNow(Map<String, dynamic> item) async {
+    final id = (item['id'] ?? '').toString().trim();
+    if (id.isEmpty) return;
+
+    setState(() => _busy = true);
+    try {
+      await _repo.publishNotification(id);
+      await _load();
+      _toast('Notification published.');
+    } catch (e) {
+      _toast(e.toString().replaceFirst('Exception: ', ''), isError: true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Widget _filterChip(String value) {
+    final selected = _selectedFilter == value;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedFilter = value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFFF7F3EA) : Colors.white,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected ? const Color(0xFFB59B6A) : const Color(0xFFE2E8F0),
+          ),
+        ),
+        child: Text(
+          _filterLabel(value).toUpperCase(),
+          style: _font(
+            11,
+            weight: FontWeight.w800,
+            color: selected ? const Color(0xFFB59B6A) : const Color(0xFF667085),
+            letterSpacing: 0.35,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _emptyState() {
     return Container(
       width: double.infinity,
@@ -385,6 +676,8 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
 
   @override
   Widget build(BuildContext context) {
+    final visibleItems = _filteredItems;
+
     return Column(
       children: [
         Row(
@@ -404,7 +697,7 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Manage drafts and scheduled messages for your gym.',
+                    'Manage drafts, scheduled messages and instant announcements for your gym.',
                     style: _font(
                       13,
                       weight: FontWeight.w500,
@@ -420,7 +713,7 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
               child: Opacity(
                 opacity: _busy ? 0.6 : 1,
                 child: Container(
-                  width: 92,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   height: 42,
                   decoration: BoxDecoration(
                     color: const Color(0xFFB59B6A),
@@ -428,7 +721,7 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                   ),
                   alignment: Alignment.center,
                   child: Text(
-                    '+ Add',
+                    'New notification',
                     style: _font(
                       15,
                       weight: FontWeight.w800,
@@ -440,6 +733,21 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 14),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _filterChip('all'),
+              const SizedBox(width: 8),
+              _filterChip('draft'),
+              const SizedBox(width: 8),
+              _filterChip('scheduled'),
+              const SizedBox(width: 8),
+              _filterChip('sent'),
+            ],
+          ),
         ),
         const SizedBox(height: 12),
         if (_loading)
@@ -465,13 +773,60 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
           )
         else if (_items.isEmpty)
           _emptyState()
+        else if (visibleItems.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 22),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: const Color(0xFFEFF1F4)),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  'No ${_filterLabel(_selectedFilter).toLowerCase()} notifications',
+                  style: _font(
+                    18,
+                    weight: FontWeight.w800,
+                    color: const Color(0xFF111318),
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Try another filter or create a new message.',
+                  textAlign: TextAlign.center,
+                  style: _font(
+                    13,
+                    weight: FontWeight.w500,
+                    color: const Color(0xFF8F96A3),
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          )
         else
-          ..._items.map((item) {
-            final title = (item['title'] ?? 'Notification').toString();
+          ...visibleItems.map((item) {
+            final title = (item['title'] ?? 'Notification').toString().trim();
             final message = (item['message'] ?? '').toString().trim();
             final status = (item['status'] ?? 'draft').toString();
             final recipients = (item['recipients_scope'] ?? 'all_users')
                 .toString();
+            final canPublish = status == 'draft' || status == 'scheduled';
+
+            String recipientsLabel;
+            switch (recipients) {
+              case 'athletes':
+                recipientsLabel = 'Athletes';
+                break;
+              case 'members':
+                recipientsLabel = 'Members';
+                break;
+              default:
+                recipientsLabel = 'All users';
+            }
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -524,11 +879,55 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                                   ),
                                 ),
                               ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF7F3EA),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  recipientsLabel.toUpperCase(),
+                                  style: _font(
+                                    10,
+                                    weight: FontWeight.w800,
+                                    color: const Color(0xFFB59B6A),
+                                    letterSpacing: 0.35,
+                                  ),
+                                ),
+                              ),
+                              if ((item['scheduled_for'] ?? '')
+                                  .toString()
+                                  .trim()
+                                  .isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF3F4F6),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(
+                                    _relativeDate(
+                                      item['scheduled_for']?.toString(),
+                                    ).toUpperCase(),
+                                    style: _font(
+                                      10,
+                                      weight: FontWeight.w800,
+                                      color: const Color(0xFF667085),
+                                      letterSpacing: 0.35,
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            title.toUpperCase(),
+                            title,
                             style: _font(
                               19,
                               weight: FontWeight.w800,
@@ -550,58 +949,58 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                               ),
                             ),
                           ],
-                          const SizedBox(height: 12),
-                          Text(
-                            'Recipients: $recipients · ${_relativeDate(item['scheduled_for']?.toString())}',
-                            style: _font(
-                              12,
-                              weight: FontWeight.w600,
-                              color: const Color(0xFF667085),
-                              height: 1.35,
+                          if (canPublish) ...[
+                            const SizedBox(height: 12),
+                            GestureDetector(
+                              onTap: _busy ? null : () => _publishNow(item),
+                              child: Opacity(
+                                opacity: _busy ? 0.6 : 1,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 9,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF7F3EA),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: const Color(0xFFE8D9B5),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Publish now',
+                                    style: _font(
+                                      13,
+                                      weight: FontWeight.w800,
+                                      color: const Color(0xFFB59B6A),
+                                      letterSpacing: -0.08,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Column(
-                      children: [
-                        GestureDetector(
-                          onTap: _busy
-                              ? null
-                              : () => _openNotificationModal(item: item),
-                          child: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEDEBE6),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.edit_outlined,
-                              size: 20,
-                              color: Color(0xFF6B7280),
-                            ),
-                          ),
+                    GestureDetector(
+                      onTap: _busy
+                          ? null
+                          : () => _showNotificationActions(item),
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEDEBE6),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: _busy ? null : () => _deleteNotification(item),
-                          child: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFDECEE),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.delete_outline,
-                              size: 20,
-                              color: Color(0xFFE11D48),
-                            ),
-                          ),
+                        child: const Icon(
+                          Icons.more_horiz_rounded,
+                          size: 20,
+                          color: Color(0xFF6B7280),
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
