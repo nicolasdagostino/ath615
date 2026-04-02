@@ -69,6 +69,7 @@ class _AdminScreenState extends State<AdminScreen> {
   bool _loading = true;
   bool _adminActionBusy = false;
   String? _error;
+  String? _adminGymId;
   String _classesFilter = 'today';
 
   List<Map<String, dynamic>> _plans = [];
@@ -1011,25 +1012,13 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Future<String?> _resolvedGymIdForAdmin() async {
-    final fromPrograms = _programs.isNotEmpty
-        ? _programs.first['gym_id']?.toString()
-        : null;
-    if (fromPrograms != null && fromPrograms.isNotEmpty) return fromPrograms;
-
-    final fromClasses = _classes.isNotEmpty
-        ? _classes.first['gym_id']?.toString()
-        : null;
-    if (fromClasses != null && fromClasses.isNotEmpty) return fromClasses;
-
-    final fromMembers = _members.isNotEmpty
-        ? _members.first['gym_id']?.toString()
-        : null;
-    if (fromMembers != null && fromMembers.isNotEmpty) return fromMembers;
+    final current = _adminGymId?.trim();
+    if (current != null && current.isNotEmpty) return current;
 
     final resolved = await _gymRepo.resolveGymId();
     if (resolved != null && resolved.isNotEmpty) return resolved;
 
-    return 'e0d4640f-72f8-4440-88c1-2b7b196c74b1';
+    return null;
   }
 
   bool _isPastClassDateTime(String date, String time) {
@@ -1099,37 +1088,37 @@ class _AdminScreenState extends State<AdminScreen> {
 
     try {
       try {
-        _plans = await _membershipRepo.listPlans();
+        _plans = await _membershipRepo.listPlans(_adminGymId!);
       } catch (_) {
         _plans = [];
       }
 
       try {
-        _members = await _profileRepo.listMembers();
+        _members = await _profileRepo.listMembers(_adminGymId!);
       } catch (_) {
         _members = [];
       }
 
       try {
-        _classes = await _classRepo.listClassesAdmin();
+        _classes = await _classRepo.listClassesAdmin(_adminGymId!);
       } catch (_) {
         _classes = [];
       }
 
       try {
-        _programs = await _programRepo.listPrograms();
+        _programs = await _programRepo.listPrograms(_adminGymId!);
       } catch (_) {
         _programs = [];
       }
 
       try {
-        _coaches = await _profileRepo.listCoaches();
+        _coaches = await _profileRepo.listCoaches(_adminGymId!);
       } catch (_) {
         _coaches = [];
       }
 
       try {
-        _workouts = await _workoutRepo.listWorkoutsAdmin();
+        _workouts = await _workoutRepo.listWorkoutsAdmin(_adminGymId!);
       } catch (_) {
         _workouts = [];
       }

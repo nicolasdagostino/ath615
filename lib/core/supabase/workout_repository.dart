@@ -1,10 +1,11 @@
 import 'supabase_bootstrap.dart';
 
 class WorkoutRepository {
-  Future<List<Map<String, dynamic>>> listWorkoutsAdmin() async {
+  Future<List<Map<String, dynamic>>> listWorkoutsAdmin(String gymId) async {
     final data = await sb
         .from('v_workouts_detailed')
         .select('*')
+        .eq('gym_id', gymId)
         .order('workout_date', ascending: false)
         .order('created_at', ascending: false);
 

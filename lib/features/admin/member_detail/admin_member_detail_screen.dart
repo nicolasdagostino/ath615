@@ -98,9 +98,15 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       return;
     }
 
+    final gymId = (data.profile['gym_id'] ?? '').toString().trim();
+    if (gymId.isEmpty) {
+      _toast('Gym not found');
+      return;
+    }
+
     List<Map<String, dynamic>> plans;
     try {
-      plans = await _membershipRepo.listPlans();
+      plans = await _membershipRepo.listPlans(gymId);
     } catch (e) {
       _toast(e.toString().replaceFirst('Exception: ', ''));
       return;

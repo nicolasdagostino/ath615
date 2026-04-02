@@ -63,9 +63,6 @@ class GymRepository {
     final mine = await myGymId();
     if (mine != null && mine.isNotEmpty) return mine;
 
-    final athlete615 = await gymIdBySlug('athlete-615');
-    if (athlete615 != null && athlete615.isNotEmpty) return athlete615;
-
-    return await firstGymId();
+    return null;
   }
 }

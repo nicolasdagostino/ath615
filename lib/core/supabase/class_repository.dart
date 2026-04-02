@@ -1,7 +1,7 @@
 import 'supabase_bootstrap.dart';
 
 class ClassRepository {
-  Future<List<Map<String, dynamic>>> listClassesAdmin() async {
+  Future<List<Map<String, dynamic>>> listClassesAdmin(String gymId) async {
     final now = DateTime.now();
     final startIso = now
         .toUtc()
@@ -12,6 +12,7 @@ class ClassRepository {
     final data = await sb
         .from('v_classes_with_spots')
         .select('*')
+        .eq('gym_id', gymId)
         .gte('starts_at', startIso)
         .lte('starts_at', endIso)
         .order('starts_at', ascending: true)
@@ -120,7 +121,8 @@ class ClassRepository {
       await sb
           .from('classes')
           .update({'workout_id': workoutId})
-          .eq('id', classId);
+          .eq('id', classId)
+          .eq('gym_id', gymId);
     }
   }
 

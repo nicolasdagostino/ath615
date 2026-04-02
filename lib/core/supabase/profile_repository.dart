@@ -14,20 +14,22 @@ class ProfileRepository {
     return data == null ? null : Map<String, dynamic>.from(data);
   }
 
-  Future<List<Map<String, dynamic>>> listMembers() async {
+  Future<List<Map<String, dynamic>>> listMembers(String gymId) async {
     final data = await sb
         .from('profiles')
         .select('*')
+        .eq('gym_id', gymId)
         .inFilter('role', ['athlete', 'member', 'admin'])
         .order('full_name', ascending: true);
 
     return List<Map<String, dynamic>>.from(data);
   }
 
-  Future<List<Map<String, dynamic>>> listCoaches() async {
+  Future<List<Map<String, dynamic>>> listCoaches(String gymId) async {
     final data = await sb
         .from('profiles')
         .select('*')
+        .eq('gym_id', gymId)
         .inFilter('role', ['coach', 'admin'])
         .order('full_name', ascending: true);
 

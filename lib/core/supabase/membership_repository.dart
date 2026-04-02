@@ -1,10 +1,11 @@
 import 'supabase_bootstrap.dart';
 
 class MembershipRepository {
-  Future<List<Map<String, dynamic>>> listPlans() async {
+  Future<List<Map<String, dynamic>>> listPlans(String gymId) async {
     final data = await sb
         .from('membership_plans')
         .select('*')
+        .eq('gym_id', gymId)
         .order('created_at', ascending: false);
     return List<Map<String, dynamic>>.from(data);
   }
