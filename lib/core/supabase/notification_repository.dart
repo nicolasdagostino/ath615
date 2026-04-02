@@ -131,9 +131,11 @@ class NotificationRepository {
     final hasProgram = cleanProgramName.isNotEmpty;
     final cleanWorkoutTitle = workoutTitle.trim();
 
-    final title = hasProgram
-        ? '$cleanProgramName workout is ready'
-        : "Today's workout is ready";
+    final title = cleanWorkoutTitle.isNotEmpty
+        ? (hasProgram
+              ? '$cleanProgramName · $cleanWorkoutTitle'
+              : cleanWorkoutTitle)
+        : (hasProgram ? cleanProgramName : 'Workout is ready');
 
     final message = cleanWorkoutTitle.isEmpty
         ? (hasProgram

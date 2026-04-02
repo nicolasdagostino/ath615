@@ -10,14 +10,16 @@ import '../../features/profile/profile_screen.dart';
 import '../../features/workouts/workouts_screen.dart';
 
 class BottomNavShell extends StatefulWidget {
-  const BottomNavShell({super.key});
+  final int initialIndex;
+
+  const BottomNavShell({super.key, this.initialIndex = 1});
 
   @override
   State<BottomNavShell> createState() => _BottomNavShellState();
 }
 
 class _BottomNavShellState extends State<BottomNavShell> {
-  int index = 1;
+  late int index;
   final _sb = Supabase.instance.client;
 
   late Future<bool> _isAdminFuture;
@@ -34,6 +36,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
   @override
   void initState() {
     super.initState();
+    index = widget.initialIndex;
     _isAdminFuture = _isAdmin();
   }
 

@@ -55,7 +55,8 @@ Deno.serve(async (_req) => {
     for (const profile of birthdayProfiles) {
       const name = (profile.full_name ?? 'Athlete').toString().trim() || 'Athlete'
       const title = `Happy birthday, ${name}!`
-      const message = 'The whole team at Athlete Lab wishes you an amazing day 🎉'
+      const message =
+        'We hope you have an amazing day. Enjoy your training and celebrate big 🎉'
 
       const dayStart = `${today.iso}T00:00:00`
       const dayEnd = `${today.iso}T23:59:59`
@@ -64,7 +65,7 @@ Deno.serve(async (_req) => {
         .from('notifications')
         .select('id, title, created_at')
         .eq('gym_id', profile.gym_id)
-        .eq('type', 'birthday')
+        .eq('type', 'announcement')
         .eq('title', title)
         .gte('created_at', dayStart)
         .lte('created_at', dayEnd)
@@ -84,12 +85,18 @@ Deno.serve(async (_req) => {
         .insert({
           gym_id: profile.gym_id,
           created_by: null,
-          type: 'birthday',
+          type: 'announcement',
           status: 'sent',
           title,
           message,
           recipients_scope: 'athletes',
           scheduled_for: `${today.iso}T09:00:00`,
+          metadata: {
+            pushType: 'birthday',
+            memberId: profile.id.toString(),
+            memberName: name,
+            birthdayDate: today.iso,
+          },
         })
         .select('id')
         .single()
@@ -122,7 +129,11 @@ Deno.serve(async (_req) => {
           message,
           data: {
             type: 'birthday',
+            pushType: 'birthday',
             notificationId: notification.id.toString(),
+            memberId: profile.id.toString(),
+            memberName: name,
+            birthdayDate: today.iso,
           },
         }),
       })

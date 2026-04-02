@@ -151,8 +151,36 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           userIds: memberIds,
-          title: notification.title,
-          message: notification.message,
+          // 🔥 Enriched push title
+          ...(function() {
+            const metadata = (notification.metadata ?? {}) as Record<string, unknown>
+
+            const programName =
+              (metadata.programName ?? '').toString().trim()
+
+            const workoutTitle =
+              (metadata.workoutTitle ?? '').toString().trim()
+
+            const fallbackTitle =
+              (notification.title ?? 'Workout').toString().trim()
+
+            let finalTitle = ''
+
+            if (programName && workoutTitle) {
+              finalTitle = `${programName} · ${workoutTitle}`
+            } else if (workoutTitle) {
+              finalTitle = workoutTitle
+            } else if (programName) {
+              finalTitle = programName
+            } else {
+              finalTitle = fallbackTitle
+            }
+
+            return {
+              title: finalTitle,
+              message: notification.message,
+            }
+          })(),
           data: {
             type:
               ((notification.metadata ?? {}) as Record<string, unknown>).pushType

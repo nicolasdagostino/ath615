@@ -6,7 +6,9 @@ import '../../shared/widgets/bottom_nav_shell.dart';
 import 'login_screen.dart';
 
 class AuthGate extends StatefulWidget {
-  const AuthGate({super.key});
+  final int initialIndex;
+
+  const AuthGate({super.key, this.initialIndex = 1});
 
   @override
   State<AuthGate> createState() => _AuthGateState();
@@ -55,7 +57,7 @@ class _AuthGateState extends State<AuthGate> {
               );
             }
 
-            return const BottomNavShell();
+            return BottomNavShell(initialIndex: widget.initialIndex);
           },
         );
       },

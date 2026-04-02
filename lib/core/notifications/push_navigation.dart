@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../features/auth/auth_gate.dart';
 import '../../features/workouts/workout_detail_screen.dart';
 import '../supabase/auth_deep_link_handler.dart';
 
@@ -23,6 +24,14 @@ class PushNavigation {
         MaterialPageRoute(
           builder: (_) => WorkoutDetailScreen(workoutId: workoutId),
         ),
+      );
+      return;
+    }
+
+    if (type == 'inactivity_warning') {
+      nav.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AuthGate(initialIndex: 1)),
+        (_) => false,
       );
     }
   }
