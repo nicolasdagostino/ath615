@@ -82,18 +82,22 @@ class ClassRepository {
     required int maxSpots,
     String? location,
   }) async {
-    final inserted = await sb.from('classes').insert({
-      'gym_id': gymId,
-      'program_id': programId,
-      'coach_id': (coachId == null || coachId.isEmpty) ? null : coachId,
-      'title': title,
-      'description': description,
-      'starts_at': startsAtIso,
-      'duration_minutes': durationMinutes,
-      'max_spots': maxSpots,
-      'location': location,
-      'status': 'scheduled',
-    }).select('id, starts_at').single();
+    final inserted = await sb
+        .from('classes')
+        .insert({
+          'gym_id': gymId,
+          'program_id': programId,
+          'coach_id': (coachId == null || coachId.isEmpty) ? null : coachId,
+          'title': title,
+          'description': description,
+          'starts_at': startsAtIso,
+          'duration_minutes': durationMinutes,
+          'max_spots': maxSpots,
+          'location': location,
+          'status': 'scheduled',
+        })
+        .select('id, starts_at')
+        .single();
 
     final classId = inserted['id'].toString();
     final startsAt = DateTime.parse(inserted['starts_at'].toString()).toLocal();
@@ -113,11 +117,10 @@ class ClassRepository {
     if (existingWorkout != null) {
       final workoutId = existingWorkout['id'].toString();
 
-      await sb.from('classes').update({
-        'workout_id': workoutId,
-      }).eq('id', classId);
-
-      print('✅ Auto-assigned workout to new class');
+      await sb
+          .from('classes')
+          .update({'workout_id': workoutId})
+          .eq('id', classId);
     }
   }
 

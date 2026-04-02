@@ -1,8 +1,29 @@
+import '../../../core/supabase/membership_repository.dart';
 import '../../../core/supabase/supabase_bootstrap.dart';
 import 'admin_member_detail_models.dart';
 
 class AdminMemberDetailRepository {
-  AdminMemberDetailRepository();
+    final _membershipRepository = MembershipRepository();
+
+AdminMemberDetailRepository();
+
+
+  Future<void> updateMemberProfile({
+    required String memberId,
+    required String fullName,
+    required String email,
+    required String phone,
+    required String notes,
+    required bool isActive,
+  }) async {
+    await sb.from('profiles').update({
+      'full_name': fullName.trim(),
+      'email': email.trim(),
+      'phone': phone.trim(),
+      'notes': notes.trim(),
+      'is_active': isActive,
+    }).eq('id', memberId);
+  }
 
   Future<AdminMemberDetailData> loadMemberDetail(String memberId) async {
     final id = memberId.trim();
@@ -10,7 +31,7 @@ class AdminMemberDetailRepository {
 
     final profile = await sb
         .from('profiles')
-        .select('id, full_name, email, phone, is_active, member_since, notes')
+        .select('id, gym_id, full_name, email, phone, is_active, member_since, notes')
         .eq('id', id)
         .maybeSingle();
 
@@ -25,6 +46,7 @@ class AdminMemberDetailRepository {
         .order('created_at', ascending: false)
         .limit(1)
         .maybeSingle();
+    final membershipHistory = await _membershipRepository.listMemberMemberships(id);
 
     final rows = await sb
         .from('class_bookings')
@@ -123,6 +145,7 @@ class AdminMemberDetailRepository {
       activeMembership: activeMembership == null
           ? null
           : Map<String, dynamic>.from(activeMembership),
+      membershipHistory: membershipHistory.map((e) => Map<String, dynamic>.from(e)).toList(),
       activity: AdminMemberActivitySummary(
         lastActivityAt: lastActivityAt,
         attendedCount: attendedCount,

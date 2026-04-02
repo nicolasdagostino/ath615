@@ -84,34 +84,61 @@ Deno.serve(async (req) => {
       return json({ error: 'Notification does not belong to your gym' }, 403)
     }
 
-    let profileQuery = adminClient
-      .from('profiles')
-      .select('id, role, is_active')
-      .eq('gym_id', notification.gym_id)
-      .eq('is_active', true)
-
+    const metadata = (notification.metadata ?? {}) as Record<string, unknown>
     const scope = (notification.recipients_scope ?? 'all_users').toString()
 
-    if (scope === 'athletes') {
-      profileQuery = profileQuery.in('role', ['athlete', 'member'])
+    const targetMemberId = (metadata.targetMemberId ?? '').toString().trim()
+    const targetMemberIds = Array.isArray(metadata.targetMemberIds)
+      ? metadata.targetMemberIds.map((x) => String(x).trim()).filter(Boolean)
+      : []
+
+    let memberIds: string[] = []
+
+    if (targetMemberId || targetMemberIds.length > 0) {
+      const explicitIds = Array.from(new Set([targetMemberId, ...targetMemberIds].filter(Boolean)))
+
+      const { data: recipients, error: recipientsError } = await adminClient
+        .from('profiles')
+        .select('id')
+        .eq('gym_id', notification.gym_id)
+        .eq('is_active', true)
+        .in('id', explicitIds)
+
+      if (recipientsError) {
+        return json({ error: recipientsError.message }, 400)
+      }
+
+      memberIds = (recipients ?? [])
+        .map((row) => row.id?.toString() ?? '')
+        .filter(Boolean)
     } else {
-      profileQuery = profileQuery.in('role', [
-        'athlete',
-        'member',
-        'admin',
-        'coach',
-      ])
+      let profileQuery = adminClient
+        .from('profiles')
+        .select('id, role, is_active')
+        .eq('gym_id', notification.gym_id)
+        .eq('is_active', true)
+
+      if (scope === 'athletes') {
+        profileQuery = profileQuery.in('role', ['athlete', 'member'])
+      } else {
+        profileQuery = profileQuery.in('role', [
+          'athlete',
+          'member',
+          'admin',
+          'coach',
+        ])
+      }
+
+      const { data: recipients, error: recipientsError } = await profileQuery
+
+      if (recipientsError) {
+        return json({ error: recipientsError.message }, 400)
+      }
+
+      memberIds = (recipients ?? [])
+        .map((row) => row.id?.toString() ?? '')
+        .filter(Boolean)
     }
-
-    const { data: recipients, error: recipientsError } = await profileQuery
-
-    if (recipientsError) {
-      return json({ error: recipientsError.message }, 400)
-    }
-
-    const memberIds = (recipients ?? [])
-      .map((row) => row.id?.toString() ?? '')
-      .filter(Boolean)
 
     if (memberIds.length > 0) {
       const existingRows = await adminClient

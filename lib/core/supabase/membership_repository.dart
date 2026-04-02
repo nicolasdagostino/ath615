@@ -92,6 +92,29 @@ class MembershipRepository {
     await sb.from('membership_plans').delete().eq('id', id);
   }
 
+  Future<void> updateMemberMembership({
+    required String membershipId,
+    String? status,
+    String? endDate,
+    bool? autoRenew,
+    int? creditsRemaining,
+    int? classesUsedCurrentPeriod,
+  }) async {
+    final payload = <String, dynamic>{};
+
+    if (status != null) payload['status'] = status;
+    if (endDate != null) {
+      payload['end_date'] = endDate.trim().isEmpty ? null : endDate.trim();
+    }
+    if (autoRenew != null) payload['auto_renew'] = autoRenew;
+    if (creditsRemaining != null) payload['credits_remaining'] = creditsRemaining;
+    if (classesUsedCurrentPeriod != null) {
+      payload['classes_used_current_period'] = classesUsedCurrentPeriod;
+    }
+
+    await sb.from('member_memberships').update(payload).eq('id', membershipId);
+  }
+
   Future<void> assignPlanToMember({
     required String memberId,
     required String planId,

@@ -230,12 +230,9 @@ class _BookingScreenState extends State<BookingScreen> {
     return (booking['status'] ?? '').toString() == 'booked';
   }
 
-  
   bool _canCancelBooking(Map<String, dynamic> item) {
     try {
-      final startsAt = DateTime.parse(
-        item['starts_at'].toString(),
-      ).toLocal();
+      final startsAt = DateTime.parse(item['starts_at'].toString()).toLocal();
 
       return DateTime.now().isBefore(startsAt);
     } catch (_) {
@@ -267,7 +264,6 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-  
   bool _isClassFinished(Map<String, dynamic> item) {
     try {
       final startsAt = DateTime.parse(item['starts_at'].toString()).toLocal();
@@ -759,14 +755,14 @@ class _BookingScreenState extends State<BookingScreen> {
           return 'Tomorrow';
         }
 
-        return 'In ${daysDiff} days';
+        return 'In $daysDiff days';
       }
 
       final hours = diff.inHours;
       final minutes = diff.inMinutes % 60;
 
       if (hours <= 0) {
-        return 'Starts in ${minutes} min';
+        return 'Starts in $minutes min';
       }
 
       return 'Starts in ${hours}h ${minutes}m';

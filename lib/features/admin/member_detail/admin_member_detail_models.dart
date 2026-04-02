@@ -52,12 +52,14 @@ class AdminMemberActivitySummary {
 class AdminMemberDetailData {
   final Map<String, dynamic> profile;
   final Map<String, dynamic>? activeMembership;
+  final List<Map<String, dynamic>> membershipHistory;
   final AdminMemberActivitySummary activity;
   final List<AdminMemberHistoryItem> recentHistory;
 
   const AdminMemberDetailData({
     required this.profile,
     required this.activeMembership,
+    required this.membershipHistory,
     required this.activity,
     required this.recentHistory,
   });
