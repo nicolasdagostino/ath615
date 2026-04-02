@@ -171,12 +171,8 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
         throw Exception('Workout not found');
       }
 
-      final all = await _repo.listRecentWorkouts();
-      try {
-        workout = all.firstWhere((e) => e['id'].toString() == targetId);
-      } catch (_) {
-        workout = _workout;
-      }
+      final fetched = await _repo.getWorkoutById(targetId);
+      workout = fetched ?? _workout;
 
       if (workout == null) {
         throw Exception('Workout not found');

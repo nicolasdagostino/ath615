@@ -32,6 +32,20 @@ class WorkoutRepository {
     return List<Map<String, dynamic>>.from(data);
   }
 
+  Future<Map<String, dynamic>?> getWorkoutById(String id) async {
+    final workoutId = id.trim();
+    if (workoutId.isEmpty) return null;
+
+    final data = await sb
+        .from('v_workouts_detailed')
+        .select('*')
+        .eq('id', workoutId)
+        .maybeSingle();
+
+    if (data == null) return null;
+    return Map<String, dynamic>.from(data);
+  }
+
   Future<List<Map<String, dynamic>>> listPopularWorkouts() async {
     final data = await sb
         .from('v_workouts_detailed')
