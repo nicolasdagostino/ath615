@@ -17,6 +17,7 @@ import '../../core/supabase/program_repository.dart';
 import '../../core/supabase/storage_repository.dart';
 import '../../core/supabase/workout_repository.dart';
 import '../../features/notifications/admin_notifications_tab.dart';
+import 'member_detail/admin_member_detail_screen.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/input_field.dart';
 import '../../shared/widgets/primary_button.dart';
@@ -2612,7 +2613,18 @@ class _AdminScreenState extends State<AdminScreen> {
               child: GestureDetector(
                 onTap: _adminActionBusy
                     ? null
-                    : () => _showMemberActions(member),
+                    : () async {
+                        final memberId = (member['id'] ?? '').toString().trim();
+                        if (memberId.isEmpty) return;
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => AdminMemberDetailScreen(
+                              memberId: memberId,
+                            ),
+                          ),
+                        );
+                        await _loadAdminData();
+                      },
                 child: AppCard(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 18,

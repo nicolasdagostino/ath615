@@ -1,0 +1,146 @@
+import '../../../core/supabase/supabase_bootstrap.dart';
+import 'admin_member_detail_models.dart';
+
+class AdminMemberDetailRepository {
+  AdminMemberDetailRepository();
+
+  Future<AdminMemberDetailData> loadMemberDetail(String memberId) async {
+    final id = memberId.trim();
+    if (id.isEmpty) throw Exception('Member not found');
+
+    final profile = await sb
+        .from('profiles')
+        .select('id, full_name, email, phone, is_active, member_since, notes')
+        .eq('id', id)
+        .maybeSingle();
+
+    if (profile == null) {
+      throw Exception('Member not found');
+    }
+
+    final activeMembership = await sb
+        .from('v_active_member_memberships')
+        .select('*')
+        .eq('member_id', id)
+        .order('created_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+
+    final rows = await sb
+        .from('class_bookings')
+        .select('''
+          id,
+          class_id,
+          status,
+          created_at,
+          classes(
+            id,
+            title,
+            starts_at,
+            location
+          )
+        ''')
+        .eq('member_id', id)
+        .order('created_at', ascending: false)
+        .limit(40);
+
+    final bookingRows = List<Map<String, dynamic>>.from(rows);
+    final classIds = bookingRows
+        .map((row) => (row['class_id'] ?? '').toString().trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+
+    final classMetaById = <String, Map<String, dynamic>>{};
+    if (classIds.isNotEmpty) {
+      final classMetaRows = await sb
+          .from('v_classes_with_spots')
+          .select('id, program_name, coach_name')
+          .inFilter('id', classIds);
+
+      for (final raw in List<Map<String, dynamic>>.from(classMetaRows)) {
+        final classId = (raw['id'] ?? '').toString().trim();
+        if (classId.isEmpty) continue;
+        classMetaById[classId] = raw;
+      }
+    }
+
+    var attendedCount = 0;
+    var bookedCount = 0;
+    var cancelledCount = 0;
+    var noShowCount = 0;
+    DateTime? lastActivityAt;
+
+    final history = <AdminMemberHistoryItem>[];
+
+    for (final row in bookingRows) {
+      final status = (row['status'] ?? '').toString().toLowerCase().trim();
+      switch (status) {
+        case 'attended':
+          attendedCount++;
+          break;
+        case 'booked':
+          bookedCount++;
+          break;
+        case 'cancelled':
+          cancelledCount++;
+          break;
+        case 'no_show':
+          noShowCount++;
+          break;
+      }
+
+      final classId = (row['class_id'] ?? '').toString().trim();
+      final classData = row['classes'];
+      final classMap = classData is Map ? Map<String, dynamic>.from(classData) : const <String, dynamic>{};
+      final extra = classMetaById[classId] ?? const <String, dynamic>{};
+
+      final startsAt = _parseDateTime(classMap['starts_at']);
+      final createdAt = _parseDateTime(row['created_at']);
+      final activityAt = startsAt ?? createdAt;
+      if (activityAt != null &&
+          (lastActivityAt == null || activityAt.isAfter(lastActivityAt))) {
+        lastActivityAt = activityAt;
+      }
+
+      history.add(
+        AdminMemberHistoryItem(
+          bookingId: (row['id'] ?? '').toString().trim(),
+          classId: classId,
+          title: (classMap['title'] ?? '').toString().trim(),
+          programName: (extra['program_name'] ?? '').toString().trim(),
+          coachName: (extra['coach_name'] ?? '').toString().trim(),
+          location: (classMap['location'] ?? '').toString().trim(),
+          status: status,
+          startsAt: startsAt,
+          createdAt: createdAt,
+        ),
+      );
+    }
+
+    return AdminMemberDetailData(
+      profile: Map<String, dynamic>.from(profile),
+      activeMembership: activeMembership == null
+          ? null
+          : Map<String, dynamic>.from(activeMembership),
+      activity: AdminMemberActivitySummary(
+        lastActivityAt: lastActivityAt,
+        attendedCount: attendedCount,
+        bookedCount: bookedCount,
+        cancelledCount: cancelledCount,
+        noShowCount: noShowCount,
+      ),
+      recentHistory: history,
+    );
+  }
+
+  DateTime? _parseDateTime(dynamic value) {
+    final raw = (value ?? '').toString().trim();
+    if (raw.isEmpty) return null;
+    try {
+      return DateTime.parse(raw).toLocal();
+    } catch (_) {
+      return null;
+    }
+  }
+}

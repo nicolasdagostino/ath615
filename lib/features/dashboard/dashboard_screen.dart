@@ -12,6 +12,7 @@ import 'widgets/dashboard_morning_overview.dart';
 import 'widgets/dashboard_recommended_actions_section.dart';
 import 'widgets/dashboard_section_header.dart';
 import 'widgets/dashboard_tomorrow_risk_section.dart';
+import '../admin/member_detail/admin_member_detail_screen.dart';
 import 'pending_attendance/pending_attendance_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -506,14 +507,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         DashboardMemberActivitySection(
           items: data.memberActivity,
           emptyPanel: _emptyPanel,
-          onMemberTap: (memberId) {
-            if (widget.onOpenAdminMemberDetail != null) {
-              widget.onOpenAdminMemberDetail!.call(memberId);
-            } else if (widget.onOpenAdminMembers != null) {
-              widget.onOpenAdminMembers!.call();
-            } else {
-              _showActionMessage('Members navigation is not available.');
-            }
+          onMemberTap: (memberId) async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => AdminMemberDetailScreen(memberId: memberId),
+              ),
+            );
+            await _refresh();
           },
           onUnavailable: () {
             _showActionMessage('Member detail is not available.');
