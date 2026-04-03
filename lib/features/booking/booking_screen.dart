@@ -777,9 +777,9 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Widget _classCard(Map<String, dynamic> item) {
     final t = context.appText;
-    final titleRaw = (item['title'] ?? 'Class').toString().trim();
-    final programRaw = (item['program_name'] ?? 'Class').toString().trim();
-    final coach = (item['coach_name'] ?? 'TBD').toString().trim();
+    final titleRaw = (item['title'] ?? t.classLabel).toString().trim();
+    final programRaw = (item['program_name'] ?? t.classLabel).toString().trim();
+    final coach = (item['coach_name'] ?? t.coachTbd).toString().trim();
     final remaining = _asInt(item['remaining_spots'], 0);
     final total = _asInt(item['max_spots'], 0);
     final booking = _bookingForClass(item['id'].toString());
@@ -857,6 +857,16 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
               const SizedBox(height: 2),
             ],
+            Text(
+              sameTitleAndProgram ? programRaw : titleRaw,
+              style: _font(
+                24,
+                weight: FontWeight.w800,
+                color: const Color(0xFF111318),
+                letterSpacing: -0.3,
+                height: 1.0,
+              ),
+            ),
             const SizedBox(height: 12),
             Container(height: 0.8, color: const Color(0xFFEFF1F4)),
             const SizedBox(height: 14),
@@ -1002,7 +1012,7 @@ class _BookingScreenState extends State<BookingScreen> {
     final membershipName =
         ((_activeMembership?['membership_plans'] ?? const {})['name'] ??
                 _activeMembership?['plan_name'] ??
-                'No active plan')
+                t.noActivePlan)
             .toString();
     final hasActiveMembership = _activeMembership != null;
     final membershipText = hasActiveMembership
@@ -1074,7 +1084,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       padding: const EdgeInsets.only(top: 60),
                       child: Center(
                         child: Text(
-                          'No classes for this day',
+                          t.noClassesForThisDay,
                           style: _font(
                             16,
                             weight: FontWeight.w500,

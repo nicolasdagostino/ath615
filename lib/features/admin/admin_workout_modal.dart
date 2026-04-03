@@ -399,8 +399,12 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                   const SizedBox(height: 2),
                                   Text(
                                     isEdit
-                                        ? 'Update the workout content, type and image.'
-                                        : 'Create a new workout for the programming feed.',
+                                        ? context
+                                              .appText
+                                              .editWorkoutModalSubtitle
+                                        : context
+                                              .appText
+                                              .createWorkoutModalSubtitle,
                                     style: _font(
                                       13,
                                       weight: FontWeight.w500,
@@ -433,7 +437,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        sectionTitle('Workout setup'),
+                        sectionTitle(context.appText.workoutSetupSection),
                         const SizedBox(height: 10),
                         Container(
                           width: double.infinity,
@@ -463,7 +467,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                   DropdownMenuItem<String>(
                                     value: '',
                                     child: Text(
-                                      'No program',
+                                      context.appText.noProgram,
                                       style: _font(
                                         13,
                                         weight: FontWeight.w500,
@@ -487,7 +491,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                 ],
                                 selectedItemBuilder: (context) {
                                   final labels = [
-                                    'No program',
+                                    context.appText.noProgram,
                                     ..._programs.map(
                                       (p) =>
                                           (p['name'] ?? t.program).toString(),
@@ -517,14 +521,14 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                               ),
                               const SizedBox(height: 12),
                               styledField(
-                                label: 'Workout Title',
+                                label: context.appText.workoutTitleLabel,
                                 controller: titleCtrl,
-                                hint: 'Fran - 21-15-9',
+                                hint: context.appText.workoutTitleHint,
                                 textInputAction: TextInputAction.next,
                               ),
                               const SizedBox(height: 12),
                               styledField(
-                                label: 'Workout Date',
+                                label: context.appText.workoutDateLabel,
                                 controller: dateCtrl,
                                 hint: '2026-03-15',
                                 readOnly: true,
@@ -540,16 +544,16 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                               ),
                               const SizedBox(height: 12),
                               styledField(
-                                label: 'Workout Type',
+                                label: context.appText.workoutTypeLabel,
                                 controller: typeCtrl,
-                                hint: 'For Time / AMRAP / EMOM',
+                                hint: context.appText.workoutTypeHint,
                                 textInputAction: TextInputAction.next,
                               ),
                               const SizedBox(height: 12),
                               styledField(
-                                label: 'Description',
+                                label: context.appText.description,
                                 controller: descriptionCtrl,
-                                hint: 'For time...',
+                                hint: context.appText.descriptionHintWorkout,
                                 maxLines: 5,
                                 textInputAction: TextInputAction.newline,
                                 keyboardType: TextInputType.multiline,
@@ -650,7 +654,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                             Expanded(
                               child: PrimaryButton(
                                 text: uploading
-                                    ? 'Uploading...'
+                                    ? context.appText.uploadingImage
                                     : (isEdit
                                           ? t.saveChanges
                                           : t.createWorkoutModalTitle),
@@ -670,13 +674,16 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                 onPressed: uploading
                                     ? null
                                     : () async {
-                                        FocusScope.of(context).unfocus();
+                                        FocusScope.of(sheetContext).unfocus();
 
                                         setLocalState(() {
                                           uploading = true;
                                         });
 
                                         String finalImageUrl = imageUrl;
+
+                                        if (!context.mounted) return;
+                                        final t = context.appText;
 
                                         try {
                                           if (pickedImage != null) {
@@ -698,7 +705,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                                 workoutType: typeCtrl.text,
                                                 imageUrl: finalImageUrl,
                                               ),
-                                              successMessage: 'Workout updated',
+                                              successMessage: t.workoutUpdated,
                                             );
                                           } else {
                                             await _runAdminAction(
@@ -711,7 +718,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                                 workoutType: typeCtrl.text,
                                                 imageUrl: finalImageUrl,
                                               ),
-                                              successMessage: 'Workout created',
+                                              successMessage: t.workoutCreated,
                                             );
                                           }
 

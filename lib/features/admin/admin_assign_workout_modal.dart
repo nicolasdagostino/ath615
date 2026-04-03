@@ -14,9 +14,10 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
         : _workouts.first['id'].toString();
 
     final className = (classItem['title'] ?? 'Class').toString().trim();
-    final programName = (classItem['program_name'] ?? 'Program')
-        .toString()
-        .trim();
+    final programName =
+        (classItem['program_name'] ?? context.appText.programLabel)
+            .toString()
+            .trim();
 
     String classDateLabel = '';
     try {
@@ -137,7 +138,9 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      'Link a workout to this class.',
+                                      context
+                                          .appText
+                                          .assignWorkoutModalSubtitle,
                                       style: _font(
                                         13,
                                         weight: FontWeight.w500,
@@ -198,7 +201,7 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Program',
+                                        context.appText.programLabel,
                                         style: _font(
                                           12,
                                           weight: FontWeight.w600,
@@ -208,7 +211,7 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                                       const SizedBox(height: 6),
                                       Text(
                                         programName.isEmpty
-                                            ? 'Program'
+                                            ? context.appText.programLabel
                                             : programName,
                                         style: _font(
                                           18,
@@ -243,7 +246,9 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                                 const SizedBox(height: 12),
                                 DropdownButtonFormField<String>(
                                   initialValue: selectedWorkoutId,
-                                  decoration: dropdownDecoration('Workout'),
+                                  decoration: dropdownDecoration(
+                                    context.appText.workoutLabel,
+                                  ),
                                   borderRadius: BorderRadius.circular(16),
                                   dropdownColor: Colors.white,
                                   iconEnabledColor: const Color(0xFF667085),
@@ -253,8 +258,10 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                                     color: const Color(0xFF111318),
                                   ),
                                   items: _workouts.map((w) {
-                                    final title = (w['title'] ?? 'Workout')
-                                        .toString();
+                                    final title =
+                                        (w['title'] ??
+                                                context.appText.workoutLabel)
+                                            .toString();
                                     final date = (w['workout_date'] ?? '')
                                         .toString()
                                         .trim();
@@ -272,8 +279,10 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                                   }).toList(),
                                   selectedItemBuilder: (context) {
                                     return _workouts.map((w) {
-                                      final title = (w['title'] ?? 'Workout')
-                                          .toString();
+                                      final title =
+                                          (w['title'] ??
+                                                  context.appText.workoutLabel)
+                                              .toString();
                                       final date = (w['workout_date'] ?? '')
                                           .toString()
                                           .trim();
@@ -345,7 +354,7 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                                         ),
                                       ),
                                       Text(
-                                        'Selected',
+                                        context.appText.selectedLabel,
                                         style: _font(
                                           12,
                                           weight: FontWeight.w600,
@@ -363,7 +372,7 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                             children: [
                               Expanded(
                                 child: SecondaryButton(
-                                  text: 'Cancel',
+                                  text: context.appText.cancel,
                                   compact: true,
                                   radius: 16,
                                   textStyle: _font(
@@ -378,7 +387,7 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: PrimaryButton(
-                                  text: 'Assign',
+                                  text: context.appText.assignCta,
                                   compact: true,
                                   radius: 16,
                                   backgroundColor: const Color(0xFFB59B6A),

@@ -773,8 +773,12 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                     children: [
                                       Text(
                                         isEdit
-                                            ? 'Edit Class'
-                                            : 'Schedule Class',
+                                            ? context
+                                                  .appText
+                                                  .editClassModalTitle
+                                            : context
+                                                  .appText
+                                                  .scheduleClassModalTitle,
                                         style: _font(
                                           24,
                                           weight: FontWeight.w800,
@@ -785,8 +789,12 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                       const SizedBox(height: 2),
                                       Text(
                                         isEdit
-                                            ? 'Update scheduling, capacity and coach details.'
-                                            : 'Schedule a class for your gym.',
+                                            ? context
+                                                  .appText
+                                                  .editClassModalSubtitle
+                                            : context
+                                                  .appText
+                                                  .scheduleClassModalSubtitle,
                                         style: _font(
                                           13,
                                           weight: FontWeight.w500,
@@ -819,7 +827,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                               ],
                             ),
                             const SizedBox(height: 16),
-                            sectionTitle('Class setup'),
+                            sectionTitle(context.appText.classSetupSection),
                             const SizedBox(height: 10),
                             Container(
                               width: double.infinity,
@@ -896,7 +904,9 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                     initialValue: selectedCoachId.isEmpty
                                         ? null
                                         : selectedCoachId,
-                                    decoration: dropdownDecoration('Coach'),
+                                    decoration: dropdownDecoration(
+                                      context.appText.coach,
+                                    ),
                                     borderRadius: BorderRadius.circular(16),
                                     dropdownColor: Colors.white,
                                     iconEnabledColor: const Color(0xFF667085),
@@ -909,7 +919,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                       DropdownMenuItem<String>(
                                         value: '',
                                         child: Text(
-                                          'No coach',
+                                          context.appText.noCoach,
                                           style: _font(
                                             13,
                                             weight: FontWeight.w500,
@@ -934,7 +944,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                     ],
                                     selectedItemBuilder: (context) {
                                       final labels = [
-                                        'No coach',
+                                        context.appText.noCoach,
                                         ..._coaches.map(
                                           (c) => (c['full_name'] ?? 'Coach')
                                               .toString(),
@@ -970,8 +980,8 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                       Expanded(
                                         child: styledField(
                                           label: recurrenceEnabled && !isEdit
-                                              ? 'Start Date'
-                                              : 'Date',
+                                              ? context.appText.startDateLabel
+                                              : context.appText.date,
                                           controller: dateCtrl,
                                           hint: '2026-03-12',
                                           readOnly: true,
@@ -1002,8 +1012,8 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                       Expanded(
                                         child: styledField(
                                           label: recurrenceEnabled && !isEdit
-                                              ? 'Primary Time'
-                                              : 'Time',
+                                              ? context.appText.primaryTimeLabel
+                                              : context.appText.time,
                                           controller: timeCtrl,
                                           hint: '18:00',
                                           readOnly: true,
@@ -1037,7 +1047,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                     children: [
                                       Expanded(
                                         child: styledField(
-                                          label: 'Duration',
+                                          label: context.appText.duration,
                                           controller: durationCtrl,
                                           hint: '60',
                                           keyboardType: TextInputType.number,
@@ -1047,7 +1057,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: styledField(
-                                          label: 'Spots',
+                                          label: context.appText.spots,
                                           controller: maxSpotsCtrl,
                                           hint: '15',
                                           keyboardType: TextInputType.number,
@@ -1122,7 +1132,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      'Create the same class on multiple weekdays and hours.',
+                                      context.appText.recurringScheduleSubtitle,
                                       style: _font(
                                         13,
                                         weight: FontWeight.w500,
@@ -1132,7 +1142,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                     if (recurrenceEnabled) ...[
                                       const SizedBox(height: 16),
                                       styledField(
-                                        label: 'Repeat Until',
+                                        label: context.appText.repeatUntilLabel,
                                         controller: recurrenceEndDateCtrl,
                                         hint: '2026-04-30',
                                         readOnly: true,
@@ -1151,7 +1161,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                       ),
                                       const SizedBox(height: 14),
                                       Text(
-                                        'Days',
+                                        context.appText.daysLabel,
                                         style: _font(
                                           12,
                                           weight: FontWeight.w700,
@@ -1324,7 +1334,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                         children: [
                                           Expanded(
                                             child: Text(
-                                              'Times',
+                                              context.appText.timesLabel,
                                               style: _font(
                                                 12,
                                                 weight: FontWeight.w700,
@@ -1361,7 +1371,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                               color: Color(0xFFB59B6A),
                                             ),
                                             label: Text(
-                                              'Add time',
+                                              context.appText.addTimeLabel,
                                               style: _font(
                                                 12,
                                                 weight: FontWeight.w700,
@@ -1470,8 +1480,10 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                     text: isEdit
                                         ? t.saveChanges
                                         : recurrenceEnabled
-                                        ? 'Create Schedule'
-                                        : 'Schedule Class',
+                                        ? context.appText.createScheduleCta
+                                        : context
+                                              .appText
+                                              .scheduleClassModalTitle,
                                     compact: true,
                                     radius: 16,
                                     backgroundColor: const Color(0xFFB59B6A),
@@ -1503,7 +1515,8 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                             location: locationCtrl.text,
                                             status: selectedStatus,
                                           ),
-                                          successMessage: 'Class updated',
+                                          successMessage:
+                                              context.appText.classUpdated,
                                         );
                                       } else if (recurrenceEnabled) {
                                         await _runAdminAction(
@@ -1536,7 +1549,8 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                             maxSpots: maxSpotsCtrl.text,
                                             location: locationCtrl.text,
                                           ),
-                                          successMessage: 'Class created',
+                                          successMessage:
+                                              context.appText.classCreated,
                                         );
                                       }
 

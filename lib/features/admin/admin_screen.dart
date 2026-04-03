@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_text.dart';
+import '../../l10n/app_strings.dart';
 
 import '../../core/supabase/class_repository.dart';
 import '../../core/supabase/admin_member_repository.dart';
@@ -90,6 +91,8 @@ class _AdminScreenState extends State<AdminScreen> {
     'Notifications',
   ];
   late final List<GlobalKey> _tabChipKeys;
+
+  AppStrings get t => context.appText;
 
   @override
   void initState() {
@@ -2461,7 +2464,7 @@ class _AdminScreenState extends State<AdminScreen> {
           children: [
             Expanded(
               child: Text(
-                'Members',
+                t.adminMembersTab,
                 style: _font(
                   18,
                   weight: FontWeight.w800,
@@ -2482,7 +2485,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  'Refresh',
+                  t.refresh,
                   style: _font(
                     14,
                     weight: FontWeight.w700,
@@ -2504,7 +2507,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  '+ Add',
+                  t.addUpper,
                   style: _font(
                     15,
                     weight: FontWeight.w800,
@@ -2517,7 +2520,7 @@ class _AdminScreenState extends State<AdminScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        const SearchField(hint: 'Search members...'),
+        SearchField(hint: t.searchMembers),
         const SizedBox(height: 12),
         if (_loading)
           const Center(child: CircularProgressIndicator())
@@ -3809,7 +3812,7 @@ class _AdminScreenState extends State<AdminScreen> {
           children: [
             Expanded(
               child: Text(
-                'Programs',
+                t.adminProgramsTab,
                 style: _font(
                   18,
                   weight: FontWeight.w800,
@@ -3829,7 +3832,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  '+ Add',
+                  t.addUpper,
                   style: _font(
                     15,
                     weight: FontWeight.w800,
@@ -3871,7 +3874,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'No programs yet',
+                  t.noProgramsYet,
                   style: _font(
                     18,
                     weight: FontWeight.w800,
@@ -3881,7 +3884,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Create your first training program to organize classes and workouts.',
+                  t.noProgramsYetSubtitle,
                   textAlign: TextAlign.center,
                   style: _font(
                     14,
@@ -4041,7 +4044,7 @@ class _AdminScreenState extends State<AdminScreen> {
             ),
             alignment: Alignment.center,
             child: Text(
-              '$label ($count)',
+              t.adminFilterWithCount(label, count),
               style: _font(
                 13,
                 weight: FontWeight.w800,
@@ -4069,16 +4072,16 @@ class _AdminScreenState extends State<AdminScreen> {
     final filteredClasses = _filterClassesList(_classes);
 
     final emptyTitle = _classesFilter == 'today'
-        ? 'No classes today'
+        ? t.noClassesToday
         : _classesFilter == 'upcoming'
-        ? 'No upcoming classes'
-        : 'No past classes';
+        ? t.noUpcomingClasses
+        : t.noPastClasses;
 
     final emptySubtitle = _classesFilter == 'today'
-        ? 'No classes scheduled for today yet.'
+        ? t.noClassesTodaySubtitle
         : _classesFilter == 'upcoming'
-        ? 'No classes scheduled for tomorrow or later.'
-        : 'No past classes to review yet.';
+        ? t.noUpcomingClassesSubtitle
+        : t.noPastClassesSubtitle;
 
     return Column(
       children: [
@@ -4086,7 +4089,7 @@ class _AdminScreenState extends State<AdminScreen> {
           children: [
             Expanded(
               child: Text(
-                'Classes',
+                t.adminClassesTab,
                 style: _font(
                   18,
                   weight: FontWeight.w800,
@@ -4106,7 +4109,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  '+ Add',
+                  t.addUpper,
                   style: _font(
                     15,
                     weight: FontWeight.w800,
@@ -4296,7 +4299,7 @@ class _AdminScreenState extends State<AdminScreen> {
           children: [
             Expanded(
               child: Text(
-                'Workouts',
+                t.adminWorkoutsTab,
                 style: _font(
                   18,
                   weight: FontWeight.w800,
@@ -4316,7 +4319,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  '+ Add',
+                  t.addUpper,
                   style: _font(
                     15,
                     weight: FontWeight.w800,
@@ -4357,7 +4360,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'No workouts yet',
+                  t.noWorkoutsYet,
                   style: _font(
                     18,
                     weight: FontWeight.w800,
@@ -4366,8 +4369,8 @@ class _AdminScreenState extends State<AdminScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'Create your first workout to plan the training feed.',
+                Text(
+                  t.noWorkoutsYetSubtitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,
@@ -4540,7 +4543,7 @@ class _AdminScreenState extends State<AdminScreen> {
           children: [
             Expanded(
               child: Text(
-                'Plans',
+                t.adminPlansTab,
                 style: _font(
                   18,
                   weight: FontWeight.w800,
@@ -4560,7 +4563,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  '+ Add',
+                  t.addUpper,
                   style: _font(
                     15,
                     weight: FontWeight.w800,
@@ -4601,7 +4604,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'No plans yet',
+                  t.noPlansYet,
                   style: _font(
                     18,
                     weight: FontWeight.w800,
@@ -4611,7 +4614,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Create your first membership plan to manage pricing and bookings.',
+                  t.noPlansYetSubtitle,
                   textAlign: TextAlign.center,
                   style: _font(
                     13,

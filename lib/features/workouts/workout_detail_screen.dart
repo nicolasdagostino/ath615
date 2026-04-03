@@ -803,7 +803,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
             Expanded(
               child: Center(
                 child: Text(
-                  _error ?? 'Workout not found',
+                  _error ?? context.appText.workoutNotFound,
                   style: _font(
                     16,
                     weight: FontWeight.w500,
@@ -817,8 +817,10 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       );
     }
 
-    final program = (workout['program_name'] ?? context.appText.workout).toString();
-    final author = (workout['created_by_name'] ?? 'Athlete 615').toString();
+    final program = (workout['program_name'] ?? context.appText.workout)
+        .toString();
+    final author = (workout['created_by_name'] ?? context.appText.athlete615)
+        .toString();
     final dateIso = (workout['workout_date'] ?? '').toString();
     final description = (workout['description'] ?? '').toString().trim();
     final type = (workout['workout_type'] ?? '').toString().trim();
@@ -936,7 +938,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                         Row(
                           children: [
                             Text(
-                              '$likes likes',
+                              context.appText.likesCount(likes),
                               style: _font(
                                 12,
                                 weight: FontWeight.w500,
@@ -945,7 +947,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                             ),
                             const Spacer(),
                             Text(
-                              '$commentsCount comments',
+                              context.appText.commentsCount(commentsCount),
                               style: _font(
                                 12,
                                 weight: FontWeight.w500,
@@ -971,7 +973,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                             ),
                             _socialAction(
                               icon: Icons.chat_bubble_outline_rounded,
-                              label: 'Comment',
+                              label: context.appText.commentLabel,
                               iconColor: const Color(0xFF667085),
                             ),
                           ],
@@ -985,7 +987,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                'No comments yet',
+                                context.appText.noCommentsYet,
                                 style: _font(
                                   12,
                                   weight: FontWeight.w500,
@@ -996,8 +998,10 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                           )
                         else
                           ..._comments.map((comment) {
-                            final name = (comment['author_name'] ?? 'Athlete')
-                                .toString();
+                            final name =
+                                (comment['author_name'] ??
+                                        context.appText.athleteFallback)
+                                    .toString();
                             final text = (comment['comment'] ?? '').toString();
 
                             DateTime createdAt = DateTime.now();

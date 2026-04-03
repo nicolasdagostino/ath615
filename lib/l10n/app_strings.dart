@@ -472,6 +472,31 @@ class AppStrings {
   String get workoutDetails =>
       isSpanish ? 'Detalles del entrenamiento' : 'Workout details';
 
+  String likesCount(String count) =>
+      isSpanish ? '$count me gusta' : '$count likes';
+
+  String commentsCount(String count) =>
+      isSpanish ? '$count comentarios' : '$count comments';
+
+  String get commentLabel => isSpanish ? 'Comentar' : 'Comment';
+
+  String get noCommentsYet =>
+      isSpanish ? 'Todavía no hay comentarios' : 'No comments yet';
+
+  String get athleteFallback => isSpanish ? 'Atleta' : 'Athlete';
+
+  String get athlete615 => 'Athlete 615';
+
+  String get restDayUpper => isSpanish ? 'DÍA DE DESCANSO' : 'REST DAY';
+
+  String get restDayDescription => isSpanish
+      ? 'Descansar es tan importante como entrenar. Deja que tu mente y tu cuerpo se recuperen, haz algo de movilidad y estira. No te tientes a entrenar aunque te sientas bien.'
+      : "Resting is as important as work. Let your mind and body rest, do some mobility and stretching. Don't be tempted to train if you feel good.";
+
+  String get noWorkoutsForToday => isSpanish
+      ? 'No hay entrenamientos para este día'
+      : 'No workouts for this day';
+
   String get workoutDetailUpper =>
       isSpanish ? 'DETALLE DEL ENTRENAMIENTO' : 'WORKOUT DETAIL';
 
@@ -582,12 +607,6 @@ class AppStrings {
       : '$count results · $benchmarkCount benchmarks';
 
   String get benchmarkUpper => isSpanish ? 'BENCHMARK' : 'BENCHMARK';
-
-  String likesCount(String count) =>
-      isSpanish ? '$count me gusta' : '$count likes';
-
-  String commentsCount(String count) =>
-      isSpanish ? '$count comentarios' : '$count comments';
 
   String get noWorkoutsFound =>
       isSpanish ? 'No se encontraron entrenamientos' : 'No workouts found';
@@ -941,8 +960,6 @@ class AppStrings {
       ? 'Activo hace $days días · sin patrón reciente'
       : 'Active $days days ago · no recent pattern';
 
-  String get restDayUpper => isSpanish ? 'DÍA DE DESCANSO' : 'REST DAY';
-
   String get restDayMessage => isSpanish
       ? 'Descansar es tan importante como entrenar. Deja que tu mente y tu cuerpo se recuperen, haz algo de movilidad y estiramientos. No te tientes a entrenar solo porque te sientes bien.'
       : "Resting is as important as work. Let your mind and body rest, do some mobility and stretching. Don't be tempted to train if you feel good.";
@@ -996,4 +1013,168 @@ class AppStrings {
 
   String get workoutNotAssignedLabel =>
       isSpanish ? 'Entrenamiento: no asignado' : 'Workout: not assigned';
+
+  String get editClassModalTitle => isSpanish ? 'Editar clase' : 'Edit Class';
+
+  String get scheduleClassModalTitle =>
+      isSpanish ? 'Programar clase' : 'Schedule Class';
+
+  String get editClassModalSubtitle => isSpanish
+      ? 'Actualiza la programación, capacidad y detalles del coach.'
+      : 'Update scheduling, capacity and coach details.';
+
+  String get scheduleClassModalSubtitle => isSpanish
+      ? 'Programa una clase para tu gimnasio.'
+      : 'Schedule a class for your gym.';
+
+  String get classSetupSection =>
+      isSpanish ? 'Configuración de clase' : 'Class setup';
+
+  String get noCoach => isSpanish ? 'Sin coach' : 'No coach';
+
+  String get startDateLabel => isSpanish ? 'Fecha de inicio' : 'Start Date';
+
+  String get primaryTimeLabel => isSpanish ? 'Hora principal' : 'Primary Time';
+
+  String get recurringScheduleSubtitle => isSpanish
+      ? 'Crea la misma clase en varios días y horarios.'
+      : 'Create the same class on multiple weekdays and hours.';
+
+  String get repeatUntilLabel => isSpanish ? 'Repetir hasta' : 'Repeat Until';
+
+  String get daysLabel => isSpanish ? 'Días' : 'Days';
+
+  String get timesLabel => isSpanish ? 'Horarios' : 'Times';
+
+  String get addTimeLabel => isSpanish ? 'Añadir hora' : 'Add time';
+
+  String get createScheduleCta =>
+      isSpanish ? 'Crear horario' : 'Create Schedule';
+
+  String get classUpdated => isSpanish ? 'Clase actualizada' : 'Class updated';
+
+  String get classCreated => isSpanish ? 'Clase creada' : 'Class created';
+
+  String get workoutSetupSection =>
+      isSpanish ? 'Configuración del workout' : 'Workout setup';
+
+  String get noProgram => isSpanish ? 'Sin programa' : 'No program';
+
+  String get workoutTitleLabel =>
+      isSpanish ? 'Título del workout' : 'Workout Title';
+
+  String get workoutDateLabel =>
+      isSpanish ? 'Fecha del workout' : 'Workout Date';
+
+  String get workoutTypeLabel => isSpanish ? 'Tipo de workout' : 'Workout Type';
+
+  String get workoutTitleHint =>
+      isSpanish ? 'Fran - 21-15-9' : 'Fran - 21-15-9';
+
+  String get workoutTypeHint =>
+      isSpanish ? 'For Time / AMRAP / EMOM' : 'For Time / AMRAP / EMOM';
+
+  String get descriptionHintWorkout =>
+      isSpanish ? 'Por tiempo...' : 'For time...';
+
+  String get uploadingImage => isSpanish ? 'Subiendo...' : 'Uploading...';
+
+  String get workoutUpdated =>
+      isSpanish ? 'Workout actualizado' : 'Workout updated';
+
+  String get workoutCreated => isSpanish ? 'Workout creado' : 'Workout created';
+
+  String get assignWorkoutModalSubtitle => isSpanish
+      ? 'Vincula un workout a esta clase.'
+      : 'Link a workout to this class.';
+
+  String get selectedLabel => isSpanish ? 'Seleccionado' : 'Selected';
+
+  String get assignCta => isSpanish ? 'Asignar' : 'Assign';
+
+  String get workoutLabel => isSpanish ? 'Workout' : 'Workout';
+
+  String get programLabel => isSpanish ? 'Programa' : 'Program';
+
+  String get date => isSpanish ? 'Fecha' : 'Date';
+
+  String get time => isSpanish ? 'Hora' : 'Time';
+
+  String get duration => isSpanish ? 'Duración' : 'Duration';
+
+  String get description => isSpanish ? 'Descripción' : 'Description';
+
+  String get editWorkoutModalSubtitle => isSpanish
+      ? 'Actualiza el contenido, tipo e imagen del workout.'
+      : 'Update the workout content, type and image.';
+
+  String get createWorkoutModalSubtitle => isSpanish
+      ? 'Crea un nuevo workout para el feed de programación.'
+      : 'Create a new workout for the programming feed.';
+
+  String get noClassesForThisDay =>
+      isSpanish ? 'No hay clases para este día' : 'No classes for this day';
+
+  String get adminProgramsTab => isSpanish ? 'Programas' : 'Programs';
+
+  String get adminClassesTab => isSpanish ? 'Clases' : 'Classes';
+
+  String get adminWorkoutsTab => isSpanish ? 'Entrenamientos' : 'Workouts';
+
+  String get adminMembersTab => isSpanish ? 'Miembros' : 'Members';
+
+  String get adminPlansTab => isSpanish ? 'Planes' : 'Plans';
+
+  String get adminNotificationsTab =>
+      isSpanish ? 'Notificaciones' : 'Notifications';
+
+  String get refresh => isSpanish ? 'Actualizar' : 'Refresh';
+
+  String get addUpper => isSpanish ? '+ Añadir' : '+ Add';
+
+  String get searchMembers =>
+      isSpanish ? 'Buscar miembros...' : 'Search members...';
+
+  String get noProgramsYet =>
+      isSpanish ? 'Todavía no hay programas' : 'No programs yet';
+
+  String get noProgramsYetSubtitle => isSpanish
+      ? 'Crea tu primer programa de entrenamiento para organizar clases y entrenamientos.'
+      : 'Create your first training program to organize classes and workouts.';
+
+  String adminFilterWithCount(String label, int count) => '$label ($count)';
+
+  String get noClassesToday =>
+      isSpanish ? 'No hay clases hoy' : 'No classes today';
+
+  String get noUpcomingClasses =>
+      isSpanish ? 'No hay próximas clases' : 'No upcoming classes';
+
+  String get noPastClasses =>
+      isSpanish ? 'No hay clases pasadas' : 'No past classes';
+
+  String get noClassesTodaySubtitle => isSpanish
+      ? 'Todavía no hay clases programadas para hoy.'
+      : 'No classes scheduled for today yet.';
+
+  String get noUpcomingClassesSubtitle => isSpanish
+      ? 'No hay clases programadas para mañana o más adelante.'
+      : 'No classes scheduled for tomorrow or later.';
+
+  String get noPastClassesSubtitle => isSpanish
+      ? 'Todavía no hay clases pasadas para revisar.'
+      : 'No past classes to review yet.';
+
+  String get noWorkoutsYet =>
+      isSpanish ? 'Todavía no hay entrenamientos' : 'No workouts yet';
+
+  String get noWorkoutsYetSubtitle => isSpanish
+      ? 'Crea tu primer entrenamiento para planificar el feed.'
+      : 'Create your first workout to plan the training feed.';
+
+  String get noPlansYet => isSpanish ? 'Todavía no hay planes' : 'No plans yet';
+
+  String get noPlansYetSubtitle => isSpanish
+      ? 'Crea tu primer plan de membresía para gestionar precios y reservas.'
+      : 'Create your first membership plan to manage pricing and bookings.';
 }
