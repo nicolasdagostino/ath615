@@ -777,7 +777,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Widget _classCard(Map<String, dynamic> item) {
     final t = context.appText;
-    final titleRaw = (item['title'] ?? t.classLabel).toString().trim();
+    final titleRaw = (item['title'] ?? '').toString().trim();
     final programRaw = (item['program_name'] ?? t.classLabel).toString().trim();
     final coach = (item['coach_name'] ?? t.coachTbd).toString().trim();
     final remaining = _asInt(item['remaining_spots'], 0);
@@ -785,7 +785,7 @@ class _BookingScreenState extends State<BookingScreen> {
     final booking = _bookingForClass(item['id'].toString());
 
     final sameTitleAndProgram =
-        titleRaw.toLowerCase() == programRaw.toLowerCase();
+        titleRaw.isEmpty || titleRaw.toLowerCase() == programRaw.toLowerCase();
 
     final overline = sameTitleAndProgram ? null : programRaw.toUpperCase();
 
@@ -813,29 +813,15 @@ class _BookingScreenState extends State<BookingScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        timeLabel,
-                        style: _font(
-                          31,
-                          weight: FontWeight.w900,
-                          color: const Color(0xFF111318),
-                          letterSpacing: -1.0,
-                          height: 1.0,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _classTimeStatus(item),
-                        style: _font(
-                          12,
-                          weight: FontWeight.w600,
-                          color: const Color(0xFF8F96A3),
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    timeLabel,
+                    style: _font(
+                      31,
+                      weight: FontWeight.w900,
+                      color: const Color(0xFF111318),
+                      letterSpacing: -1.0,
+                      height: 1.0,
+                    ),
                   ),
                 ),
                 if (topStatus == 'checked_in')
@@ -844,40 +830,51 @@ class _BookingScreenState extends State<BookingScreen> {
                   _statusPill(t.bookedUpper, success: false),
               ],
             ),
-            const SizedBox(height: 14),
-            if (overline != null) ...[
-              Text(
-                overline,
-                style: _font(
-                  18,
-                  weight: FontWeight.w700,
-                  color: _programColor(programRaw),
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: 2),
-            ],
+            const SizedBox(height: 4),
             Text(
-              sameTitleAndProgram ? programRaw : titleRaw,
+              _classTimeStatus(item),
               style: _font(
-                24,
-                weight: FontWeight.w800,
-                color: const Color(0xFF111318),
-                letterSpacing: -0.3,
-                height: 1.0,
+                12,
+                weight: FontWeight.w600,
+                color: const Color(0xFF8F96A3),
               ),
             ),
-            const SizedBox(height: 12),
-            Container(height: 0.8, color: const Color(0xFFEFF1F4)),
             const SizedBox(height: 14),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: _metaItem(label: t.coach.toUpperCase(), value: coach),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (overline != null) ...[
+                        Text(
+                          overline,
+                          style: _font(
+                            18,
+                            weight: FontWeight.w700,
+                            color: _programColor(programRaw),
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                      ],
+                      Text(
+                        sameTitleAndProgram ? programRaw : titleRaw,
+                        style: _font(
+                          24,
+                          weight: FontWeight.w800,
+                          color: const Color(0xFF111318),
+                          letterSpacing: -0.3,
+                          height: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
+                SizedBox(
+                  width: 92,
                   child: _metaItem(
                     label: t.spots.toUpperCase(),
                     value: '$remaining / $total',
@@ -886,7 +883,9 @@ class _BookingScreenState extends State<BookingScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
+            Container(height: 0.8, color: const Color(0xFFEFF1F4)),
+            const SizedBox(height: 16),
             if (_isAdmin) ...[
               _actionButton(
                 text: t.roster,

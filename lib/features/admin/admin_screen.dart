@@ -276,91 +276,57 @@ class _AdminScreenState extends State<AdminScreen> {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
-      child: Column(
-        children: [
-          SafeArea(
-            bottom: false,
-            child: SizedBox(
-              height: 56,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'ADMIN',
-                          style: _font(
-                            18,
-                            weight: FontWeight.w800,
-                            color: const Color(0xFF0E0E11),
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          subtitle.toUpperCase(),
-                          style: _font(
-                            12,
-                            weight: FontWeight.w500,
-                            color: const Color(0xFF8F96A3),
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    child: SizedBox(
-                      width: 132,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'ATHLETE LAB',
-                          style: _font(
-                            18,
-                            weight: FontWeight.w800,
-                            color: const Color(0xFF0E0E11),
-                            letterSpacing: -0.3,
-                            height: 1.0,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    bottom: 0,
-                    child: SizedBox(
-                      width: 132,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF7F3EA),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.admin_panel_settings_outlined,
-                            size: 18,
-                            color: Color(0xFFB59B6A),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+      child: SafeArea(
+        bottom: false,
+        child: SizedBox(
+          height: 64,
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7F3EA),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.admin_panel_settings_outlined,
+                  size: 20,
+                  color: Color(0xFFB59B6A),
+                ),
               ),
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ATHLETE LAB',
+                      style: _font(
+                        18,
+                        weight: FontWeight.w800,
+                        color: const Color(0xFF0E0E11),
+                        letterSpacing: -0.3,
+                        height: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'ADMIN · ${subtitle.toUpperCase()}',
+                      style: _font(
+                        12,
+                        weight: FontWeight.w600,
+                        color: const Color(0xFF8F96A3),
+                        letterSpacing: 0.25,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -2826,7 +2792,10 @@ class _AdminScreenState extends State<AdminScreen> {
                       ? t.activeUntilAutoRenew(endDate, autoRenew)
                       : t.noEndDateAutoRenew(autoRenew));
 
-            final fullName = (member['full_name'] ?? 'Member').toString();
+            final fullName =
+                (member['full_name'] ?? _uiText('Miembro', 'Member'))
+                    .toString()
+                    .trim();
             final email = (member['email'] ?? '-').toString();
             final phone =
                 ((member['phone'] ?? '').toString().isEmpty
@@ -2859,6 +2828,20 @@ class _AdminScreenState extends State<AdminScreen> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Container(
+                            width: 46,
+                            height: 46,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF7F3EA),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.person_rounded,
+                              size: 22,
+                              color: Color(0xFFB59B6A),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2866,19 +2849,19 @@ class _AdminScreenState extends State<AdminScreen> {
                                 Text(
                                   fullName,
                                   style: _font(
-                                    22,
+                                    21,
                                     weight: FontWeight.w800,
                                     color: const Color(0xFF111318),
-                                    letterSpacing: -0.25,
+                                    letterSpacing: -0.22,
                                     height: 0.98,
                                   ),
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 5),
                                 Text(
                                   email,
                                   style: _font(
                                     13,
-                                    weight: FontWeight.w600,
+                                    weight: FontWeight.w500,
                                     color: const Color(0xFF667085),
                                     height: 1.2,
                                   ),
@@ -2892,19 +2875,19 @@ class _AdminScreenState extends State<AdminScreen> {
                                 ? null
                                 : () => _showMemberActions(member),
                             child: Container(
-                              width: 40,
-                              height: 40,
+                              width: 42,
+                              height: 42,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF6F7F9),
-                                borderRadius: BorderRadius.circular(12),
+                                color: const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: const Color(0xFFE7EBF0),
+                                  color: const Color(0xFFE2E8F0),
                                 ),
                               ),
                               child: const Icon(
                                 Icons.more_horiz_rounded,
                                 size: 20,
-                                color: Color(0xFF6B7280),
+                                color: Color(0xFF667085),
                               ),
                             ),
                           ),
@@ -2914,6 +2897,7 @@ class _AdminScreenState extends State<AdminScreen> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           _memberStatusChip(status == 'active'),
                           _memberRoleChip(role),
@@ -2925,11 +2909,26 @@ class _AdminScreenState extends State<AdminScreen> {
                         ],
                       ),
                       const SizedBox(height: 14),
-                      _memberMembershipBanner(
-                        planName: planName,
-                        planSummary: planSummary,
-                        membershipMeta: membershipMeta,
-                        hasMembership: activeMembership != null,
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: activeMembership != null
+                              ? const Color(0xFFFFFBF5)
+                              : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: activeMembership != null
+                                ? const Color(0xFFE7D7B0)
+                                : const Color(0xFFE7EBF0),
+                          ),
+                        ),
+                        child: _memberMembershipBanner(
+                          planName: planName,
+                          planSummary: planSummary,
+                          membershipMeta: membershipMeta,
+                          hasMembership: activeMembership != null,
+                        ),
                       ),
                     ],
                   ),
@@ -2951,19 +2950,23 @@ class _AdminScreenState extends State<AdminScreen> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 160),
         curve: Curves.easeOut,
-        height: 44,
-        constraints: const BoxConstraints(minWidth: 118),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        height: 46,
+        constraints: const BoxConstraints(minWidth: 116),
+        padding: const EdgeInsets.symmetric(horizontal: 18),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFFB59B6A) : Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFE7EBF0)),
+          color: selected ? const Color(0xFFB59B6A) : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected
+                ? const Color(0xFFB59B6A)
+                : const Color(0xFFE2E8F0),
+          ),
           boxShadow: selected
               ? const [
                   BoxShadow(
-                    color: Color(0x10000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
+                    color: Color(0x14000000),
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
                   ),
                 ]
               : const [],
@@ -2971,10 +2974,12 @@ class _AdminScreenState extends State<AdminScreen> {
         alignment: Alignment.center,
         child: Text(
           label.toUpperCase(),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: _font(
             13,
             weight: FontWeight.w800,
-            color: selected ? Colors.white : const Color(0xFF111318),
+            color: selected ? Colors.white : const Color(0xFF344054),
             letterSpacing: -0.05,
           ),
         ),
@@ -4310,14 +4315,25 @@ class _AdminScreenState extends State<AdminScreen> {
             final dateLabel = dt != null
                 ? DateFormat('EEE, MMM d · HH:mm').format(dt)
                 : '-';
-            final program = (item['program_name'] ?? 'Class').toString();
+            final program = (item['program_name'] ?? context.appText.classLabel)
+                .toString();
             final title = (item['title'] ?? '').toString();
-            final coach = (item['coach_name'] ?? 'TBD').toString();
-            final remaining = (item['remaining_spots'] ?? 0).toString();
-            final total = (item['max_spots'] ?? 0).toString();
-            final workoutTitle = (item['workout_title'] ?? '').toString();
+            final coach = (item['coach_name'] ?? '').toString().trim();
+            final coachLabel = coach.isEmpty
+                ? _uiText('Sin coach', 'No coach')
+                : coach;
+            final remainingValue = item['remaining_spots'] ?? 0;
+            final totalValue = item['max_spots'] ?? 0;
+            final remaining = remainingValue.toString();
+            final total = totalValue.toString();
+            final workoutTitle = (item['workout_title'] ?? '').toString().trim();
             final hasWorkout = workoutTitle.isNotEmpty;
             final duration = (item['duration_minutes'] ?? 60).toString();
+            final isFull = (item['remaining_spots'] ?? 0) <= 0;
+            final classHeadline = title.isNotEmpty &&
+                    title.toLowerCase() != program.toLowerCase()
+                ? title
+                : program;
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -4337,8 +4353,60 @@ class _AdminScreenState extends State<AdminScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF7F3EA),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(
+                                    program.toUpperCase(),
+                                    style: _font(
+                                      11,
+                                      weight: FontWeight.w800,
+                                      color: const Color(0xFF8A6F3E),
+                                      letterSpacing: 0.35,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: hasWorkout
+                                        ? const Color(0xFFE7F6EC)
+                                        : const Color(0xFFFEE4E2),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(
+                                    hasWorkout
+                                        ? _uiText('Con workout', 'Workout assigned')
+                                        : _uiText('Sin workout', 'Workout missing'),
+                                    style: _font(
+                                      11,
+                                      weight: FontWeight.w800,
+                                      color: hasWorkout
+                                          ? const Color(0xFF1F8A4C)
+                                          : const Color(0xFFB42318),
+                                      letterSpacing: 0.25,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
                             Text(
-                              program.toUpperCase(),
+                              classHeadline,
                               style: _font(
                                 20,
                                 weight: FontWeight.w800,
@@ -4346,15 +4414,9 @@ class _AdminScreenState extends State<AdminScreen> {
                                 letterSpacing: -0.2,
                               ),
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 4),
                             Text(
-                              [
-                                if (title.isNotEmpty &&
-                                    title.toLowerCase() !=
-                                        program.toLowerCase())
-                                  title,
-                                dateLabel,
-                              ].join(' · '),
+                              dateLabel,
                               style: _font(
                                 13,
                                 weight: FontWeight.w500,
@@ -4373,11 +4435,15 @@ class _AdminScreenState extends State<AdminScreen> {
                                 ),
                                 _adminInfoChip(
                                   icon: Icons.person_outline_rounded,
-                                  text: coach,
+                                  text: coachLabel,
                                 ),
                                 _adminInfoChip(
-                                  icon: Icons.groups_2_outlined,
-                                  text: t.spotsCountLabel(remaining, total),
+                                  icon: isFull
+                                      ? Icons.block_rounded
+                                      : Icons.groups_2_outlined,
+                                  text: isFull
+                                      ? _uiText('Completa · $total/$total', 'Full · $total/$total')
+                                      : t.spotsCountLabel(remaining, total),
                                 ),
                               ],
                             ),
@@ -4386,26 +4452,48 @@ class _AdminScreenState extends State<AdminScreen> {
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
-                                vertical: 10,
+                                vertical: 11,
                               ),
                               decoration: BoxDecoration(
                                 color: hasWorkout
-                                    ? const Color(0xFFF7F3EA)
-                                    : const Color(0xFFF2F4F7),
+                                    ? const Color(0xFFFFFBF5)
+                                    : const Color(0xFFFFF6F5),
                                 borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Text(
-                                hasWorkout
-                                    ? t.workoutTitleWithName(workoutTitle)
-                                    : context.appText.workoutNotAssignedLabel,
-                                style: _font(
-                                  13,
-                                  weight: FontWeight.w700,
+                                border: Border.all(
                                   color: hasWorkout
-                                      ? const Color(0xFFB59B6A)
-                                      : const Color(0xFF667085),
-                                  height: 1.25,
+                                      ? const Color(0xFFE7D7B0)
+                                      : const Color(0xFFF3C7C2),
                                 ),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    hasWorkout
+                                        ? Icons.fitness_center_rounded
+                                        : Icons.warning_amber_rounded,
+                                    size: 18,
+                                    color: hasWorkout
+                                        ? const Color(0xFFB59B6A)
+                                        : const Color(0xFFB42318),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      hasWorkout
+                                          ? t.workoutTitleWithName(workoutTitle)
+                                          : context.appText.workoutNotAssignedLabel,
+                                      style: _font(
+                                        13,
+                                        weight: FontWeight.w700,
+                                        color: hasWorkout
+                                            ? const Color(0xFF8A6F3E)
+                                            : const Color(0xFFB42318),
+                                        height: 1.25,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -4417,16 +4505,19 @@ class _AdminScreenState extends State<AdminScreen> {
                             ? null
                             : () => _showClassActions(item),
                         child: Container(
-                          width: 40,
-                          height: 40,
+                          width: 42,
+                          height: 42,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEDEBE6),
-                            borderRadius: BorderRadius.circular(12),
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: const Color(0xFFE2E8F0),
+                            ),
                           ),
                           child: const Icon(
                             Icons.more_horiz_rounded,
                             size: 20,
-                            color: Color(0xFF6B7280),
+                            color: Color(0xFF667085),
                           ),
                         ),
                       ),
@@ -4532,10 +4623,16 @@ class _AdminScreenState extends State<AdminScreen> {
           )
         else
           ..._workouts.map((item) {
-            final program = (item['program_name'] ?? 'Workout').toString();
+            final program =
+                (item['program_name'] ?? _uiText('Workout', 'Workout'))
+                    .toString()
+                    .trim();
             final rawDate = (item['workout_date'] ?? '').toString();
             final type = (item['workout_type'] ?? '').toString().trim();
-            final title = (item['title'] ?? 'Workout').toString();
+            final title =
+                (item['title'] ?? _uiText('Workout', 'Workout'))
+                    .toString()
+                    .trim();
             final description = (item['description'] ?? '').toString().trim();
             final imageUrl = (item['image_url'] ?? '').toString().trim();
 
@@ -4543,11 +4640,12 @@ class _AdminScreenState extends State<AdminScreen> {
             final dateLabel = parsedDate != null
                 ? DateFormat('EEE, MMM d').format(parsedDate)
                 : '';
-
-            String? subMeta = dateLabel.isNotEmpty ? dateLabel : null;
+            final headline = title.isEmpty
+                ? _uiText('Workout', 'Workout')
+                : title;
 
             return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(bottom: 12),
               child: GestureDetector(
                 onTap: _adminActionBusy
                     ? null
@@ -4564,8 +4662,86 @@ class _AdminScreenState extends State<AdminScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (imageUrl.isNotEmpty) ...[
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Image.network(
+                                  imageUrl,
+                                  height: 148,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Container(
+                                        height: 148,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF2F4F7),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.image_not_supported_outlined,
+                                          size: 32,
+                                          color: Color(0xFF6B7280),
+                                        ),
+                                      ),
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                            ],
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF7F3EA),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(
+                                    program.toUpperCase(),
+                                    style: _font(
+                                      11,
+                                      weight: FontWeight.w800,
+                                      color: const Color(0xFF8A6F3E),
+                                      letterSpacing: 0.35,
+                                    ),
+                                  ),
+                                ),
+                                if (type.isNotEmpty)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF8FAFC),
+                                      borderRadius: BorderRadius.circular(999),
+                                      border: Border.all(
+                                        color: const Color(0xFFE2E8F0),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      type,
+                                      style: _font(
+                                        11,
+                                        weight: FontWeight.w800,
+                                        color: const Color(0xFF475467),
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
                             Text(
-                              title.toUpperCase(),
+                              headline,
                               style: _font(
                                 20,
                                 weight: FontWeight.w800,
@@ -4573,23 +4749,10 @@ class _AdminScreenState extends State<AdminScreen> {
                                 letterSpacing: -0.2,
                               ),
                             ),
-                            const SizedBox(height: 6),
-                            Wrap(
-                              spacing: 6,
-                              runSpacing: 6,
-                              children: [
-                                _adminInfoChip(
-                                  icon: Icons.fitness_center_outlined,
-                                  text: program,
-                                ),
-                                if (type.isNotEmpty)
-                                  _adminInfoChip(icon: Icons.tag, text: type),
-                              ],
-                            ),
-                            if ((subMeta ?? '').isNotEmpty) ...[
-                              const SizedBox(height: 6),
+                            if (dateLabel.isNotEmpty) ...[
+                              const SizedBox(height: 4),
                               Text(
-                                subMeta ?? '',
+                                dateLabel,
                                 style: _font(
                                   13,
                                   weight: FontWeight.w500,
@@ -4599,7 +4762,7 @@ class _AdminScreenState extends State<AdminScreen> {
                               ),
                             ],
                             if (description.isNotEmpty) ...[
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 10),
                               Text(
                                 description,
                                 maxLines: 2,
@@ -4607,36 +4770,8 @@ class _AdminScreenState extends State<AdminScreen> {
                                 style: _font(
                                   13,
                                   weight: FontWeight.w500,
-                                  color: const Color(0xFF8F96A3),
-                                  height: 1.35,
-                                ),
-                              ),
-                            ],
-                            if (imageUrl.isNotEmpty) ...[
-                              const SizedBox(height: 12),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(14),
-                                child: Image.network(
-                                  imageUrl,
-                                  height: 132,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Container(
-                                        height: 132,
-                                        alignment: Alignment.center,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFF2F4F7),
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                        ),
-                                        child: const Icon(
-                                          Icons.image_not_supported_outlined,
-                                          size: 32,
-                                          color: Color(0xFF6B7280),
-                                        ),
-                                      ),
+                                  color: const Color(0xFF667085),
+                                  height: 1.32,
                                 ),
                               ),
                             ],
@@ -4649,16 +4784,19 @@ class _AdminScreenState extends State<AdminScreen> {
                             ? null
                             : () => _showWorkoutActions(item),
                         child: Container(
-                          width: 38,
-                          height: 38,
+                          width: 42,
+                          height: 42,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEDEBE6),
-                            borderRadius: BorderRadius.circular(10),
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: const Color(0xFFE2E8F0),
+                            ),
                           ),
                           child: const Icon(
                             Icons.more_horiz_rounded,
                             size: 20,
-                            color: Color(0xFF6B7280),
+                            color: Color(0xFF667085),
                           ),
                         ),
                       ),
