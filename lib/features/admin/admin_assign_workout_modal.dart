@@ -13,7 +13,7 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
         ? classItem['workout_id'].toString()
         : _workouts.first['id'].toString();
 
-    final className = (classItem['title'] ?? 'Class').toString().trim();
+    final className = (classItem['title'] ?? context.appText.classLabel).toString().trim();
     final programName =
         (classItem['program_name'] ?? context.appText.programLabel)
             .toString()
@@ -80,17 +80,66 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                 padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
                 child: StatefulBuilder(
                   builder: (context, setLocalState) {
-                    final selectedWorkout = _workouts.firstWhere(
+                    // SMART FILTER: same date + same program first
+                    final classDateRaw = classItem['starts_at']?.toString() ?? '';
+                    final classProgramId = classItem['program_id']?.toString() ?? '';
+
+                    String classDate = '';
+                    try {
+                      final dt = DateTime.parse(classDateRaw).toLocal();
+                      classDate = dt.toIso8601String().split('T').first;
+                    } catch (_) {}
+
+                    final prioritizedWorkouts = [
+                      ..._workouts.where((w) =>
+                        (w['program_id']?.toString() ?? '') == classProgramId &&
+                        (w['workout_date']?.toString() ?? '') == classDate
+                      ),
+                      ..._workouts.where((w) =>
+                        !(
+                          (w['program_id']?.toString() ?? '') == classProgramId &&
+                          (w['workout_date']?.toString() ?? '') == classDate
+                        )
+                      ),
+                    ];
+
+                    final selectedWorkout = prioritizedWorkouts.firstWhere(
                       (w) => w['id'].toString() == selectedWorkoutId,
-                      orElse: () => _workouts.first,
+                      orElse: () => prioritizedWorkouts.first,
                     );
 
                     final selectedWorkoutTitle =
-                        (selectedWorkout['title'] ?? 'Workout').toString();
+                        (selectedWorkout['title'] ??
+                                context.appText.workoutLabel)
+                            .toString()
+                            .trim();
                     final selectedWorkoutDate =
                         (selectedWorkout['workout_date'] ?? '')
                             .toString()
                             .trim();
+                    final selectedWorkoutProgram =
+                        (selectedWorkout['program_name'] ??
+                                context.appText.programLabel)
+                            .toString()
+                            .trim();
+                    final selectedWorkoutType =
+                        (selectedWorkout['workout_type'] ?? '')
+                            .toString()
+                            .trim();
+                    final selectedWorkoutDescription =
+                        (selectedWorkout['description'] ?? '')
+                            .toString()
+                            .trim();
+                    final selectedWorkoutImageUrl =
+                        (selectedWorkout['image_url'] ?? '')
+                            .toString()
+                            .trim();
+
+                    String previewDescription = selectedWorkoutDescription;
+                    if (previewDescription.length > 140) {
+                      previewDescription =
+                          '${previewDescription.substring(0, 140).trimRight()}...';
+                    }
 
                     return SingleChildScrollView(
                       child: Column(
@@ -257,7 +306,7 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                                     weight: FontWeight.w500,
                                     color: const Color(0xFF111318),
                                   ),
-                                  items: _workouts.map((w) {
+                                  items: prioritizedWorkouts.map((w) {
                                     final title =
                                         (w['title'] ??
                                                 context.appText.workoutLabel)
@@ -278,7 +327,7 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                                     );
                                   }).toList(),
                                   selectedItemBuilder: (context) {
-                                    return _workouts.map((w) {
+                                    return prioritizedWorkouts.map((w) {
                                       final title =
                                           (w['title'] ??
                                                   context.appText.workoutLabel)
@@ -312,10 +361,6 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                                 const SizedBox(height: 12),
                                 Container(
                                   width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 14,
-                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFF8FAFC),
                                     borderRadius: BorderRadius.circular(18),
@@ -323,42 +368,181 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                                       color: const Color(0xFFE8ECF1),
                                     ),
                                   ),
-                                  child: Row(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Container(
-                                        width: 38,
-                                        height: 38,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFF3F4F6),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
+                                      if (selectedWorkoutImageUrl.isNotEmpty)
+                                        ClipRRect(
+                                          borderRadius:
+                                              const BorderRadius.vertical(
+                                                top: Radius.circular(18),
+                                              ),
+                                          child: SizedBox(
+                                            width: double.infinity,
+                                            height: 150,
+                                            child: Image.network(
+                                              selectedWorkoutImageUrl,
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (
+                                                    context,
+                                                    error,
+                                                    stackTrace,
+                                                  ) => Container(
+                                                    color: const Color(
+                                                      0xFFF3F4F6,
+                                                    ),
+                                                    alignment: Alignment.center,
+                                                    child: const Icon(
+                                                      Icons.image_outlined,
+                                                      size: 34,
+                                                      color: Color(0xFF98A2B3),
+                                                    ),
+                                                  ),
+                                            ),
                                           ),
                                         ),
-                                        child: const Icon(
-                                          Icons.fitness_center_rounded,
-                                          size: 18,
-                                          color: Color(0xFF98A2B3),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text(
-                                          selectedWorkoutDate.isEmpty
-                                              ? selectedWorkoutTitle
-                                              : '$selectedWorkoutTitle · $selectedWorkoutDate',
-                                          style: _font(
-                                            13,
-                                            weight: FontWeight.w700,
-                                            color: const Color(0xFF111318),
-                                          ),
-                                        ),
-                                      ),
-                                      Text(
-                                        context.appText.selectedLabel,
-                                        style: _font(
-                                          12,
-                                          weight: FontWeight.w600,
-                                          color: const Color(0xFF98A2B3),
+                                      Padding(
+                                        padding: const EdgeInsets.all(14),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                  width: 38,
+                                                  height: 38,
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(
+                                                      0xFFF3F4F6,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons
+                                                        .fitness_center_rounded,
+                                                    size: 18,
+                                                    color: Color(0xFF98A2B3),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        selectedWorkoutTitle,
+                                                        style: _font(
+                                                          15,
+                                                          weight:
+                                                              FontWeight.w800,
+                                                          color: const Color(
+                                                            0xFF111318,
+                                                          ),
+                                                          letterSpacing: -0.1,
+                                                        ),
+                                                      ),
+                                                      if (selectedWorkoutDate
+                                                              .isNotEmpty ||
+                                                          selectedWorkoutProgram
+                                                              .isNotEmpty) ...[
+                                                        const SizedBox(
+                                                          height: 4,
+                                                        ),
+                                                        Text(
+                                                          [
+                                                            if (selectedWorkoutDate
+                                                                .isNotEmpty)
+                                                              selectedWorkoutDate,
+                                                            if (selectedWorkoutProgram
+                                                                    .isNotEmpty &&
+                                                                selectedWorkoutProgram
+                                                                        .toLowerCase() !=
+                                                                    selectedWorkoutTitle
+                                                                        .toLowerCase())
+                                                              selectedWorkoutProgram,
+                                                          ].join(' · '),
+                                                          style: _font(
+                                                            12,
+                                                            weight:
+                                                                FontWeight.w500,
+                                                            color: const Color(
+                                                              0xFF667085,
+                                                            ),
+                                                            height: 1.35,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  context.appText.selectedLabel,
+                                                  style: _font(
+                                                    12,
+                                                    weight: FontWeight.w600,
+                                                    color: const Color(
+                                                      0xFF98A2B3,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            if (selectedWorkoutType
+                                                .isNotEmpty) ...[
+                                              const SizedBox(height: 12),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 7,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(999),
+                                                  border: Border.all(
+                                                    color: const Color(
+                                                      0xFFE2E8F0,
+                                                    ),
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  selectedWorkoutType,
+                                                  style: _font(
+                                                    11,
+                                                    weight: FontWeight.w700,
+                                                    color: const Color(
+                                                      0xFF475467,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                            if (previewDescription.isNotEmpty) ...[
+                                              const SizedBox(height: 12),
+                                              Text(
+                                                previewDescription,
+                                                style: _font(
+                                                  13,
+                                                  weight: FontWeight.w500,
+                                                  color: const Color(
+                                                    0xFF475467,
+                                                  ),
+                                                  height: 1.4,
+                                                ),
+                                              ),
+                                            ],
+                                          ],
                                         ),
                                       ),
                                     ],

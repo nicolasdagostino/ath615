@@ -8,9 +8,13 @@ extension _AdminScreenClassModal on _AdminScreenState {
     String selectedProgramId = isEdit
         ? (item['program_id']?.toString() ??
               (_programs.isNotEmpty ? _programs.first['id'].toString() : ''))
-        : (_programs.isNotEmpty ? _programs.first['id'].toString() : '');
+        : ((_lastClassProgramId?.trim().isNotEmpty == true)
+              ? _lastClassProgramId!.trim()
+              : (_programs.isNotEmpty ? _programs.first['id'].toString() : ''));
 
-    String selectedCoachId = isEdit ? (item['coach_id']?.toString() ?? '') : '';
+    String selectedCoachId = isEdit
+        ? (item['coach_id']?.toString() ?? '')
+        : (_lastClassCoachId ?? '');
     String selectedStatus = isEdit
         ? (item['status']?.toString() ?? 'scheduled')
         : 'scheduled';
@@ -29,15 +33,14 @@ extension _AdminScreenClassModal on _AdminScreenState {
           : '18:00',
     );
     final durationCtrl = TextEditingController(
-      text: item?['duration_minutes']?.toString() ?? '60',
+      text: item?['duration_minutes']?.toString() ??
+          (_lastClassDuration?.trim().isNotEmpty == true
+              ? _lastClassDuration!.trim()
+              : '60'),
     );
     final maxSpotsCtrl = TextEditingController(
       text: item?['max_spots']?.toString() ?? '15',
     );
-    final locationCtrl = TextEditingController(
-      text: item?['location']?.toString() ?? 'Athlete 615',
-    );
-
     final recurrenceEndDateCtrl = TextEditingController(
       text: DateFormat(
         'yyyy-MM-dd',
@@ -47,6 +50,138 @@ extension _AdminScreenClassModal on _AdminScreenState {
     bool recurrenceEnabled = false;
     final selectedWeekdays = <int>{};
     final recurrenceTimes = <String>[];
+
+    String weekdayShortLabel(int weekday) {
+      final isSpanish = Localizations.localeOf(context).languageCode
+          .toLowerCase()
+          .startsWith('es');
+      switch (weekday) {
+        case DateTime.monday:
+          return isSpanish ? 'Lun' : 'Mon';
+        case DateTime.tuesday:
+          return isSpanish ? 'Mar' : 'Tue';
+        case DateTime.wednesday:
+          return isSpanish ? 'Mié' : 'Wed';
+        case DateTime.thursday:
+          return isSpanish ? 'Jue' : 'Thu';
+        case DateTime.friday:
+          return isSpanish ? 'Vie' : 'Fri';
+        case DateTime.saturday:
+          return isSpanish ? 'Sáb' : 'Sat';
+        case DateTime.sunday:
+          return isSpanish ? 'Dom' : 'Sun';
+        default:
+          return '';
+      }
+    }
+
+    String? validateClassForm({
+      required String programId,
+      required String date,
+      required String time,
+      required String duration,
+      required String maxSpots,
+      bool allowPast = false,
+    }) {
+      final parsedDuration = int.tryParse(duration.trim());
+      final parsedMaxSpots = int.tryParse(maxSpots.trim());
+      final timeRegex = RegExp(r'^([01]\d|2[0-3]):([0-5]\d)$');
+
+      if (programId.trim().isEmpty) return t.programRequiredError;
+      if (date.trim().isEmpty) return t.dateRequiredError;
+      if (time.trim().isEmpty) return t.timeRequiredError;
+      if (!timeRegex.hasMatch(time.trim())) {
+        return t.isSpanish ? 'Hora inválida' : 'Invalid time';
+      }
+      if (parsedDuration == null || parsedDuration <= 0) {
+        return t.invalidDurationError;
+      }
+      if (parsedMaxSpots == null || parsedMaxSpots <= 0) {
+        return t.invalidMaxSpotsError;
+      }
+      if (!allowPast && _isPastClassDateTime(date.trim(), time.trim())) {
+        return t.classesCannotBeInPastError;
+      }
+      return null;
+    }
+
+    int recurrencePreviewCount({
+      required String startDate,
+      required String endDate,
+      required List<int> weekdays,
+      required List<String> times,
+    }) {
+      final start = DateTime.tryParse(startDate.trim());
+      final end = DateTime.tryParse(endDate.trim());
+      if (start == null || end == null || end.isBefore(start)) return 0;
+
+      final normalizedWeekdays =
+          weekdays.toSet().where((d) => d >= 1 && d <= 7).toList()..sort();
+      final normalizedTimes =
+          times.map((e) => e.trim()).where((e) => e.isNotEmpty).toSet().toList()
+            ..sort();
+
+      if (normalizedWeekdays.isEmpty || normalizedTimes.isEmpty) return 0;
+
+      var count = 0;
+      var cursor = DateTime(start.year, start.month, start.day);
+      final last = DateTime(end.year, end.month, end.day);
+
+      while (!cursor.isAfter(last)) {
+        if (normalizedWeekdays.contains(cursor.weekday)) {
+          final yyyy = cursor.year.toString().padLeft(4, '0');
+          final mm = cursor.month.toString().padLeft(2, '0');
+          final dd = cursor.day.toString().padLeft(2, '0');
+          final dateIso = '$yyyy-$mm-$dd';
+          for (final time in normalizedTimes) {
+            if (!_isPastClassDateTime(dateIso, time)) {
+              count++;
+            }
+          }
+        }
+        cursor = cursor.add(const Duration(days: 1));
+      }
+
+      return count;
+    }
+
+    String recurrencePreviewLabel({
+      required String startDate,
+      required String endDate,
+      required List<int> weekdays,
+      required List<String> times,
+    }) {
+      final count = recurrencePreviewCount(
+        startDate: startDate,
+        endDate: endDate,
+        weekdays: weekdays,
+        times: times,
+      );
+
+      final dayLabels = weekdays.toSet().toList()
+        ..sort();
+      final compactDays = dayLabels.map(weekdayShortLabel).join(', ');
+      final compactTimes =
+          times.map((e) => e.trim()).where((e) => e.isNotEmpty).toSet().toList()
+            ..sort();
+
+      if (count <= 0) {
+        return t.isSpanish
+            ? 'No se crearán clases con la configuración actual.'
+            : 'No classes will be created with the current setup.';
+      }
+
+      final countLabel = t.isSpanish
+          ? 'Se crearán $count clases'
+          : '$count classes will be created';
+      final suffixParts = <String>[];
+      if (compactDays.isNotEmpty) suffixParts.add(compactDays);
+      if (compactTimes.isNotEmpty) suffixParts.add(compactTimes.join(', '));
+
+      return suffixParts.isEmpty
+          ? countLabel
+          : '$countLabel · ${suffixParts.join(' · ')}';
+    }
 
     if (!isEdit) {
       final parsedDate = DateTime.tryParse(dateCtrl.text.trim());
@@ -60,11 +195,13 @@ extension _AdminScreenClassModal on _AdminScreenState {
     Future<void> pickDate(
       BuildContext context,
       TextEditingController controller, {
-      String title = 'Date',
-      String subtitle = 'Choose a date.',
+      String? title,
+      String? subtitle,
       DateTime? minimumDate,
       DateTime? maximumDate,
     }) async {
+      final resolvedTitle = title ?? t.date;
+      final resolvedSubtitle = subtitle ?? (t.isSpanish ? 'Elige una fecha.' : 'Choose a date.');
       final now = DateTime.now();
       DateTime selectedDate = DateTime.tryParse(controller.text.trim()) ?? now;
 
@@ -120,7 +257,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      title,
+                                      resolvedTitle,
                                       style: _font(
                                         24,
                                         weight: FontWeight.w800,
@@ -130,7 +267,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      subtitle,
+                                      resolvedSubtitle,
                                       style: _font(
                                         13,
                                         weight: FontWeight.w500,
@@ -274,9 +411,14 @@ extension _AdminScreenClassModal on _AdminScreenState {
       BuildContext context,
       void Function(String value) onSelected, {
       String? initialValue,
-      String title = 'Time',
-      String subtitle = 'Choose the class start time.',
+      String? title,
+      String? subtitle,
     }) async {
+      final resolvedTitle = title ?? t.time;
+      final resolvedSubtitle = subtitle ??
+          (t.isSpanish
+              ? 'Elige la hora de inicio de la clase.'
+              : 'Choose the class start time.');
       int selectedHour = 18;
       int selectedMinute = 0;
 
@@ -345,7 +487,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      title,
+                                      resolvedTitle,
                                       style: _font(
                                         24,
                                         weight: FontWeight.w800,
@@ -355,7 +497,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      subtitle,
+                                      resolvedSubtitle,
                                       style: _font(
                                         13,
                                         weight: FontWeight.w500,
@@ -389,7 +531,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Select Time',
+                            t.isSpanish ? 'Selecciona la hora' : 'Select Time',
                             style: _font(
                               15,
                               weight: FontWeight.w800,
@@ -931,7 +1073,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                         (c) => DropdownMenuItem<String>(
                                           value: c['id'].toString(),
                                           child: Text(
-                                            (c['full_name'] ?? 'Coach')
+                                            (c['full_name'] ?? context.appText.coach)
                                                 .toString(),
                                             style: _font(
                                               13,
@@ -946,7 +1088,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                       final labels = [
                                         context.appText.noCoach,
                                         ..._coaches.map(
-                                          (c) => (c['full_name'] ?? 'Coach')
+                                          (c) => (c['full_name'] ?? context.appText.coach)
                                               .toString(),
                                         ),
                                       ];
@@ -1174,7 +1316,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                         runSpacing: 8,
                                         children: [
                                           weekdayChip(
-                                            label: 'Mon',
+                                            label: weekdayShortLabel(DateTime.monday),
                                             weekday: DateTime.monday,
                                             selected: selectedWeekdays.contains(
                                               DateTime.monday,
@@ -1196,7 +1338,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                             },
                                           ),
                                           weekdayChip(
-                                            label: 'Tue',
+                                            label: weekdayShortLabel(DateTime.tuesday),
                                             weekday: DateTime.tuesday,
                                             selected: selectedWeekdays.contains(
                                               DateTime.tuesday,
@@ -1218,7 +1360,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                             },
                                           ),
                                           weekdayChip(
-                                            label: 'Wed',
+                                            label: weekdayShortLabel(DateTime.wednesday),
                                             weekday: DateTime.wednesday,
                                             selected: selectedWeekdays.contains(
                                               DateTime.wednesday,
@@ -1240,7 +1382,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                             },
                                           ),
                                           weekdayChip(
-                                            label: 'Thu',
+                                            label: weekdayShortLabel(DateTime.thursday),
                                             weekday: DateTime.thursday,
                                             selected: selectedWeekdays.contains(
                                               DateTime.thursday,
@@ -1262,7 +1404,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                             },
                                           ),
                                           weekdayChip(
-                                            label: 'Fri',
+                                            label: weekdayShortLabel(DateTime.friday),
                                             weekday: DateTime.friday,
                                             selected: selectedWeekdays.contains(
                                               DateTime.friday,
@@ -1284,7 +1426,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                             },
                                           ),
                                           weekdayChip(
-                                            label: 'Sat',
+                                            label: weekdayShortLabel(DateTime.saturday),
                                             weekday: DateTime.saturday,
                                             selected: selectedWeekdays.contains(
                                               DateTime.saturday,
@@ -1306,7 +1448,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                             },
                                           ),
                                           weekdayChip(
-                                            label: 'Sun',
+                                            label: weekdayShortLabel(DateTime.sunday),
                                             weekday: DateTime.sunday,
                                             selected: selectedWeekdays.contains(
                                               DateTime.sunday,
@@ -1452,6 +1594,32 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                           );
                                         }).toList(),
                                       ),
+                                      const SizedBox(height: 14),
+                                      Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.all(14),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF8FAFC),
+                                          borderRadius: BorderRadius.circular(18),
+                                          border: Border.all(
+                                            color: const Color(0xFFE2E8F0),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          recurrencePreviewLabel(
+                                            startDate: dateCtrl.text,
+                                            endDate: recurrenceEndDateCtrl.text,
+                                            weekdays: selectedWeekdays.toList(),
+                                            times: recurrenceTimes,
+                                          ),
+                                          style: _font(
+                                            13,
+                                            weight: FontWeight.w600,
+                                            color: const Color(0xFF475467),
+                                            height: 1.35,
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ],
                                 ),
@@ -1500,6 +1668,50 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                     onPressed: () async {
                                       FocusScope.of(context).unfocus();
 
+                                      final validationError = validateClassForm(
+                                        programId: selectedProgramId,
+                                        date: dateCtrl.text,
+                                        time: timeCtrl.text,
+                                        duration: durationCtrl.text,
+                                        maxSpots: maxSpotsCtrl.text,
+                                      );
+                                      if (validationError != null) {
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text(validationError)),
+                                        );
+                                        return;
+                                      }
+
+                                      if (!isEdit && recurrenceEnabled) {
+                                        if (selectedWeekdays.isEmpty) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(t.selectAtLeastOneWeekdayError),
+                                            ),
+                                          );
+                                          return;
+                                        }
+                                        if (recurrenceTimes.isEmpty) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(t.addAtLeastOneTimeError),
+                                            ),
+                                          );
+                                          return;
+                                        }
+                                      }
+
+                                      _lastClassProgramId = selectedProgramId.trim().isEmpty
+                                          ? null
+                                          : selectedProgramId.trim();
+                                      _lastClassCoachId = selectedCoachId.trim().isEmpty
+                                          ? null
+                                          : selectedCoachId.trim();
+                                      _lastClassDuration = durationCtrl.text.trim().isEmpty
+                                          ? null
+                                          : durationCtrl.text.trim();
+
                                       if (isEdit) {
                                         await _runAdminAction(
                                           () => _updateClass(
@@ -1512,7 +1724,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                             time: timeCtrl.text,
                                             duration: durationCtrl.text,
                                             maxSpots: maxSpotsCtrl.text,
-                                            location: locationCtrl.text,
+                                            location: '',
                                             status: selectedStatus,
                                           ),
                                           successMessage:
@@ -1531,7 +1743,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                             times: recurrenceTimes,
                                             duration: durationCtrl.text,
                                             maxSpots: maxSpotsCtrl.text,
-                                            location: locationCtrl.text,
+                                            location: '',
                                           ),
                                           successMessage:
                                               t.recurringScheduleCreated,
@@ -1547,7 +1759,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                             time: timeCtrl.text,
                                             duration: durationCtrl.text,
                                             maxSpots: maxSpotsCtrl.text,
-                                            location: locationCtrl.text,
+                                            location: '',
                                           ),
                                           successMessage:
                                               context.appText.classCreated,

@@ -10,6 +10,12 @@ class AdminMemberActivityCard extends StatelessWidget {
 
   const AdminMemberActivityCard({super.key, required this.activity});
 
+  bool _isSpanish(BuildContext context) =>
+      Localizations.localeOf(context).languageCode.toLowerCase().startsWith('es');
+
+  String _text(BuildContext context, String es, String en) =>
+      _isSpanish(context) ? es : en;
+
   TextStyle _font(
     double size, {
     FontWeight weight = FontWeight.w500,
@@ -26,9 +32,11 @@ class AdminMemberActivityCard extends StatelessWidget {
     );
   }
 
-  String _lastActivityLabel() {
+  String _lastActivityLabel(BuildContext context) {
     final value = activity.lastActivityAt;
-    if (value == null) return 'No recent activity';
+    if (value == null) {
+      return _text(context, 'Sin actividad reciente', 'No recent activity');
+    }
     return DateFormat('MMM d, yyyy · HH:mm').format(value);
   }
 
@@ -37,9 +45,9 @@ class AdminMemberActivityCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFFE8ECF1)),
+          border: Border.all(color: const Color(0xFFE7EBF0)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +83,7 @@ class AdminMemberActivityCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'ACTIVITY',
+            _text(context, 'ACTIVIDAD', 'ACTIVITY'),
             style: _font(
               12,
               weight: FontWeight.w700,
@@ -85,7 +93,7 @@ class AdminMemberActivityCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Last activity: ${_lastActivityLabel()}',
+            '${_text(context, 'Última actividad', 'Last activity')}: ${_lastActivityLabel(context)}',
             style: _font(
               15,
               weight: FontWeight.w600,
@@ -95,17 +103,17 @@ class AdminMemberActivityCard extends StatelessWidget {
           const SizedBox(height: 14),
           Row(
             children: [
-              _stat('${activity.attendedCount}', 'Attended'),
+              _stat('${activity.attendedCount}', _text(context, 'Asistidas', 'Attended')),
               const SizedBox(width: 10),
-              _stat('${activity.bookedCount}', 'Booked'),
+              _stat('${activity.bookedCount}', _text(context, 'Reservadas', 'Booked')),
             ],
           ),
           const SizedBox(height: 10),
           Row(
             children: [
-              _stat('${activity.cancelledCount}', 'Cancelled'),
+              _stat('${activity.cancelledCount}', _text(context, 'Canceladas', 'Cancelled')),
               const SizedBox(width: 10),
-              _stat('${activity.noShowCount}', 'No-show'),
+              _stat('${activity.noShowCount}', _text(context, 'No asistió', 'No-show')),
             ],
           ),
         ],

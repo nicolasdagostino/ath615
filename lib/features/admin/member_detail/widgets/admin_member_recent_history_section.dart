@@ -10,6 +10,12 @@ class AdminMemberRecentHistorySection extends StatelessWidget {
 
   const AdminMemberRecentHistorySection({super.key, required this.items});
 
+  bool _isSpanish(BuildContext context) =>
+      Localizations.localeOf(context).languageCode.toLowerCase().startsWith('es');
+
+  String _text(BuildContext context, String es, String en) =>
+      _isSpanish(context) ? es : en;
+
   TextStyle _font(
     double size, {
     FontWeight weight = FontWeight.w500,
@@ -26,31 +32,31 @@ class AdminMemberRecentHistorySection extends StatelessWidget {
     );
   }
 
-  ({Color bg, Color fg, String label}) _statusStyle(String status) {
+  ({Color bg, Color fg, String label}) _statusStyle(BuildContext context, String status) {
     switch (status) {
       case 'attended':
         return (
           bg: const Color(0xFFDDF5E5),
           fg: const Color(0xFF16A34A),
-          label: 'Attended',
+          label: _text(context, 'Asistió', 'Attended'),
         );
       case 'cancelled':
         return (
           bg: const Color(0xFFF2F4F7),
           fg: const Color(0xFF667085),
-          label: 'Cancelled',
+          label: _text(context, 'Cancelada', 'Cancelled'),
         );
       case 'no_show':
         return (
           bg: const Color(0xFFFEE4E2),
           fg: const Color(0xFFB42318),
-          label: 'No-show',
+          label: _text(context, 'No asistió', 'No-show'),
         );
       default:
         return (
           bg: const Color(0xFFE6EDF7),
           fg: const Color(0xFF245BEB),
-          label: 'Booked',
+          label: _text(context, 'Reservada', 'Booked'),
         );
     }
   }
@@ -63,7 +69,7 @@ class AdminMemberRecentHistorySection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'RECENT HISTORY',
+            _text(context, 'HISTORIAL RECIENTE', 'RECENT HISTORY'),
             style: _font(
               12,
               weight: FontWeight.w700,
@@ -74,7 +80,7 @@ class AdminMemberRecentHistorySection extends StatelessWidget {
           const SizedBox(height: 12),
           if (items.isEmpty)
             Text(
-              'No recent class history yet.',
+              _text(context, 'Todavía no hay historial reciente de clases.', 'No recent class history yet.'),
               style: _font(
                 14,
                 weight: FontWeight.w500,
@@ -83,7 +89,7 @@ class AdminMemberRecentHistorySection extends StatelessWidget {
             )
           else
             ...items.take(10).map((item) {
-              final status = _statusStyle(item.status);
+              final status = _statusStyle(context, item.status);
               final when = item.startsAt == null
                   ? '—'
                   : DateFormat('MMM d · HH:mm').format(item.startsAt!);
@@ -93,9 +99,9 @@ class AdminMemberRecentHistorySection extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFE8ECF1)),
+                    border: Border.all(color: const Color(0xFFE7EBF0)),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,7 +130,7 @@ class AdminMemberRecentHistorySection extends StatelessWidget {
                             if (item.coachName.trim().isNotEmpty) ...[
                               const SizedBox(height: 4),
                               Text(
-                                'Coach: ${item.coachName}',
+                                '${_text(context, 'Coach', 'Coach')}: ${item.coachName}',
                                 style: _font(
                                   13,
                                   weight: FontWeight.w500,
@@ -137,7 +143,10 @@ class AdminMemberRecentHistorySection extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: status.bg,
                           borderRadius: BorderRadius.circular(999),

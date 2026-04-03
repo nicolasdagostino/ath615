@@ -306,6 +306,12 @@ class AdminMemberDetailSheetActions extends StatelessWidget {
   final VoidCallback? onCancel;
   final VoidCallback? onPrimary;
 
+  bool _isSpanish(BuildContext context) =>
+      Localizations.localeOf(context).languageCode.toLowerCase().startsWith('es');
+
+  String _cancelText(BuildContext context) =>
+      _isSpanish(context) ? 'Cancelar' : 'Cancel';
+
   const AdminMemberDetailSheetActions({
     super.key,
     required this.busy,
@@ -321,7 +327,7 @@ class AdminMemberDetailSheetActions extends StatelessWidget {
       children: [
         Expanded(
           child: SecondaryButton(
-            text: 'Cancel',
+            text: _cancelText(context),
             compact: true,
             radius: 16,
             textStyle: memberDetailSheetFont(

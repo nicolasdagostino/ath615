@@ -31,9 +31,11 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
     Future<void> pickDate(
       BuildContext context,
       TextEditingController controller, {
-      String title = 'Workout Date',
-      String subtitle = 'Choose the workout date.',
+      String? title,
+      String? subtitle,
     }) async {
+      final resolvedTitle = title ?? (t.isSpanish ? 'Fecha del entrenamiento' : 'Workout Date');
+      final resolvedSubtitle = subtitle ?? (t.isSpanish ? 'Elige la fecha del entrenamiento.' : 'Choose the workout date.');
       final now = DateTime.now();
       DateTime selectedDate = DateTime.tryParse(controller.text.trim()) ?? now;
 
@@ -89,7 +91,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      title,
+                                      resolvedTitle,
                                       style: _font(
                                         24,
                                         weight: FontWeight.w800,
@@ -99,7 +101,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      subtitle,
+                                      resolvedSubtitle,
                                       style: _font(
                                         13,
                                         weight: FontWeight.w500,

@@ -1177,4 +1177,339 @@ class AppStrings {
   String get noPlansYetSubtitle => isSpanish
       ? 'Crea tu primer plan de membresía para gestionar precios y reservas.'
       : 'Create your first membership plan to manage pricing and bookings.';
+
+  String get todayUpperShort => isSpanish ? 'HOY' : 'TODAY';
+  String get upcomingUpper => isSpanish ? 'PRÓXIMAS' : 'UPCOMING';
+  String get pastUpper => isSpanish ? 'PASADAS' : 'PAST';
+
+  String durationMinutesShort(String value) =>
+      isSpanish ? '$value min' : '$value min';
+
+  String coachNameLabel(String coach) =>
+      isSpanish ? 'Coach: $coach' : 'Coach: $coach';
+
+  String spotsCountLabel(String remaining, String total) =>
+      isSpanish ? '$remaining/$total plazas' : '$remaining/$total spots';
+
+  String workoutTitleWithName(String title) =>
+      isSpanish ? 'Entrenamiento: $title' : 'Workout: $title';
+
+  String get planFallbackLabel => isSpanish ? 'Plan' : 'Plan';
+
+  String bookingWindowDaysText(String days) => isSpanish
+      ? '$days días de ventana de reserva'
+      : '$days days booking window';
+
+  String classesPerPeriodText(String count, String suffix) => isSpanish
+      ? '$count clases por período · $suffix'
+      : '$count classes per period · $suffix';
+
+  String creditsTotalText(String count, String suffix) => isSpanish
+      ? '$count créditos totales · $suffix'
+      : '$count credits total · $suffix';
+
+  String get programActionsTitle =>
+      isSpanish ? 'Acciones del programa' : 'Program actions';
+
+  String get editProgramTitle => isSpanish ? 'Editar programa' : 'Edit program';
+
+  String get editProgramActionSubtitle => isSpanish
+      ? 'Actualizar nombre y descripción corta'
+      : 'Update name and short description';
+
+  String get deleteProgramTitle =>
+      isSpanish ? 'Eliminar programa' : 'Delete program';
+
+  String get deleteProgramActionSubtitle => isSpanish
+      ? 'Eliminar este programa de entrenamiento'
+      : 'Remove this training program';
+
+  String get programDeleted =>
+      isSpanish ? 'Programa eliminado' : 'Program deleted';
+
+  String get editWorkoutTitle =>
+      isSpanish ? 'Editar entrenamiento' : 'Edit workout';
+
+  String get editWorkoutActionSubtitle => isSpanish
+      ? 'Actualizar título, tipo, fecha e imagen'
+      : 'Update title, type, date and image';
+
+  String get deleteWorkoutTitle =>
+      isSpanish ? 'Eliminar entrenamiento' : 'Delete workout';
+
+  String get deleteWorkoutActionSubtitle => isSpanish
+      ? 'Eliminar este entrenamiento del feed'
+      : 'Remove this workout from the feed';
+
+  String get workoutDeleted =>
+      isSpanish ? 'Entrenamiento eliminado' : 'Workout deleted';
+
+  String get attendanceTitle => isSpanish ? 'Asistencia' : 'Attendance';
+
+  String get attendanceActionSubtitle =>
+      isSpanish ? 'Abrir lista y check-ins' : 'Open roster and check-ins';
+
+  String get editClassActionTitle => isSpanish ? 'Editar clase' : 'Edit class';
+
+  String get editClassActionSubtitle => isSpanish
+      ? 'Actualizar coach, horario y plazas'
+      : 'Update coach, schedule and spots';
+
+  String get deleteClassTitle => isSpanish ? 'Eliminar clase' : 'Delete class';
+
+  String get deleteClassActionSubtitle =>
+      isSpanish ? 'Eliminar solo esta clase' : 'Remove only this class';
+
+  String get classDeleted => isSpanish ? 'Clase eliminada' : 'Class deleted';
+
+  String get deleteThisAndFutureTitle =>
+      isSpanish ? 'Eliminar esta y futuras' : 'Delete this and future';
+
+  String get deleteThisAndFutureSubtitle => isSpanish
+      ? 'Eliminar futuras clases para este programa y horario'
+      : 'Remove future classes for this program and time';
+
+  String deletedClassesCount(int count) =>
+      isSpanish ? '$count clases eliminadas' : '$count classes deleted';
+
+  String get noMembersYet =>
+      isSpanish ? 'Todavía no hay miembros' : 'No members yet';
+
+  String get noMembersYetSubtitle => isSpanish
+      ? 'Los miembros que se registren en la app aparecerán aquí automáticamente.'
+      : 'Members who register in the app will appear here automatically.';
+
+  String get assignPlanTitle => isSpanish ? 'Asignar plan' : 'Assign Plan';
+
+  String get assignPlanSubtitle => isSpanish
+      ? 'Vincula un plan de membresía a este atleta.'
+      : 'Link a membership plan to this athlete.';
+
+  String get statusLabel => isSpanish ? 'Estado' : 'Status';
+  String get activeLabel => isSpanish ? 'Activo' : 'Active';
+  String get pausedLabel => isSpanish ? 'Pausado' : 'Paused';
+  String get expiredLabel => isSpanish ? 'Expirado' : 'Expired';
+  String get cancelledLabel => isSpanish ? 'Cancelado' : 'Cancelled';
+  String get pendingPaymentLabel =>
+      isSpanish ? 'Pago pendiente' : 'Pending Payment';
+
+  String get startDateShort => isSpanish ? 'Fecha inicio' : 'Start Date';
+  String get endDateShort => isSpanish ? 'Fecha fin' : 'End Date';
+  String get creditsLabel => isSpanish ? 'Créditos' : 'Credits';
+  String get usedLabel => isSpanish ? 'Usados' : 'Used';
+
+  String get planAssigned => isSpanish ? 'Plan asignado' : 'Plan assigned';
+  String get noPlanShort => isSpanish ? 'Sin plan' : 'No Plan';
+
+  String get cannotBookFutureClasses => isSpanish
+      ? 'No puede reservar clases futuras'
+      : 'Cannot book future classes';
+
+  String creditsRemainingText(dynamic count) => isSpanish
+      ? '${count.toString()} créditos restantes'
+      : '${count.toString()} credits remaining';
+
+  String classesUsedThisPeriodText(dynamic count) => isSpanish
+      ? '${count.toString()} usadas en este período'
+      : '${count.toString()} used this period';
+
+  String get unlimitedAccess =>
+      isSpanish ? 'Acceso ilimitado' : 'Unlimited access';
+
+  String get noActiveMembershipShort =>
+      isSpanish ? 'Sin membresía activa' : 'No active membership';
+
+  String activeUntilAutoRenew(String endDate, bool autoRenew) => isSpanish
+      ? 'Activo hasta $endDate · Renovación automática ${autoRenew ? 'activada' : 'desactivada'}'
+      : 'Active until $endDate · Auto-renew ${autoRenew ? 'on' : 'off'}';
+
+  String noEndDateAutoRenew(bool autoRenew) => isSpanish
+      ? 'Sin fecha de fin · Renovación automática ${autoRenew ? 'activada' : 'desactivada'}'
+      : 'No end date · Auto-renew ${autoRenew ? 'on' : 'off'}';
+
+  String get memberActionsTitle =>
+      isSpanish ? 'Acciones del miembro' : 'Member actions';
+
+  String get sendPasswordEmailTitle =>
+      isSpanish ? 'Enviar email de contraseña' : 'Send password email';
+
+  String get sendPasswordEmailSubtitle => isSpanish
+      ? 'Reenviar un enlace seguro para crear o restablecer contraseña'
+      : 'Resend a secure link to create or reset password';
+
+  String get passwordEmailSent =>
+      isSpanish ? 'Email de contraseña enviado' : 'Password email sent';
+
+  String get deactivateMemberTitle =>
+      isSpanish ? 'Desactivar miembro' : 'Deactivate member';
+
+  String get deactivateMemberSubtitle => isSpanish
+      ? 'Mantener el perfil pero desactivar el acceso'
+      : 'Keep the profile but disable active access';
+
+  String get memberDeactivated =>
+      isSpanish ? 'Miembro desactivado' : 'Member deactivated';
+
+  String get activateMemberTitle =>
+      isSpanish ? 'Activar miembro' : 'Activate member';
+
+  String get activateMemberSubtitle => isSpanish
+      ? 'Restaurar acceso y marcar este miembro como activo'
+      : 'Restore access and mark this member as active';
+
+  String get memberActivated =>
+      isSpanish ? 'Miembro activado' : 'Member activated';
+
+  String get makeAthleteTitle => isSpanish ? 'Hacer atleta' : 'Make athlete';
+
+  String get makeAthleteSubtitle => isSpanish
+      ? 'Quitar permisos elevados a este miembro'
+      : 'Remove elevated access for this member';
+
+  String get roleUpdatedToAthlete =>
+      isSpanish ? 'Rol actualizado a atleta' : 'Role updated to athlete';
+
+  String get makeAdminTitle => isSpanish ? 'Hacer admin' : 'Make admin';
+
+  String get makeAdminSubtitle => isSpanish
+      ? 'Dar permisos de admin a este miembro'
+      : 'Give this member admin permissions';
+
+  String get roleUpdatedToAdmin =>
+      isSpanish ? 'Rol actualizado a admin' : 'Role updated to admin';
+
+  String get linkedDataDeleteError => isSpanish
+      ? 'No se puede borrar porque hay datos vinculados.'
+      : 'Cannot delete because there is linked data.';
+
+  String get deleteProgramLinkedError => isSpanish
+      ? 'No se puede borrar el programa porque tiene clases o entrenamientos asociados.'
+      : 'Cannot delete the program because it has related classes or workouts.';
+
+  String get deletePlanLinkedError => isSpanish
+      ? 'No se puede borrar el plan porque hay miembros que lo tienen asociado.'
+      : 'Cannot delete the plan because members are assigned to it.';
+
+  String get deleteClassLinkedError => isSpanish
+      ? 'No se puede borrar la clase porque tiene reservas asociadas.'
+      : 'Cannot delete the class because it has related bookings.';
+
+  String get deleteWorkoutLinkedError => isSpanish
+      ? 'No se puede borrar el entrenamiento porque está asociado o tiene actividad.'
+      : 'Cannot delete the workout because it is linked or has activity.';
+
+  String get adminDataLoadError => isSpanish
+      ? 'No se pudieron cargar los datos de admin'
+      : 'Could not load admin data';
+
+  String get gymIdRequiredError => isSpanish
+      ? 'No se pudo determinar el gym id'
+      : 'Could not determine gym id';
+
+  String get dateRequiredError =>
+      isSpanish ? 'La fecha es obligatoria' : 'Date is required';
+
+  String get timeRequiredError =>
+      isSpanish ? 'La hora es obligatoria' : 'Time is required';
+
+  String get dateFormatYmdError =>
+      isSpanish ? 'La fecha debe ser YYYY-MM-DD' : 'Date must be YYYY-MM-DD';
+
+  String get timeFormatHmError =>
+      isSpanish ? 'La hora debe ser HH:mm' : 'Time must be HH:mm';
+
+  String get invalidDateError => isSpanish ? 'Fecha inválida' : 'Invalid date';
+
+  String get invalidTimeError => isSpanish ? 'Hora inválida' : 'Invalid time';
+
+  String get programNameRequiredError => isSpanish
+      ? 'El nombre del programa es obligatorio'
+      : 'Program name is required';
+
+  String get planNameRequiredError =>
+      isSpanish ? 'El nombre del plan es obligatorio' : 'Plan name is required';
+
+  String get planTypeRequiredError =>
+      isSpanish ? 'El tipo de plan es obligatorio' : 'Plan type is required';
+
+  String get billingPeriodRequiredError => isSpanish
+      ? 'El período de facturación es obligatorio'
+      : 'Billing period is required';
+
+  String get invalidPriceError =>
+      isSpanish ? 'Precio inválido' : 'Invalid price';
+
+  String get invalidClassesPerPeriodError =>
+      isSpanish ? 'Clases por período inválidas' : 'Invalid classes per period';
+
+  String get invalidCreditsTotalError =>
+      isSpanish ? 'Créditos totales inválidos' : 'Invalid credits total';
+
+  String get invalidBookingWindowError =>
+      isSpanish ? 'Ventana de reserva inválida' : 'Invalid booking window';
+
+  String get programRequiredError =>
+      isSpanish ? 'El programa es obligatorio' : 'Program is required';
+
+  String get invalidDurationError =>
+      isSpanish ? 'Duración inválida' : 'Invalid duration';
+
+  String get invalidMaxSpotsError =>
+      isSpanish ? 'Plazas máximas inválidas' : 'Invalid max spots';
+
+  String get classesCannotBeInPastError => isSpanish
+      ? 'No se pueden programar clases en el pasado'
+      : 'Classes cannot be scheduled in the past';
+
+  String get startDateRequiredError => isSpanish
+      ? 'La fecha de inicio es obligatoria'
+      : 'Start date is required';
+
+  String get repeatUntilRequiredError =>
+      isSpanish ? 'Repetir hasta es obligatorio' : 'Repeat until is required';
+
+  String get invalidStartDateError =>
+      isSpanish ? 'Fecha de inicio inválida' : 'Invalid start date';
+
+  String get invalidRepeatUntilDateError => isSpanish
+      ? 'Fecha de fin de repetición inválida'
+      : 'Invalid repeat until date';
+
+  String get repeatUntilAfterStartError => isSpanish
+      ? 'La fecha de fin debe ser posterior a la fecha de inicio'
+      : 'Repeat until must be after start date';
+
+  String get selectAtLeastOneWeekdayError => isSpanish
+      ? 'Selecciona al menos un día de la semana'
+      : 'Select at least one weekday';
+
+  String get addAtLeastOneTimeError =>
+      isSpanish ? 'Añade al menos un horario' : 'Add at least one time';
+
+  String invalidTimeValueError(String value) =>
+      isSpanish ? 'Hora inválida: $value' : 'Invalid time: $value';
+
+  String get noClassesGeneratedError => isSpanish
+      ? 'No se generaron clases para los días/rango seleccionados'
+      : 'No classes generated for the selected days/date range';
+
+  String get workoutTitleRequiredError => isSpanish
+      ? 'El título del entrenamiento es obligatorio'
+      : 'Workout title is required';
+
+  String get workoutDateRequiredError => isSpanish
+      ? 'La fecha del entrenamiento es obligatoria'
+      : 'Workout date is required';
+
+  String duplicateWorkoutForProgramDateError(String title) => isSpanish
+      ? 'Ya existe un WOD para este programa en esa fecha: $title'
+      : 'A workout already exists for this program on that date: $title';
+
+  String workoutNotificationError(String error) => isSpanish
+      ? 'Error de notificación del entrenamiento: $error'
+      : 'Workout notification error: $error';
+
+  String workoutAutoAssignedMessage(int count) => isSpanish
+      ? 'Entrenamiento creado y asignado automáticamente a $count clases.'
+      : 'Workout created and auto-assigned to $count classes.';
 }

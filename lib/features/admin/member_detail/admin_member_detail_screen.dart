@@ -32,6 +32,11 @@ class AdminMemberDetailScreen extends StatefulWidget {
 }
 
 class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
+  bool get _isSpanish =>
+      Localizations.localeOf(context).languageCode.toLowerCase().startsWith('es');
+
+  String _txt(String es, String en) => _isSpanish ? es : en;
+
   final _repo = AdminMemberDetailRepository();
   final _membershipRepo = MembershipRepository();
   final _notificationRepo = NotificationRepository();
@@ -149,7 +154,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
 
         String prettyType(String raw) {
           final value = raw.trim();
-          if (value.isEmpty) return 'Plan';
+          if (value.isEmpty) return _txt('Plan', 'Plan');
           final clean = value.replaceAll('_', ' ');
           return clean[0].toUpperCase() + clean.substring(1);
         }
@@ -165,8 +170,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           builder: (context, setLocalState) {
             return AdminMemberDetailSheetScaffold(
               sheetContext: sheetContext,
-              title: 'Assign plan',
-              subtitle: 'Choose an active plan for this member.',
+              title: _txt('Asignar plan', 'Assign plan'),
+              subtitle: _txt('Elige un plan activo para este miembro.', 'Choose an active plan for this member.'),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -263,7 +268,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   const SizedBox(height: 8),
                   AdminMemberDetailSheetActions(
                     busy: saving,
-                    primaryText: 'Assign plan',
+                    primaryText: _txt('Asignar plan', 'Assign plan'),
                     busyText: context.appText.saving,
                     onCancel: () => Navigator.of(sheetContext).pop(),
                     onPrimary: () async {
@@ -286,7 +291,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                         if (!sheetContext.mounted) return;
                         Navigator.of(sheetContext).pop();
                         await _load();
-                        _toast('Plan assigned');
+                        _toast(_txt('Plan asignado', 'Plan assigned'));
                       } catch (e) {
                         _toast(e.toString().replaceFirst('Exception: ', ''));
                       } finally {
@@ -361,24 +366,22 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
   Future<void> _openAttendanceAction() async {
     final item = _preferredAttendanceHistoryItem();
     if (item == null) {
-      _toast('No past classes available for attendance');
+      _toast(_txt('No hay clases pasadas disponibles para asistencia', 'No past classes available for attendance'));
       return;
     }
 
     try {
       final classItem = await _loadClassItemForAttendance(item.classId);
       if (classItem == null) {
-        _toast('Could not load class attendance');
+        _toast(_txt('No se pudo cargar la asistencia de la clase', 'Could not load class attendance'));
         return;
       }
 
       if (!mounted) return;
       await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => ClassAttendanceScreen(
-            classItem: classItem,
-            gymId: widget.gymId,
-          ),
+          builder: (_) =>
+              ClassAttendanceScreen(classItem: classItem, gymId: widget.gymId),
         ),
       );
       await _load();
@@ -398,7 +401,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
         .trim();
 
     if (memberId.isEmpty || gymId.isEmpty) {
-      _toast('Member notification is not available');
+      _toast(_txt('La notificación del miembro no está disponible', 'Member notification is not available'));
       return;
     }
 
@@ -416,17 +419,17 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           builder: (context, setLocalState) {
             return AdminMemberDetailSheetScaffold(
               sheetContext: sheetContext,
-              title: 'Notify member',
+              title: _txt('Notificar miembro', 'Notify member'),
               subtitle: memberName.isEmpty
-                  ? 'Send a direct push notification only to this member.'
-                  : 'Send a direct push notification only to $memberName.',
+                  ? _txt('Enviar una notificación push directa solo a este miembro.', 'Send a direct push notification only to this member.')
+                  : _txt('Enviar una notificación push directa solo a $memberName.', 'Send a direct push notification only to $memberName.'),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AdminMemberDetailSheetTextField(
                     controller: titleCtrl,
-                    label: 'Title',
-                    hint: 'Class update',
+                    label: _txt('Título', 'Title'),
+                    hint: _txt('Actualización de clase', 'Class update'),
                     textInputAction: TextInputAction.next,
                     onTapOutside: (_) =>
                         FocusManager.instance.primaryFocus?.unfocus(),
@@ -434,8 +437,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   const SizedBox(height: 12),
                   AdminMemberDetailSheetTextField(
                     controller: messageCtrl,
-                    label: 'Message',
-                    hint: 'Write a short message',
+                    label: _txt('Mensaje', 'Message'),
+                    hint: _txt('Escribe un mensaje corto', 'Write a short message'),
                     minLines: 4,
                     maxLines: 5,
                     textInputAction: TextInputAction.done,
@@ -445,15 +448,15 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   const SizedBox(height: 18),
                   AdminMemberDetailSheetActions(
                     busy: sending,
-                    primaryText: 'Send notification',
-                    busyText: 'Sending...',
+                    primaryText: _txt('Enviar notificación', 'Send notification'),
+                    busyText: _txt('Enviando...', 'Sending...'),
                     onCancel: () => Navigator.of(sheetContext).pop(),
                     onPrimary: () async {
                       final title = titleCtrl.text.trim();
                       final message = messageCtrl.text.trim();
 
                       if (title.isEmpty || message.isEmpty) {
-                        _toast('Title and message are required');
+                        _toast(_txt('El título y el mensaje son obligatorios', 'Title and message are required'));
                         return;
                       }
 
@@ -485,7 +488,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                         if (sheetContext.mounted) {
                           Navigator.of(sheetContext).pop();
                         }
-                        _toast('Notification sent');
+                        _toast(_txt('Notificación enviada', 'Notification sent'));
                       } catch (e) {
                         _toast(e.toString().replaceFirst('Exception: ', ''));
                       } finally {
@@ -510,7 +513,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     final data = _data;
     final membership = data?.activeMembership;
     if (data == null || membership == null) {
-      _toast('No active membership to edit');
+      _toast(_txt('No hay una membresía activa para editar', 'No active membership to edit'));
       return;
     }
 
@@ -535,23 +538,23 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           builder: (context, setLocalState) {
             return AdminMemberDetailSheetScaffold(
               sheetContext: sheetContext,
-              title: 'Membership',
-              subtitle: 'Adjust membership settings.',
+              title: _txt('Membresía', 'Membership'),
+              subtitle: _txt('Ajusta la configuración de la membresía.', 'Adjust membership settings.'),
               child: Column(
                 children: [
                   AdminMemberDetailSheetTextField(
                     controller: endDateCtrl,
-                    label: 'End date',
+                    label: _txt('Fecha de finalización', 'End date'),
                   ),
                   const SizedBox(height: 12),
                   AdminMemberDetailSheetTextField(
                     controller: creditsCtrl,
-                    label: 'Credits remaining',
+                    label: _txt('Créditos restantes', 'Credits remaining'),
                   ),
                   const SizedBox(height: 12),
                   AdminMemberDetailSheetSwitchCard(
-                    title: 'Auto-renew',
-                    subtitle: 'Renew automatically',
+                    title: _txt('Renovación automática', 'Auto-renew'),
+                    subtitle: _txt('Renovar automáticamente', 'Renew automatically'),
                     value: autoRenew,
                     onChanged: saving
                         ? null
@@ -626,40 +629,40 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           builder: (context, setLocalState) {
             return AdminMemberDetailSheetScaffold(
               sheetContext: sheetContext,
-              title: 'Edit member',
-              subtitle: 'Update member profile details.',
+              title: _txt('Editar miembro', 'Edit member'),
+              subtitle: _txt('Actualiza los datos del perfil del miembro.', 'Update member profile details.'),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AdminMemberDetailSheetTextField(
                     controller: fullNameCtrl,
-                    label: 'Full name',
-                    hint: 'John Doe',
+                    label: _txt('Nombre completo', 'Full name'),
+                    hint: _txt('Nombre Apellido', 'John Doe'),
                   ),
                   const SizedBox(height: 12),
                   AdminMemberDetailSheetTextField(
                     controller: emailCtrl,
-                    label: 'Email',
+                    label: _txt('Email', 'Email'),
                     hint: 'john@email.com',
                   ),
                   const SizedBox(height: 12),
                   AdminMemberDetailSheetTextField(
                     controller: phoneCtrl,
-                    label: 'Phone',
+                    label: _txt('Teléfono', 'Phone'),
                     hint: '+34 600 000 000',
                   ),
                   const SizedBox(height: 12),
                   AdminMemberDetailSheetTextField(
                     controller: notesCtrl,
-                    label: 'Notes',
-                    hint: 'Optional notes',
+                    label: _txt('Notas', 'Notes'),
+                    hint: _txt('Notas opcionales', 'Optional notes'),
                     minLines: 3,
                     maxLines: 4,
                   ),
                   const SizedBox(height: 12),
                   AdminMemberDetailSheetSwitchCard(
-                    title: 'Active member',
-                    subtitle: 'Allow access to the app after password setup',
+                    title: _txt('Miembro activo', 'Active member'),
+                    subtitle: _txt('Permitir acceso a la app después de configurar la contraseña', 'Allow access to the app after password setup'),
                     value: isActive,
                     onChanged: saving
                         ? null
@@ -672,12 +675,12 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   const SizedBox(height: 18),
                   AdminMemberDetailSheetActions(
                     busy: saving,
-                    primaryText: 'Save changes',
+                    primaryText: _txt('Guardar cambios', 'Save changes'),
                     busyText: context.appText.saving,
                     onCancel: () => Navigator.of(sheetContext).pop(),
                     onPrimary: () async {
                       if (fullNameCtrl.text.trim().isEmpty) {
-                        _toast('Full name is required');
+                        _toast(_txt('El nombre completo es obligatorio', 'Full name is required'));
                         return;
                       }
 
@@ -686,10 +689,13 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                       final t = context.appText;
 
                       try {
-                        final memberGymId =
-                            (data.profile['gym_id'] ?? '').toString().trim();
+                        final memberGymId = (data.profile['gym_id'] ?? '')
+                            .toString()
+                            .trim();
                         if (memberGymId.isEmpty) {
-                          throw Exception(memberGymId.isEmpty ? t.gymNotFound : t.gymNotFound);
+                          throw Exception(
+                            memberGymId.isEmpty ? t.gymNotFound : t.gymNotFound,
+                          );
                         }
 
                         await _repo.updateMemberProfile(
@@ -775,7 +781,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'QUICK ACTIONS',
+          _txt('ACCIONES RÁPIDAS', 'QUICK ACTIONS'),
           style: _font(
             12,
             weight: FontWeight.w700,
@@ -784,57 +790,39 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        Row(
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+          childAspectRatio: 1.18,
           children: [
-            Expanded(
-              child: action(
-                title: 'Assign plan',
-                icon: Icons.credit_card_outlined,
-                onTap: _showAssignPlanSheet,
-              ),
+            action(
+              title: _txt('Asignar plan', 'Assign plan'),
+              icon: Icons.credit_card_outlined,
+              onTap: _showAssignPlanSheet,
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: action(
-                title: 'Attendance',
-                icon: Icons.check_circle_outline,
-                onTap: _openAttendanceAction,
-              ),
+            action(
+              title: _txt('Asistencia', 'Attendance'),
+              icon: Icons.check_circle_outline,
+              onTap: _openAttendanceAction,
             ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: action(
-                title: 'Notify',
-                icon: Icons.notifications_outlined,
-                onTap: _showNotifySheet,
-              ),
+            action(
+              title: _txt('Notificar', 'Notify'),
+              icon: Icons.notifications_outlined,
+              onTap: _showNotifySheet,
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: action(
-                title: context.appText.edit,
-                icon: Icons.edit_outlined,
-                onTap: _showEditMemberSheet,
-              ),
+            action(
+              title: context.appText.edit,
+              icon: Icons.edit_outlined,
+              onTap: _showEditMemberSheet,
             ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: action(
-                title: 'Membership',
-                icon: Icons.workspace_premium_outlined,
-                onTap: _showEditActiveMembershipSheet,
-              ),
+            action(
+              title: _txt('Membresía', 'Membership'),
+              icon: Icons.workspace_premium_outlined,
+              onTap: _showEditActiveMembershipSheet,
             ),
-            const SizedBox(width: 10),
-            const Expanded(child: SizedBox()),
           ],
         ),
       ],
@@ -861,7 +849,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   children: [
                     Center(
                       child: Text(
-                        'MEMBER DETAIL',
+                        _txt('DETALLE DEL MIEMBRO', 'MEMBER DETAIL'),
                         style: _font(
                           18,
                           weight: FontWeight.w800,
@@ -935,9 +923,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                     const SizedBox(height: 18),
                     AdminMemberDetailHeader(profile: data.profile),
                     const SizedBox(height: 14),
-                    AdminMemberMembershipCard(
-                      membership: data.activeMembership,
-                    ),
+                    AdminMemberMembershipCard(item: data.activeMembership),
                     const SizedBox(height: 14),
                     AdminMemberActivityCard(activity: data.activity),
                     const SizedBox(height: 14),

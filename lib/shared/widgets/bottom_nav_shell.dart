@@ -26,6 +26,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
   late Future<bool> _isAdminFuture;
 
   bool? _resolvedIsAdmin;
+  String? _cachedLanguageCode;
   List<Widget>? _cachedScreens;
   List<_NavItemData>? _cachedItems;
   int _bookingScreenSeed = 0;
@@ -87,7 +88,9 @@ class _BottomNavShellState extends State<BottomNavShell> {
     final items = _cachedItems;
     if (items == null) return;
 
-    final adminIndex = items.indexWhere((item) => item.label == 'Admin');
+    final adminIndex = items.indexWhere(
+      (item) => item.icon == Icons.admin_panel_settings_outlined,
+    );
     if (adminIndex < 0) return;
 
     setState(() {
@@ -189,13 +192,19 @@ class _BottomNavShellState extends State<BottomNavShell> {
   }
 
   void _ensureCache(bool isAdmin) {
+    final languageCode = Localizations.localeOf(
+      context,
+    ).languageCode.toLowerCase();
+
     if (_resolvedIsAdmin == isAdmin &&
+        _cachedLanguageCode == languageCode &&
         _cachedScreens != null &&
         _cachedItems != null) {
       return;
     }
 
     _resolvedIsAdmin = isAdmin;
+    _cachedLanguageCode = languageCode;
     _cachedScreens = _screens(isAdmin);
     _cachedItems = _items(isAdmin);
 

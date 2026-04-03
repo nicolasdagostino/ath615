@@ -82,6 +82,10 @@ class _AdminScreenState extends State<AdminScreen> {
   List<Map<String, dynamic>> _workouts = [];
   final Map<String, Map<String, dynamic>?> _memberActiveMembership = {};
 
+  String? _lastClassProgramId;
+  String? _lastClassCoachId;
+  String? _lastClassDuration;
+
   final tabs = const [
     'Programs',
     'Classes',
@@ -93,6 +97,30 @@ class _AdminScreenState extends State<AdminScreen> {
   late final List<GlobalKey> _tabChipKeys;
 
   AppStrings get t => context.appText;
+
+  bool get _isSpanish =>
+      Localizations.localeOf(context).languageCode.toLowerCase().startsWith('es');
+
+  String _uiText(String es, String en) => _isSpanish ? es : en;
+
+  String _adminTabLabel(String raw) {
+    switch (raw) {
+      case 'Programs':
+        return _uiText('Programas', 'Programs');
+      case 'Classes':
+        return _uiText('Clases', 'Classes');
+      case 'Workouts':
+        return _uiText('Workouts', 'Workouts');
+      case 'Members':
+        return _uiText('Miembros', 'Members');
+      case 'Plans':
+        return _uiText('Planes', 'Plans');
+      case 'Notifications':
+        return _uiText('Notificaciones', 'Notifications');
+      default:
+        return raw;
+    }
+  }
 
   @override
   void initState() {
@@ -243,7 +271,7 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Widget _topHeader() {
-    final subtitle = tabs[tabIndex];
+    final subtitle = _adminTabLabel(tabs[tabIndex]);
 
     return Container(
       color: Colors.white,
@@ -359,20 +387,20 @@ class _AdminScreenState extends State<AdminScreen> {
     if (raw.contains('foreign key') ||
         raw.contains('violates foreign key constraint') ||
         raw.contains('update or delete on table')) {
-      return 'No se puede borrar porque hay datos vinculados.';
+      return t.linkedDataDeleteError;
     }
     if (raw.contains('program') && raw.contains('delete')) {
-      return 'No se puede borrar la program porque tiene clases o workouts asociados.';
+      return t.deleteProgramLinkedError;
     }
     if (raw.contains('membership') ||
         (raw.contains('plan') && raw.contains('delete'))) {
-      return 'No se puede borrar el plan porque hay miembros que lo tienen asociado.';
+      return t.deletePlanLinkedError;
     }
     if (raw.contains('class') && raw.contains('delete')) {
-      return 'No se puede borrar la clase porque tiene reservas asociadas.';
+      return t.deleteClassLinkedError;
     }
     if (raw.contains('workout') && raw.contains('delete')) {
-      return 'No se puede borrar el workout porque está asociado o tiene actividad.';
+      return t.deleteWorkoutLinkedError;
     }
 
     return e.toString().replaceFirst('Exception: ', '');
@@ -446,9 +474,13 @@ class _AdminScreenState extends State<AdminScreen> {
     Future<void> pickDate(
       BuildContext context,
       TextEditingController controller, {
-      String title = 'Date of Birth',
-      String subtitle = 'Choose the athlete birth date.',
+      String? title,
+      String? subtitle,
     }) async {
+      final resolvedTitle =
+          title ?? _uiText('Fecha de nacimiento', 'Date of Birth');
+      final resolvedSubtitle =
+          subtitle ?? _uiText('Elige la fecha de nacimiento del atleta.', 'Choose the athlete birth date.');
       final now = DateTime.now();
       DateTime selectedDate =
           DateTime.tryParse(controller.text.trim()) ?? DateTime(1990, 1, 1);
@@ -505,7 +537,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      title,
+                                      resolvedTitle,
                                       style: _font(
                                         24,
                                         weight: FontWeight.w800,
@@ -515,7 +547,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      subtitle,
+                                      resolvedSubtitle,
                                       style: _font(
                                         13,
                                         weight: FontWeight.w500,
@@ -549,7 +581,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Select Date',
+                            t.selectDate,
                             style: _font(
                               15,
                               weight: FontWeight.w800,
@@ -631,7 +663,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                 ),
                               ),
                               child: Text(
-                                'Save Changes',
+                                t.saveChanges,
                                 style: _font(
                                   16,
                                   weight: FontWeight.w700,
@@ -746,7 +778,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Create a real athlete account and send the invitation email automatically.',
+                          _uiText('Crea una cuenta real de atleta y envía el email de invitación automáticamente.', 'Create a real athlete account and send the invitation email automatically.'),
                           style: _font(
                             13,
                             weight: FontWeight.w500,
@@ -758,8 +790,8 @@ class _AdminScreenState extends State<AdminScreen> {
                         TextField(
                           controller: fullNameCtrl,
                           decoration: inputDecoration(
-                            'Full name',
-                            hint: 'John Doe',
+                            _uiText('Nombre completo', 'Full name'),
+                            hint: _uiText('Nombre Apellido', 'John Doe'),
                           ),
                           style: _font(14, weight: FontWeight.w500),
                           textInputAction: TextInputAction.next,
@@ -770,7 +802,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         TextField(
                           controller: emailCtrl,
                           decoration: inputDecoration(
-                            'Email',
+                            _uiText('Email', 'Email'),
                             hint: 'john@email.com',
                           ),
                           style: _font(14, weight: FontWeight.w500),
@@ -783,7 +815,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         TextField(
                           controller: phoneCtrl,
                           decoration: inputDecoration(
-                            'Phone',
+                            _uiText('Teléfono', 'Phone'),
                             hint: '+34 600 000 000',
                           ),
                           style: _font(14, weight: FontWeight.w500),
@@ -797,7 +829,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           controller: dobCtrl,
                           decoration:
                               inputDecoration(
-                                'Date of birth',
+                                _uiText('Fecha de nacimiento', 'Date of birth'),
                                 hint: '1986-12-11',
                               ).copyWith(
                                 suffixIcon: const Icon(
@@ -819,7 +851,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
                           initialValue: selectedRole,
-                          decoration: inputDecoration('Role'),
+                          decoration: inputDecoration(_uiText('Rol', 'Role')),
                           borderRadius: BorderRadius.circular(16),
                           dropdownColor: Colors.white,
                           iconEnabledColor: const Color(0xFF667085),
@@ -828,14 +860,14 @@ class _AdminScreenState extends State<AdminScreen> {
                             weight: FontWeight.w500,
                             color: const Color(0xFF111318),
                           ),
-                          items: const [
+                          items: [
                             DropdownMenuItem(
                               value: 'athlete',
-                              child: Text('Athlete'),
+                              child: Text(_uiText('Atleta', 'Athlete')),
                             ),
                             DropdownMenuItem(
                               value: 'admin',
-                              child: Text('Admin'),
+                              child: Text(_uiText('Admin', 'Admin')),
                             ),
                           ],
                           onChanged: (value) {
@@ -852,8 +884,8 @@ class _AdminScreenState extends State<AdminScreen> {
                           minLines: 3,
                           maxLines: 4,
                           decoration: inputDecoration(
-                            'Notes',
-                            hint: 'Optional notes',
+                            _uiText('Notas', 'Notes'),
+                            hint: _uiText('Notas opcionales', 'Optional notes'),
                           ),
                           style: _font(14, weight: FontWeight.w500),
                           textInputAction: TextInputAction.done,
@@ -880,7 +912,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Active member',
+                                      _uiText('Miembro activo', 'Active member'),
                                       style: _font(
                                         14,
                                         weight: FontWeight.w700,
@@ -889,7 +921,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      'Allow access to the app after password setup',
+                                      _uiText('Permitir acceso a la app después de configurar la contraseña', 'Allow access to the app after password setup'),
                                       style: _font(
                                         12,
                                         weight: FontWeight.w500,
@@ -1062,14 +1094,14 @@ class _AdminScreenState extends State<AdminScreen> {
     final cleanDate = date.trim();
     final cleanTime = time.trim();
 
-    if (cleanDate.isEmpty) throw Exception('Date is required');
-    if (cleanTime.isEmpty) throw Exception('Time is required');
+    if (cleanDate.isEmpty) throw Exception(t.dateRequiredError);
+    if (cleanTime.isEmpty) throw Exception(t.timeRequiredError);
 
     final parts = cleanDate.split('-');
-    if (parts.length != 3) throw Exception('Date must be YYYY-MM-DD');
+    if (parts.length != 3) throw Exception(t.dateFormatYmdError);
 
     final timeParts = cleanTime.split(':');
-    if (timeParts.length < 2) throw Exception('Time must be HH:mm');
+    if (timeParts.length < 2) throw Exception(t.timeFormatHmError);
 
     final year = int.tryParse(parts[0]);
     final month = int.tryParse(parts[1]);
@@ -1078,10 +1110,10 @@ class _AdminScreenState extends State<AdminScreen> {
     final minute = int.tryParse(timeParts[1]);
 
     if (year == null || month == null || day == null) {
-      throw Exception('Invalid date');
+      throw Exception(t.invalidDateError);
     }
     if (hour == null || minute == null) {
-      throw Exception('Invalid time');
+      throw Exception(t.invalidTimeError);
     }
 
     final localDateTime = DateTime(year, month, day, hour, minute);
@@ -1095,6 +1127,12 @@ class _AdminScreenState extends State<AdminScreen> {
     });
 
     try {
+      final resolvedGymId = await _resolvedGymIdForAdmin();
+      if (resolvedGymId == null || resolvedGymId.isEmpty) {
+        throw Exception(t.adminGymNotFound);
+      }
+      _adminGymId = resolvedGymId;
+
       try {
         _plans = await _membershipRepo.listPlans(_adminGymId!);
       } catch (_) {
@@ -1151,7 +1189,7 @@ class _AdminScreenState extends State<AdminScreen> {
         }
       }
     } catch (_) {
-      _error = 'Could not load admin data';
+      _error = t.adminDataLoadError;
     } finally {
       if (mounted) {
         setState(() {
@@ -1172,10 +1210,10 @@ class _AdminScreenState extends State<AdminScreen> {
   }) async {
     final gymId = await _resolvedGymIdForAdmin();
     if (gymId == null || gymId.isEmpty) {
-      throw Exception('Could not determine gym id');
+      throw Exception(t.gymIdRequiredError);
     }
     if (name.trim().isEmpty) {
-      throw Exception('Program name is required');
+      throw Exception(t.programNameRequiredError);
     }
 
     await _programRepo.createProgram(
@@ -1192,7 +1230,7 @@ class _AdminScreenState extends State<AdminScreen> {
     required String description,
   }) async {
     if (name.trim().isEmpty) {
-      throw Exception('Program name is required');
+      throw Exception(t.programNameRequiredError);
     }
 
     await _programRepo.updateProgram(
@@ -1387,8 +1425,8 @@ class _AdminScreenState extends State<AdminScreen> {
                       const SizedBox(height: 10),
                       actionTile(
                         icon: Icons.edit_rounded,
-                        title: 'Edit workout',
-                        subtitle: 'Update title, type, date and image',
+                        title: t.editWorkoutTitle,
+                        subtitle: t.editWorkoutActionSubtitle,
                         iconBg: const Color(0xFFF7F3EA),
                         iconColor: const Color(0xFFB59B6A),
                         onTap: () {
@@ -1399,8 +1437,8 @@ class _AdminScreenState extends State<AdminScreen> {
                       const SizedBox(height: 10),
                       actionTile(
                         icon: Icons.delete_outline_rounded,
-                        title: 'Delete workout',
-                        subtitle: 'Remove this workout from the feed',
+                        title: t.deleteWorkoutTitle,
+                        subtitle: t.deleteWorkoutActionSubtitle,
                         iconBg: const Color(0xFFFEE4E2),
                         iconColor: const Color(0xFFE11D48),
                         titleColor: const Color(0xFFE11D48),
@@ -1410,7 +1448,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                 Navigator.pop(context);
                                 await _runAdminAction(
                                   () => _deleteWorkout(item['id'].toString()),
-                                  successMessage: 'Workout deleted',
+                                  successMessage: t.workoutDeleted,
                                 );
                               },
                       ),
@@ -1607,8 +1645,8 @@ class _AdminScreenState extends State<AdminScreen> {
                     const SizedBox(height: 10),
                     actionTile(
                       icon: Icons.assignment_turned_in_rounded,
-                      title: 'Assign workout',
-                      subtitle: 'Link a workout to this class',
+                      title: t.assignWorkoutModalTitle,
+                      subtitle: t.assignWorkoutModalSubtitle,
                       iconBg: const Color(0xFFF7F3EA),
                       iconColor: const Color(0xFFB59B6A),
                       onTap: () {
@@ -1619,8 +1657,8 @@ class _AdminScreenState extends State<AdminScreen> {
                     const SizedBox(height: 10),
                     actionTile(
                       icon: Icons.groups_2_rounded,
-                      title: 'Attendance',
-                      subtitle: 'Open roster and check-ins',
+                      title: t.attendanceTitle,
+                      subtitle: t.attendanceActionSubtitle,
                       iconBg: const Color(0xFFF3F4F6),
                       iconColor: const Color(0xFF111318),
                       onTap: () {
@@ -1638,8 +1676,8 @@ class _AdminScreenState extends State<AdminScreen> {
                     const SizedBox(height: 10),
                     actionTile(
                       icon: Icons.edit_rounded,
-                      title: 'Edit class',
-                      subtitle: 'Update coach, schedule and spots',
+                      title: t.editClassActionTitle,
+                      subtitle: t.editClassActionSubtitle,
                       iconBg: const Color(0xFFF7F3EA),
                       iconColor: const Color(0xFFB59B6A),
                       onTap: () {
@@ -1650,8 +1688,8 @@ class _AdminScreenState extends State<AdminScreen> {
                     const SizedBox(height: 10),
                     actionTile(
                       icon: Icons.delete_outline_rounded,
-                      title: 'Delete class',
-                      subtitle: 'Remove only this class',
+                      title: t.deleteClassTitle,
+                      subtitle: t.deleteClassActionSubtitle,
                       iconBg: const Color(0xFFFEE4E2),
                       iconColor: const Color(0xFFE11D48),
                       titleColor: const Color(0xFFE11D48),
@@ -1661,16 +1699,15 @@ class _AdminScreenState extends State<AdminScreen> {
                               Navigator.pop(context);
                               await _runAdminAction(
                                 () => _deleteClass(item['id'].toString()),
-                                successMessage: 'Class deleted',
+                                successMessage: t.classDeleted,
                               );
                             },
                     ),
                     const SizedBox(height: 10),
                     actionTile(
                       icon: Icons.delete_sweep_rounded,
-                      title: 'Delete this and future',
-                      subtitle:
-                          'Remove future classes for this program and time',
+                      title: t.deleteThisAndFutureTitle,
+                      subtitle: t.deleteThisAndFutureSubtitle,
                       iconBg: const Color(0xFFFEE4E2),
                       iconColor: const Color(0xFFE11D48),
                       titleColor: const Color(0xFFE11D48),
@@ -1690,7 +1727,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                     );
                                 await _loadAdminData();
                                 if (!mounted) return;
-                                _toast('$deleted classes deleted');
+                                _toast(t.deletedClassesCount(deleted));
                               } catch (e) {
                                 if (!mounted) return;
                                 _toast(
@@ -1897,7 +1934,7 @@ class _AdminScreenState extends State<AdminScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Program actions',
+                        t.programActionsTitle,
                         style: _font(
                           14,
                           weight: FontWeight.w700,
@@ -1907,8 +1944,8 @@ class _AdminScreenState extends State<AdminScreen> {
                       const SizedBox(height: 10),
                       actionTile(
                         icon: Icons.edit_rounded,
-                        title: 'Edit program',
-                        subtitle: 'Update name and short description',
+                        title: t.editProgramTitle,
+                        subtitle: t.editProgramActionSubtitle,
                         iconBg: const Color(0xFFF7F3EA),
                         iconColor: const Color(0xFFB59B6A),
                         onTap: () {
@@ -1919,8 +1956,8 @@ class _AdminScreenState extends State<AdminScreen> {
                       const SizedBox(height: 10),
                       actionTile(
                         icon: Icons.delete_outline_rounded,
-                        title: 'Delete program',
-                        subtitle: 'Remove this training program',
+                        title: t.deleteProgramTitle,
+                        subtitle: t.deleteProgramActionSubtitle,
                         iconBg: const Color(0xFFFEE4E2),
                         iconColor: const Color(0xFFE11D48),
                         titleColor: const Color(0xFFE11D48),
@@ -1930,7 +1967,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                 Navigator.pop(context);
                                 await _runAdminAction(
                                   () => _deleteProgram(item['id'].toString()),
-                                  successMessage: 'Program deleted',
+                                  successMessage: t.programDeleted,
                                 );
                               },
                       ),
@@ -1973,7 +2010,7 @@ class _AdminScreenState extends State<AdminScreen> {
   }) async {
     final gymId = await _resolvedGymIdForAdmin();
     if (gymId == null || gymId.isEmpty) {
-      throw Exception('Could not determine gym id');
+      throw Exception(t.gymIdRequiredError);
     }
 
     final parsedPrice = price.trim().isEmpty
@@ -1989,19 +2026,19 @@ class _AdminScreenState extends State<AdminScreen> {
         ? 7
         : int.tryParse(bookingWindowDays.trim());
 
-    if (name.trim().isEmpty) throw Exception('Plan name is required');
-    if (type.trim().isEmpty) throw Exception('Plan type is required');
-    if (billing.trim().isEmpty) throw Exception('Billing period is required');
+    if (name.trim().isEmpty) throw Exception(t.planNameRequiredError);
+    if (type.trim().isEmpty) throw Exception(t.planTypeRequiredError);
+    if (billing.trim().isEmpty) throw Exception(t.billingPeriodRequiredError);
     if (price.trim().isNotEmpty && parsedPrice == null) {
-      throw Exception('Invalid price');
+      throw Exception(t.invalidPriceError);
     }
     if (classesPerPeriod.trim().isNotEmpty && parsedClasses == null) {
-      throw Exception('Invalid classes per period');
+      throw Exception(t.invalidClassesPerPeriodError);
     }
     if (creditsTotal.trim().isNotEmpty && parsedCredits == null) {
-      throw Exception('Invalid credits total');
+      throw Exception(t.invalidCreditsTotalError);
     }
-    if (parsedWindow == null) throw Exception('Invalid booking window');
+    if (parsedWindow == null) throw Exception(t.invalidBookingWindowError);
 
     await _membershipRepo.createPlan(
       gymId: gymId,
@@ -2040,19 +2077,19 @@ class _AdminScreenState extends State<AdminScreen> {
         ? 7
         : int.tryParse(bookingWindowDays.trim());
 
-    if (name.trim().isEmpty) throw Exception('Plan name is required');
-    if (type.trim().isEmpty) throw Exception('Plan type is required');
-    if (billing.trim().isEmpty) throw Exception('Billing period is required');
+    if (name.trim().isEmpty) throw Exception(t.planNameRequiredError);
+    if (type.trim().isEmpty) throw Exception(t.planTypeRequiredError);
+    if (billing.trim().isEmpty) throw Exception(t.billingPeriodRequiredError);
     if (price.trim().isNotEmpty && parsedPrice == null) {
-      throw Exception('Invalid price');
+      throw Exception(t.invalidPriceError);
     }
     if (classesPerPeriod.trim().isNotEmpty && parsedClasses == null) {
-      throw Exception('Invalid classes per period');
+      throw Exception(t.invalidClassesPerPeriodError);
     }
     if (creditsTotal.trim().isNotEmpty && parsedCredits == null) {
-      throw Exception('Invalid credits total');
+      throw Exception(t.invalidCreditsTotalError);
     }
-    if (parsedWindow == null) throw Exception('Invalid booking window');
+    if (parsedWindow == null) throw Exception(t.invalidBookingWindowError);
 
     await _membershipRepo.updatePlan(
       gymId: _adminGymId!,
@@ -2119,19 +2156,23 @@ class _AdminScreenState extends State<AdminScreen> {
   }) async {
     final gymId = await _resolvedGymIdForAdmin();
     if (gymId == null || gymId.isEmpty) {
-      throw Exception('Could not determine gym id');
+      throw Exception(t.gymIdRequiredError);
     }
 
     final parsedDuration = int.tryParse(duration.trim());
     final parsedMaxSpots = int.tryParse(maxSpots.trim());
 
-    if (programId.trim().isEmpty) throw Exception('Program is required');
-    if (date.trim().isEmpty) throw Exception('Date is required');
-    if (time.trim().isEmpty) throw Exception('Time is required');
-    if (parsedDuration == null) throw Exception('Invalid duration');
-    if (parsedMaxSpots == null) throw Exception('Invalid max spots');
+    if (programId.trim().isEmpty) throw Exception(t.programRequiredError);
+    if (date.trim().isEmpty) throw Exception(t.dateRequiredError);
+    if (time.trim().isEmpty) throw Exception(t.timeRequiredError);
+    if (parsedDuration == null || parsedDuration <= 0) {
+      throw Exception(t.invalidDurationError);
+    }
+    if (parsedMaxSpots == null || parsedMaxSpots <= 0) {
+      throw Exception(t.invalidMaxSpotsError);
+    }
     if (_isPastClassDateTime(date, time)) {
-      throw Exception('Classes cannot be scheduled in the past');
+      throw Exception(t.classesCannotBeInPastError);
     }
 
     final startsAtIso = _buildUtcIsoFromDateAndTime(date, time);
@@ -2164,31 +2205,35 @@ class _AdminScreenState extends State<AdminScreen> {
   }) async {
     final gymId = await _resolvedGymIdForAdmin();
     if (gymId == null || gymId.isEmpty) {
-      throw Exception('Could not determine gym id');
+      throw Exception(t.gymIdRequiredError);
     }
 
     final parsedDuration = int.tryParse(duration.trim());
     final parsedMaxSpots = int.tryParse(maxSpots.trim());
 
-    if (programId.trim().isEmpty) throw Exception('Program is required');
-    if (startDate.trim().isEmpty) throw Exception('Start date is required');
-    if (endDate.trim().isEmpty) throw Exception('Repeat until is required');
-    if (parsedDuration == null) throw Exception('Invalid duration');
-    if (parsedMaxSpots == null) throw Exception('Invalid max spots');
+    if (programId.trim().isEmpty) throw Exception(t.programRequiredError);
+    if (startDate.trim().isEmpty) throw Exception(t.startDateRequiredError);
+    if (endDate.trim().isEmpty) throw Exception(t.repeatUntilRequiredError);
+    if (parsedDuration == null || parsedDuration <= 0) {
+      throw Exception(t.invalidDurationError);
+    }
+    if (parsedMaxSpots == null || parsedMaxSpots <= 0) {
+      throw Exception(t.invalidMaxSpotsError);
+    }
 
     final start = DateTime.tryParse(startDate.trim());
     final end = DateTime.tryParse(endDate.trim());
 
-    if (start == null) throw Exception('Invalid start date');
-    if (end == null) throw Exception('Invalid repeat until date');
+    if (start == null) throw Exception(t.invalidStartDateError);
+    if (end == null) throw Exception(t.invalidRepeatUntilDateError);
     if (end.isBefore(start)) {
-      throw Exception('Repeat until must be after start date');
+      throw Exception(t.repeatUntilAfterStartError);
     }
 
     final selectedWeekdays =
         weekdays.toSet().where((d) => d >= 1 && d <= 7).toList()..sort();
     if (selectedWeekdays.isEmpty) {
-      throw Exception('Select at least one weekday');
+      throw Exception(t.selectAtLeastOneWeekdayError);
     }
 
     final normalizedTimes =
@@ -2196,13 +2241,13 @@ class _AdminScreenState extends State<AdminScreen> {
           ..sort();
 
     if (normalizedTimes.isEmpty) {
-      throw Exception('Add at least one time');
+      throw Exception(t.addAtLeastOneTimeError);
     }
 
     final timeRegex = RegExp(r'^([01]\d|2[0-3]):([0-5]\d)$');
     for (final time in normalizedTimes) {
       if (!timeRegex.hasMatch(time)) {
-        throw Exception('Invalid time: $time');
+        throw Exception(t.invalidTimeValueError(time));
       }
     }
 
@@ -2221,7 +2266,7 @@ class _AdminScreenState extends State<AdminScreen> {
     }
 
     if (dates.isEmpty) {
-      throw Exception('No classes generated for the selected days/date range');
+      throw Exception(t.noClassesGeneratedError);
     }
 
     for (final date in dates) {
@@ -2263,13 +2308,17 @@ class _AdminScreenState extends State<AdminScreen> {
     final parsedDuration = int.tryParse(duration.trim());
     final parsedMaxSpots = int.tryParse(maxSpots.trim());
 
-    if (programId.trim().isEmpty) throw Exception('Program is required');
-    if (date.trim().isEmpty) throw Exception('Date is required');
-    if (time.trim().isEmpty) throw Exception('Time is required');
-    if (parsedDuration == null) throw Exception('Invalid duration');
-    if (parsedMaxSpots == null) throw Exception('Invalid max spots');
+    if (programId.trim().isEmpty) throw Exception(t.programRequiredError);
+    if (date.trim().isEmpty) throw Exception(t.dateRequiredError);
+    if (time.trim().isEmpty) throw Exception(t.timeRequiredError);
+    if (parsedDuration == null || parsedDuration <= 0) {
+      throw Exception(t.invalidDurationError);
+    }
+    if (parsedMaxSpots == null || parsedMaxSpots <= 0) {
+      throw Exception(t.invalidMaxSpotsError);
+    }
     if (_isPastClassDateTime(date, time)) {
-      throw Exception('Classes cannot be scheduled in the past');
+      throw Exception(t.classesCannotBeInPastError);
     }
 
     final startsAtIso = _buildUtcIsoFromDateAndTime(date, time);
@@ -2307,13 +2356,13 @@ class _AdminScreenState extends State<AdminScreen> {
   }) async {
     final gymId = await _resolvedGymIdForAdmin();
     if (gymId == null || gymId.isEmpty) {
-      throw Exception('Could not determine gym id');
+      throw Exception(t.gymIdRequiredError);
     }
     if (title.trim().isEmpty) {
-      throw Exception('Workout title is required');
+      throw Exception(t.workoutTitleRequiredError);
     }
     if (workoutDate.trim().isEmpty) {
-      throw Exception('Workout date is required');
+      throw Exception(t.workoutDateRequiredError);
     }
 
     if (programId != null && programId.trim().isNotEmpty) {
@@ -2327,9 +2376,7 @@ class _AdminScreenState extends State<AdminScreen> {
         final existingTitle = (existing['title'] ?? 'Workout')
             .toString()
             .trim();
-        throw Exception(
-          'Ya existe un WOD para este programa en esa fecha: $existingTitle',
-        );
+        throw Exception(t.duplicateWorkoutForProgramDateError(existingTitle));
       }
     }
 
@@ -2379,15 +2426,15 @@ class _AdminScreenState extends State<AdminScreen> {
       );
     } catch (e) {
       _toast(
-        'Workout notification error: ${e.toString().replaceFirst('Exception: ', '')}',
+        t.workoutNotificationError(
+          e.toString().replaceFirst('Exception: ', ''),
+        ),
       );
       rethrow;
     }
 
     if (autoAssignedCount > 0) {
-      _toast(
-        'Workout created and auto-assigned to $autoAssignedCount classes.',
-      );
+      _toast(t.workoutAutoAssignedMessage(autoAssignedCount));
     }
   }
 
@@ -2401,15 +2448,15 @@ class _AdminScreenState extends State<AdminScreen> {
     String? imageUrl,
   }) async {
     if (title.trim().isEmpty) {
-      throw Exception('Workout title is required');
+      throw Exception(t.workoutTitleRequiredError);
     }
     if (workoutDate.trim().isEmpty) {
-      throw Exception('Workout date is required');
+      throw Exception(t.workoutDateRequiredError);
     }
 
     final gymId = await _resolvedGymIdForAdmin();
     if (gymId == null || gymId.isEmpty) {
-      throw Exception('Could not determine gym id');
+      throw Exception(t.gymIdRequiredError);
     }
 
     if (programId != null && programId.trim().isNotEmpty) {
@@ -2424,9 +2471,7 @@ class _AdminScreenState extends State<AdminScreen> {
         final existingTitle = (existing['title'] ?? 'Workout')
             .toString()
             .trim();
-        throw Exception(
-          'Ya existe un WOD para este programa en esa fecha: $existingTitle',
-        );
+        throw Exception(t.duplicateWorkoutForProgramDateError(existingTitle));
       }
     }
 
@@ -2454,6 +2499,175 @@ class _AdminScreenState extends State<AdminScreen> {
     await _workoutRepo.assignWorkoutToClass(
       classId: classId,
       workoutId: workoutId,
+    );
+  }
+
+  Widget _adminInfoChip({
+    required IconData icon,
+    required String text,
+    Color? backgroundColor,
+    Color? foregroundColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: backgroundColor ?? const Color(0xFFF6F7F9),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: const Color(0xFFE7EBF0)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: foregroundColor ?? const Color(0xFF667085),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              text,
+              overflow: TextOverflow.ellipsis,
+              style: _font(
+                11,
+                weight: FontWeight.w700,
+                color: foregroundColor ?? const Color(0xFF475467),
+                letterSpacing: 0.1,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _memberStatusChip(bool isActive) {
+    final bg = isActive ? const Color(0xFFE7F6EC) : const Color(0xFFFEE4E2);
+    final fg = isActive ? const Color(0xFF1F8A4C) : const Color(0xFFB42318);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        isActive ? 'ACTIVE' : 'INACTIVE',
+        style: _font(
+          10,
+          weight: FontWeight.w800,
+          color: fg,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+
+  Widget _memberRoleChip(String role) {
+    final isAdminRole = role == 'admin';
+    final bg = isAdminRole ? const Color(0xFFF7F3EA) : const Color(0xFFEFF4FB);
+    final fg = isAdminRole ? const Color(0xFFB59B6A) : const Color(0xFF245BEB);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        isAdminRole ? 'ADMIN' : 'ATHLETE',
+        style: _font(
+          10,
+          weight: FontWeight.w800,
+          color: fg,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+
+  Widget _memberMembershipBanner({
+    required String planName,
+    required String planSummary,
+    required String membershipMeta,
+    required bool hasMembership,
+  }) {
+    final bg = hasMembership
+        ? const Color(0xFFF7F3EA)
+        : const Color(0xFFF6F7F9);
+    final border = hasMembership
+        ? const Color(0xFFE7D7B0)
+        : const Color(0xFFE7EBF0);
+    final accent = hasMembership
+        ? const Color(0xFFB59B6A)
+        : const Color(0xFF98A2B3);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(
+                    alpha: hasMembership ? 0.75 : 0.9,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.workspace_premium_rounded,
+                  size: 18,
+                  color: accent,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  planName,
+                  style: _font(
+                    15,
+                    weight: FontWeight.w800,
+                    color: const Color(0xFF111318),
+                    letterSpacing: -0.1,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            planSummary,
+            style: _font(
+              12,
+              weight: FontWeight.w700,
+              color: hasMembership
+                  ? const Color(0xFF8A6F3E)
+                  : const Color(0xFF667085),
+              height: 1.25,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            membershipMeta,
+            style: _font(
+              11,
+              weight: FontWeight.w500,
+              color: const Color(0xFF667085),
+              height: 1.3,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -2550,7 +2764,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'No members yet',
+                  t.noMembersYet,
                   style: _font(
                     18,
                     weight: FontWeight.w800,
@@ -2559,8 +2773,8 @@ class _AdminScreenState extends State<AdminScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'Members who register in the app will appear here automatically.',
+                Text(
+                  t.noMembersYetSubtitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,
@@ -2582,7 +2796,7 @@ class _AdminScreenState extends State<AdminScreen> {
             final role = (member['role'] ?? 'athlete').toString();
 
             final planName = activeMembership == null
-                ? 'No Plan'
+                ? t.noPlanShort
                 : ((activeMembership['membership_plans'] ?? {})['name'] ??
                           'Plan')
                       .toString();
@@ -2592,20 +2806,25 @@ class _AdminScreenState extends State<AdminScreen> {
                     .toString();
 
             final planSummary = activeMembership == null
-                ? 'Cannot book future classes'
+                ? t.cannotBookFutureClasses
                 : (rawPlanType == 'class_pack'
-                      ? '${activeMembership['credits_remaining'] ?? 0} credits remaining'
+                      ? t.creditsRemainingText(
+                          activeMembership['credits_remaining'] ?? 0,
+                        )
                       : (rawPlanType == 'weekly_limit'
-                            ? '${activeMembership['classes_used_current_period'] ?? 0} used this period'
-                            : 'Unlimited access'));
+                            ? t.classesUsedThisPeriodText(
+                                activeMembership['classes_used_current_period'] ??
+                                    0,
+                              )
+                            : t.unlimitedAccess));
 
             final endDate = (activeMembership?['end_date'] ?? '').toString();
             final autoRenew = activeMembership?['auto_renew'] == true;
             final membershipMeta = activeMembership == null
-                ? 'No active membership'
+                ? t.noActiveMembershipShort
                 : (endDate.isNotEmpty
-                      ? 'Active until $endDate · Auto-renew ${autoRenew ? 'on' : 'off'}'
-                      : 'No end date · Auto-renew ${autoRenew ? 'on' : 'off'}');
+                      ? t.activeUntilAutoRenew(endDate, autoRenew)
+                      : t.noEndDateAutoRenew(autoRenew));
 
             final fullName = (member['full_name'] ?? 'Member').toString();
             final email = (member['email'] ?? '-').toString();
@@ -2616,14 +2835,14 @@ class _AdminScreenState extends State<AdminScreen> {
                     .toString();
 
             return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(bottom: 12),
               child: GestureDetector(
                 onTap: _adminActionBusy
                     ? null
-                    : () async {
+                    : () {
                         final memberId = (member['id'] ?? '').toString().trim();
                         if (memberId.isEmpty) return;
-                        await Navigator.of(context).push(
+                        Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => AdminMemberDetailScreen(
                               gymId: _adminGymId!,
@@ -2631,176 +2850,86 @@ class _AdminScreenState extends State<AdminScreen> {
                             ),
                           ),
                         );
-                        await _loadAdminData();
                       },
                 child: AppCard(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 16,
-                  ),
-                  child: Row(
+                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              fullName.toUpperCase(),
-                              style: _font(
-                                20,
-                                weight: FontWeight.w800,
-                                color: const Color(0xFF111318),
-                                letterSpacing: -0.2,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: [
-                                  Container(
-                                    height: 18,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 7,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: status == 'active'
-                                          ? const Color(0xFFDDF5E5)
-                                          : const Color(0xFFE5E7EB),
-                                      borderRadius: BorderRadius.circular(999),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      status.toUpperCase(),
-                                      style: _font(
-                                        9,
-                                        weight: FontWeight.w700,
-                                        color: status == 'active'
-                                            ? const Color(0xFF16A34A)
-                                            : const Color(0xFF6B7280),
-                                        letterSpacing: 0.25,
-                                      ),
-                                    ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  fullName,
+                                  style: _font(
+                                    22,
+                                    weight: FontWeight.w800,
+                                    color: const Color(0xFF111318),
+                                    letterSpacing: -0.25,
+                                    height: 0.98,
                                   ),
-                                  const SizedBox(width: 5),
-                                  Container(
-                                    height: 18,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 7,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: role == 'admin'
-                                          ? const Color(0xFFE6EDF7)
-                                          : const Color(0xFFF2F4F7),
-                                      borderRadius: BorderRadius.circular(999),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      role.toUpperCase(),
-                                      style: _font(
-                                        9,
-                                        weight: FontWeight.w700,
-                                        color: role == 'admin'
-                                            ? const Color(0xFF245BEB)
-                                            : const Color(0xFF667085),
-                                        letterSpacing: 0.25,
-                                      ),
-                                    ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  email,
+                                  style: _font(
+                                    13,
+                                    weight: FontWeight.w600,
+                                    color: const Color(0xFF667085),
+                                    height: 1.2,
                                   ),
-                                  const SizedBox(width: 5),
-                                  Container(
-                                    height: 18,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 7,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: activeMembership == null
-                                          ? const Color(0xFFFEE4E2)
-                                          : const Color(0xFFF7F3EA),
-                                      borderRadius: BorderRadius.circular(999),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      planName.toUpperCase(),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: _font(
-                                        9,
-                                        weight: FontWeight.w700,
-                                        color: activeMembership == null
-                                            ? const Color(0xFFE11D48)
-                                            : const Color(0xFFB59B6A),
-                                        letterSpacing: 0.25,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          GestureDetector(
+                            onTap: _adminActionBusy
+                                ? null
+                                : () => _showMemberActions(member),
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF6F7F9),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: const Color(0xFFE7EBF0),
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.more_horiz_rounded,
+                                size: 20,
+                                color: Color(0xFF6B7280),
                               ),
                             ),
-                            const SizedBox(height: 10),
-                            Text(
-                              email,
-                              style: _font(
-                                13,
-                                weight: FontWeight.w500,
-                                color: const Color(0xFF667085),
-                                height: 1.35,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              phone,
-                              style: _font(
-                                13,
-                                weight: FontWeight.w500,
-                                color: const Color(0xFF667085),
-                                height: 1.35,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              planSummary,
-                              style: _font(
-                                13,
-                                weight: FontWeight.w600,
-                                color: activeMembership == null
-                                    ? const Color(0xFF98A2B3)
-                                    : const Color(0xFF111318),
-                                height: 1.35,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              membershipMeta,
-                              style: _font(
-                                12,
-                                weight: FontWeight.w500,
-                                color: const Color(0xFF8F96A3),
-                                height: 1.35,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      GestureDetector(
-                        onTap: _adminActionBusy
-                            ? null
-                            : () => _showMemberActions(member),
-                        child: Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEDEBE6),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.more_horiz_rounded,
-                            size: 20,
-                            color: Color(0xFF6B7280),
-                          ),
-                        ),
+                      const SizedBox(height: 14),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _memberStatusChip(status == 'active'),
+                          _memberRoleChip(role),
+                          if (phone != '-')
+                            _adminInfoChip(
+                              icon: Icons.call_outlined,
+                              text: phone,
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      _memberMembershipBanner(
+                        planName: planName,
+                        planSummary: planSummary,
+                        membershipMeta: membershipMeta,
+                        hasMembership: activeMembership != null,
                       ),
                     ],
                   ),
@@ -3048,7 +3177,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Assign Plan',
+                                    t.assignPlanTitle,
                                     style: _font(
                                       24,
                                       weight: FontWeight.w800,
@@ -3058,7 +3187,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    'Link a membership plan to this athlete.',
+                                    t.assignPlanSubtitle,
                                     style: _font(
                                       13,
                                       weight: FontWeight.w500,
@@ -3233,7 +3362,7 @@ class _AdminScreenState extends State<AdminScreen> {
                               const SizedBox(height: 12),
                               DropdownButtonFormField<String>(
                                 initialValue: selectedStatus,
-                                decoration: dropdownDecoration('Status'),
+                                decoration: dropdownDecoration(t.statusLabel),
                                 borderRadius: BorderRadius.circular(16),
                                 dropdownColor: Colors.white,
                                 iconEnabledColor: const Color(0xFF667085),
@@ -3243,26 +3372,26 @@ class _AdminScreenState extends State<AdminScreen> {
                                   color: const Color(0xFF111318),
                                 ),
                                 items:
-                                    const [
+                                    [
                                       DropdownMenuItem(
                                         value: 'active',
-                                        child: Text('Active'),
+                                        child: Text(t.activeLabel),
                                       ),
                                       DropdownMenuItem(
                                         value: 'paused',
-                                        child: Text('Paused'),
+                                        child: Text(t.pausedLabel),
                                       ),
                                       DropdownMenuItem(
                                         value: 'expired',
-                                        child: Text('Expired'),
+                                        child: Text(t.expiredLabel),
                                       ),
                                       DropdownMenuItem(
                                         value: 'cancelled',
-                                        child: Text('Cancelled'),
+                                        child: Text(t.cancelledLabel),
                                       ),
                                       DropdownMenuItem(
                                         value: 'pending_payment',
-                                        child: Text('Pending Payment'),
+                                        child: Text(t.pendingPaymentLabel),
                                       ),
                                     ].map((item) {
                                       return DropdownMenuItem<String>(
@@ -3279,11 +3408,11 @@ class _AdminScreenState extends State<AdminScreen> {
                                     }).toList(),
                                 selectedItemBuilder: (context) {
                                   final labels = [
-                                    'Active',
-                                    'Paused',
-                                    'Expired',
-                                    'Cancelled',
-                                    'Pending Payment',
+                                    t.activeLabel,
+                                    t.pausedLabel,
+                                    t.expiredLabel,
+                                    t.cancelledLabel,
+                                    t.pendingPaymentLabel,
                                   ];
                                   return labels
                                       .map(
@@ -3329,7 +3458,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                 children: [
                                   Expanded(
                                     child: metricField(
-                                      label: 'Start Date',
+                                      label: t.startDateShort,
                                       controller: startCtrl,
                                       hint: '2026-03-12',
                                       readOnly: true,
@@ -3347,7 +3476,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: metricField(
-                                      label: 'End Date',
+                                      label: t.endDateShort,
                                       controller: endCtrl,
                                       hint: '2026-04-12',
                                       readOnly: true,
@@ -3369,7 +3498,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                 children: [
                                   Expanded(
                                     child: metricField(
-                                      label: 'Credits',
+                                      label: t.creditsLabel,
                                       controller: creditsCtrl,
                                       hint: '10',
                                       keyboardType: TextInputType.number,
@@ -3378,7 +3507,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: metricField(
-                                      label: 'Used',
+                                      label: t.usedLabel,
                                       controller: usedCtrl,
                                       hint: '0',
                                       keyboardType: TextInputType.number,
@@ -3412,7 +3541,7 @@ class _AdminScreenState extends State<AdminScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: PrimaryButton(
-                                text: 'Assign',
+                                text: t.assignCta,
                                 compact: true,
                                 radius: 16,
                                 backgroundColor: const Color(0xFFB59B6A),
@@ -3437,7 +3566,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                       creditsRemaining: creditsCtrl.text.trim(),
                                       classesUsed: usedCtrl.text.trim(),
                                     ),
-                                    successMessage: 'Plan assigned',
+                                    successMessage: t.planAssigned,
                                   );
                                   if (!context.mounted) return;
                                   Navigator.pop(context);
@@ -3666,7 +3795,7 @@ class _AdminScreenState extends State<AdminScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Member actions',
+                        t.memberActionsTitle,
                         style: _font(
                           14,
                           weight: FontWeight.w700,
@@ -3676,7 +3805,7 @@ class _AdminScreenState extends State<AdminScreen> {
                       const SizedBox(height: 10),
                       actionTile(
                         icon: Icons.assignment_rounded,
-                        title: 'Assign Plan',
+                        title: t.assignPlanTitle,
                         subtitle: 'Add or change this athlete\'s membership',
                         iconBg: const Color(0xFFF7F3EA),
                         iconColor: const Color(0xFFB59B6A),
@@ -3688,9 +3817,8 @@ class _AdminScreenState extends State<AdminScreen> {
                       const SizedBox(height: 10),
                       actionTile(
                         icon: Icons.mark_email_read_outlined,
-                        title: 'Send password email',
-                        subtitle:
-                            'Resend a secure link to create or reset password',
+                        title: t.sendPasswordEmailTitle,
+                        subtitle: t.sendPasswordEmailSubtitle,
                         iconBg: const Color(0xFFEFF6FF),
                         iconColor: const Color(0xFF245BEB),
                         onTap: _adminActionBusy
@@ -3701,7 +3829,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   () => _sendMemberPasswordEmail(
                                     email: memberEmail,
                                   ),
-                                  successMessage: 'Password email sent',
+                                  successMessage: t.passwordEmailSent,
                                 );
                               },
                       ),
@@ -3709,9 +3837,8 @@ class _AdminScreenState extends State<AdminScreen> {
                         const SizedBox(height: 10),
                         actionTile(
                           icon: Icons.pause_circle_outline_rounded,
-                          title: 'Deactivate member',
-                          subtitle:
-                              'Keep the profile but disable active access',
+                          title: t.deactivateMemberTitle,
+                          subtitle: t.deactivateMemberSubtitle,
                           iconBg: const Color(0xFFFEE4E2),
                           iconColor: const Color(0xFFE11D48),
                           onTap: _adminActionBusy
@@ -3724,7 +3851,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                       profileId: memberId,
                                       isActive: false,
                                     ),
-                                    successMessage: 'Member deactivated',
+                                    successMessage: t.memberDeactivated,
                                   );
                                 },
                         ),
@@ -3732,9 +3859,8 @@ class _AdminScreenState extends State<AdminScreen> {
                         const SizedBox(height: 10),
                         actionTile(
                           icon: Icons.check_circle_outline_rounded,
-                          title: 'Activate member',
-                          subtitle:
-                              'Restore access and mark this member as active',
+                          title: t.activateMemberTitle,
+                          subtitle: t.activateMemberSubtitle,
                           iconBg: const Color(0xFFDDF5E5),
                           iconColor: const Color(0xFF16A34A),
                           onTap: _adminActionBusy
@@ -3747,7 +3873,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                       profileId: memberId,
                                       isActive: true,
                                     ),
-                                    successMessage: 'Member activated',
+                                    successMessage: t.memberActivated,
                                   );
                                 },
                         ),
@@ -3756,8 +3882,8 @@ class _AdminScreenState extends State<AdminScreen> {
                         const SizedBox(height: 10),
                         actionTile(
                           icon: Icons.sports_gymnastics_rounded,
-                          title: 'Make athlete',
-                          subtitle: 'Remove elevated access for this member',
+                          title: t.makeAthleteTitle,
+                          subtitle: t.makeAthleteSubtitle,
                           onTap: _adminActionBusy
                               ? null
                               : () async {
@@ -3768,7 +3894,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                       profileId: memberId,
                                       role: 'athlete',
                                     ),
-                                    successMessage: 'Role updated to athlete',
+                                    successMessage: t.roleUpdatedToAthlete,
                                   );
                                 },
                         ),
@@ -3777,8 +3903,8 @@ class _AdminScreenState extends State<AdminScreen> {
                         const SizedBox(height: 10),
                         actionTile(
                           icon: Icons.shield_rounded,
-                          title: 'Make admin',
-                          subtitle: 'Give this member admin permissions',
+                          title: t.makeAdminTitle,
+                          subtitle: t.makeAdminSubtitle,
                           onTap: _adminActionBusy
                               ? null
                               : () async {
@@ -3789,7 +3915,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                       profileId: memberId,
                                       role: 'admin',
                                     ),
-                                    successMessage: 'Role updated to admin',
+                                    successMessage: t.roleUpdatedToAdmin,
                                   );
                                 },
                         ),
@@ -4059,11 +4185,11 @@ class _AdminScreenState extends State<AdminScreen> {
 
     return Row(
       children: [
-        chip('today', 'TODAY'),
+        chip('today', t.todayUpperShort),
         const SizedBox(width: 8),
-        chip('upcoming', 'UPCOMING'),
+        chip('upcoming', t.upcomingUpper),
         const SizedBox(width: 8),
-        chip('past', 'PAST'),
+        chip('past', t.pastUpper),
       ],
     );
   }
@@ -4194,7 +4320,7 @@ class _AdminScreenState extends State<AdminScreen> {
             final duration = (item['duration_minutes'] ?? 60).toString();
 
             return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(bottom: 12),
               child: GestureDetector(
                 onTap: _adminActionBusy
                     ? null
@@ -4202,7 +4328,7 @@ class _AdminScreenState extends State<AdminScreen> {
                 child: AppCard(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 18,
-                    vertical: 16,
+                    vertical: 18,
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -4236,28 +4362,50 @@ class _AdminScreenState extends State<AdminScreen> {
                                 height: 1.35,
                               ),
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              '$duration min · Coach: $coach · $remaining/$total spots',
-                              style: _font(
-                                13,
-                                weight: FontWeight.w500,
-                                color: const Color(0xFF667085),
-                                height: 1.35,
-                              ),
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                _adminInfoChip(
+                                  icon: Icons.schedule_rounded,
+                                  text: t.durationMinutesShort(duration),
+                                ),
+                                _adminInfoChip(
+                                  icon: Icons.person_outline_rounded,
+                                  text: coach,
+                                ),
+                                _adminInfoChip(
+                                  icon: Icons.groups_2_outlined,
+                                  text: t.spotsCountLabel(remaining, total),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              hasWorkout
-                                  ? 'Workout: $workoutTitle'
-                                  : context.appText.workoutNotAssignedLabel,
-                              style: _font(
-                                13,
-                                weight: FontWeight.w600,
+                            const SizedBox(height: 12),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
                                 color: hasWorkout
-                                    ? const Color(0xFFB59B6A)
-                                    : const Color(0xFF98A2B3),
-                                height: 1.35,
+                                    ? const Color(0xFFF7F3EA)
+                                    : const Color(0xFFF2F4F7),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text(
+                                hasWorkout
+                                    ? t.workoutTitleWithName(workoutTitle)
+                                    : context.appText.workoutNotAssignedLabel,
+                                style: _font(
+                                  13,
+                                  weight: FontWeight.w700,
+                                  color: hasWorkout
+                                      ? const Color(0xFFB59B6A)
+                                      : const Color(0xFF667085),
+                                  height: 1.25,
+                                ),
                               ),
                             ),
                           ],
@@ -4269,11 +4417,11 @@ class _AdminScreenState extends State<AdminScreen> {
                             ? null
                             : () => _showClassActions(item),
                         child: Container(
-                          width: 38,
-                          height: 38,
+                          width: 40,
+                          height: 40,
                           decoration: BoxDecoration(
                             color: const Color(0xFFEDEBE6),
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
                             Icons.more_horiz_rounded,
@@ -4385,17 +4533,18 @@ class _AdminScreenState extends State<AdminScreen> {
         else
           ..._workouts.map((item) {
             final program = (item['program_name'] ?? 'Workout').toString();
-            final date = (item['workout_date'] ?? '').toString();
+            final rawDate = (item['workout_date'] ?? '').toString();
             final type = (item['workout_type'] ?? '').toString().trim();
             final title = (item['title'] ?? 'Workout').toString();
             final description = (item['description'] ?? '').toString().trim();
             final imageUrl = (item['image_url'] ?? '').toString().trim();
 
-            String meta = program;
-            if (date.isNotEmpty) meta = '$meta · $date';
-            if (type.isNotEmpty) meta = '$meta · $type';
+            final parsedDate = DateTime.tryParse(rawDate)?.toLocal();
+            final dateLabel = parsedDate != null
+                ? DateFormat('EEE, MMM d').format(parsedDate)
+                : '';
 
-            String? subMeta;
+            String? subMeta = dateLabel.isNotEmpty ? dateLabel : null;
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -4425,14 +4574,17 @@ class _AdminScreenState extends State<AdminScreen> {
                               ),
                             ),
                             const SizedBox(height: 6),
-                            Text(
-                              meta,
-                              style: _font(
-                                13,
-                                weight: FontWeight.w500,
-                                color: const Color(0xFF667085),
-                                height: 1.35,
-                              ),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: [
+                                _adminInfoChip(
+                                  icon: Icons.fitness_center_outlined,
+                                  text: program,
+                                ),
+                                if (type.isNotEmpty)
+                                  _adminInfoChip(icon: Icons.tag, text: type),
+                              ],
                             ),
                             if ((subMeta ?? '').isNotEmpty) ...[
                               const SizedBox(height: 6),
@@ -4628,7 +4780,7 @@ class _AdminScreenState extends State<AdminScreen> {
           )
         else
           ..._plans.map((plan) {
-            final name = (plan['name'] ?? 'Plan').toString();
+            final name = (plan['name'] ?? t.planFallbackLabel).toString();
             final description = (plan['description'] ?? '').toString().trim();
             final planType = (plan['plan_type'] ?? '').toString();
             final billing = (plan['billing_period'] ?? '').toString();
@@ -4639,11 +4791,11 @@ class _AdminScreenState extends State<AdminScreen> {
                 .toString();
             final creditsTotal = (plan['credits_total'] ?? '').toString();
 
-            String accessLine = '$bookingWindow days booking window';
+            String accessLine = t.bookingWindowDaysText(bookingWindow);
             if (classesPerPeriod.isNotEmpty && classesPerPeriod != 'null') {
-              accessLine = '$classesPerPeriod classes per period · $accessLine';
+              accessLine = t.classesPerPeriodText(classesPerPeriod, accessLine);
             } else if (creditsTotal.isNotEmpty && creditsTotal != 'null') {
-              accessLine = '$creditsTotal credits total · $accessLine';
+              accessLine = t.creditsTotalText(creditsTotal, accessLine);
             }
 
             return Padding(
