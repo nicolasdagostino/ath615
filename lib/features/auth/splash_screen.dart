@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../shared/widgets/bottom_nav_shell.dart';
+import '../../l10n/app_text.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -30,10 +31,10 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.fitness_center, color: Colors.white, size: 72),
-              SizedBox(height: 20),
-              Text(
+            children: [
+              const Icon(Icons.fitness_center, color: Colors.white, size: 72),
+              const SizedBox(height: 20),
+              const Text(
                 'ATH615',
                 style: TextStyle(
                   color: Colors.white,
@@ -42,10 +43,10 @@ class _SplashScreenState extends State<SplashScreen> {
                   letterSpacing: 1.2,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
-                'Train hard. Stay consistent.',
-                style: TextStyle(color: Colors.white70, fontSize: 15),
+                context.appText.splashTagline,
+                style: const TextStyle(color: Colors.white70, fontSize: 15),
               ),
             ],
           ),

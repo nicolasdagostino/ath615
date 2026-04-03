@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_text.dart';
 
 import '../../core/supabase/class_repository.dart';
 import '../../core/supabase/admin_member_repository.dart';
@@ -732,7 +733,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Add Member',
+                          context.appText.addMemberTitle,
                           style: _font(
                             22,
                             weight: FontWeight.w800,
@@ -922,7 +923,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           children: [
                             Expanded(
                               child: SecondaryButton(
-                                text: 'Cancel',
+                                text: context.appText.cancel,
                                 compact: true,
                                 radius: 16,
                                 textStyle: _font(
@@ -937,7 +938,7 @@ class _AdminScreenState extends State<AdminScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: PrimaryButton(
-                                text: 'Create Member',
+                                text: context.appText.createMember,
                                 compact: true,
                                 radius: 16,
                                 backgroundColor: const Color(0xFFB59B6A),
@@ -962,14 +963,17 @@ class _AdminScreenState extends State<AdminScreen> {
 
                                   if (fullName.isEmpty) {
                                     setLocalState(() {
-                                      localError = 'Full name is required';
+                                      localError =
+                                          context.appText.fullNameRequiredError;
                                     });
                                     return;
                                   }
 
                                   if (!_isValidEmail(email)) {
                                     setLocalState(() {
-                                      localError = 'Enter a valid email';
+                                      localError = context
+                                          .appText
+                                          .validEmailRequiredError;
                                     });
                                     return;
                                   }
@@ -988,8 +992,9 @@ class _AdminScreenState extends State<AdminScreen> {
                                       notes: notes.isEmpty ? null : notes,
                                       isActive: isActive,
                                     ),
-                                    successMessage:
-                                        'Member created. Invitation email sent.',
+                                    successMessage: context
+                                        .appText
+                                        .memberCreatedInvitationSent,
                                   );
 
                                   if (!sheetContext.mounted) return;
@@ -1369,7 +1374,7 @@ class _AdminScreenState extends State<AdminScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Workout actions',
+                        context.appText.workoutActionsTitle,
                         style: _font(
                           14,
                           weight: FontWeight.w700,
@@ -1589,7 +1594,7 @@ class _AdminScreenState extends State<AdminScreen> {
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      'Class actions',
+                      context.appText.classActionsTitle,
                       style: _font(
                         14,
                         weight: FontWeight.w700,
@@ -1619,11 +1624,10 @@ class _AdminScreenState extends State<AdminScreen> {
                         Navigator.pop(context);
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) =>
-                                ClassAttendanceScreen(
-                                  classItem: item,
-                                  gymId: _adminGymId,
-                                ),
+                            builder: (_) => ClassAttendanceScreen(
+                              classItem: item,
+                              gymId: _adminGymId,
+                            ),
                           ),
                         );
                       },
@@ -1702,7 +1706,7 @@ class _AdminScreenState extends State<AdminScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: SecondaryButton(
-                        text: 'Cancel',
+                        text: context.appText.cancel,
                         compact: true,
                         radius: 16,
                         textStyle: _font(
@@ -1931,7 +1935,7 @@ class _AdminScreenState extends State<AdminScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: SecondaryButton(
-                          text: 'Cancel',
+                          text: context.appText.cancel,
                           compact: true,
                           radius: 16,
                           textStyle: _font(
@@ -3387,7 +3391,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           children: [
                             Expanded(
                               child: SecondaryButton(
-                                text: 'Cancel',
+                                text: context.appText.cancel,
                                 compact: true,
                                 radius: 16,
                                 backgroundColor: const Color(0xFFF3F4F6),
@@ -4243,7 +4247,7 @@ class _AdminScreenState extends State<AdminScreen> {
                             Text(
                               hasWorkout
                                   ? 'Workout: $workoutTitle'
-                                  : 'Workout: not assigned',
+                                  : context.appText.workoutNotAssignedLabel,
                               style: _font(
                                 13,
                                 weight: FontWeight.w600,

@@ -8,6 +8,7 @@ import '../../features/dashboard/dashboard_screen.dart';
 import '../../features/explore/explore_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/workouts/workouts_screen.dart';
+import '../../l10n/app_text.dart';
 
 class BottomNavShell extends StatefulWidget {
   final int initialIndex;
@@ -139,46 +140,48 @@ class _BottomNavShellState extends State<BottomNavShell> {
   }
 
   List<_NavItemData> _items(bool isAdmin) {
+    final t = context.appText;
+
     final base = <_NavItemData>[
-      const _NavItemData(
+      _NavItemData(
         icon: Icons.fitness_center_outlined,
         activeIcon: Icons.fitness_center,
-        label: 'Workouts',
+        label: t.navWorkouts,
       ),
-      const _NavItemData(
+      _NavItemData(
         icon: Icons.calendar_today_outlined,
         activeIcon: Icons.calendar_today,
-        label: 'Booking',
+        label: t.navBooking,
       ),
-      const _NavItemData(
+      _NavItemData(
         icon: Icons.search_outlined,
         activeIcon: Icons.search,
-        label: 'Explore',
+        label: t.navExplore,
       ),
     ];
 
     if (isAdmin) {
       base.add(
-        const _NavItemData(
+        _NavItemData(
           icon: Icons.space_dashboard_outlined,
           activeIcon: Icons.space_dashboard,
-          label: 'Dashboard',
+          label: t.navDashboard,
         ),
       );
       base.add(
-        const _NavItemData(
+        _NavItemData(
           icon: Icons.admin_panel_settings_outlined,
           activeIcon: Icons.admin_panel_settings,
-          label: 'Admin',
+          label: t.navAdmin,
         ),
       );
     }
 
     base.add(
-      const _NavItemData(
+      _NavItemData(
         icon: Icons.person_outline,
         activeIcon: Icons.person,
-        label: 'Profile',
+        label: t.navProfile,
       ),
     );
 
@@ -275,7 +278,8 @@ class _BottomNavShellState extends State<BottomNavShell> {
                   onTap: () {
                     if (index == i) return;
 
-                    final isBooking = items[i].label == 'Booking';
+                    final isBooking =
+                        items[i].label == context.appText.navBooking;
 
                     setState(() {
                       if (isBooking) {

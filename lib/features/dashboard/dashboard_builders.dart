@@ -1,3 +1,4 @@
+import '../../l10n/app_strings.dart';
 import 'dashboard_models.dart';
 import 'dashboard_utils.dart';
 
@@ -126,6 +127,7 @@ DashboardPerformanceStats dashboardBuildPerformanceStats({
 DashboardTomorrowStats dashboardBuildTomorrowStats(
   List<Map<String, dynamic>> classesTomorrow,
   List<Map<String, dynamic>> bookings,
+  AppStrings t,
 ) {
   final riskItems = <DashboardRiskClassItem>[];
 
@@ -160,17 +162,17 @@ DashboardTomorrowStats dashboardBuildTomorrowStats(
     final hh = startsAt?.hour.toString().padLeft(2, '0') ?? '--';
     final mm = startsAt?.minute.toString().padLeft(2, '0') ?? '--';
 
-    final title = (item['title'] ?? item['program_name'] ?? 'Class')
+    final title = (item['title'] ?? item['program_name'] ?? t.classLabel)
         .toString()
         .trim();
-    final safeTitle = title.isEmpty ? 'Class' : title;
+    final safeTitle = title.isEmpty ? t.classLabel : title;
 
     final subtitleParts = <String>[];
     if (!hasWorkout) {
-      subtitleParts.add('Workout not assigned');
+      subtitleParts.add(t.workoutNotAssigned);
     }
     if (lowOccupancy) {
-      subtitleParts.add('$reserved / $maxSpots booked');
+      subtitleParts.add(t.bookedRatio(reserved, maxSpots));
     }
 
     riskItems.add(
@@ -193,6 +195,7 @@ DashboardTomorrowStats dashboardBuildTomorrowStats(
 List<DashboardMemberActivityItem> dashboardBuildMemberActivity(
   List<Map<String, dynamic>> members,
   List<Map<String, dynamic>> bookings,
+  AppStrings t,
 ) {
   final now = DateTime.now();
   final activeMembers = members.where((m) => m['is_active'] == true).toList();
@@ -222,6 +225,7 @@ List<DashboardMemberActivityItem> dashboardBuildMemberActivity(
       lastActivity: lastActivityByMember[memberId],
       attendedLast28Days: recentAttendanceByMember[memberId] ?? 0,
       now: now,
+      t: t,
     );
 
     items.add(
@@ -243,6 +247,7 @@ DashboardNextClassItem? dashboardBuildNextClass(
   List<Map<String, dynamic>> classesToday,
   List<Map<String, dynamic>> classesTomorrow,
   List<Map<String, dynamic>> bookings,
+  AppStrings t,
 ) {
   final now = DateTime.now();
 
@@ -298,7 +303,7 @@ DashboardNextClassItem? dashboardBuildNextClass(
       .isNotEmpty;
 
   final subtitleParts = <String>[
-    isToday ? 'Today · $hh:$mm' : 'Tomorrow · $hh:$mm',
+    isToday ? t.todayTimeLabel(hh, mm) : t.tomorrowTimeLabel(hh, mm),
   ];
   if (coach.isNotEmpty) {
     subtitleParts.add(coach);
@@ -306,11 +311,11 @@ DashboardNextClassItem? dashboardBuildNextClass(
 
   return DashboardNextClassItem(
     id: classId,
-    title: title.isEmpty ? 'Class' : title,
+    title: title.isEmpty ? t.classLabel : title,
     subtitle: subtitleParts.join(' · '),
     occupancyLabel: maxSpots > 0
-        ? '$reserved / $maxSpots booked'
-        : '$reserved booked',
+        ? t.bookedRatio(reserved, maxSpots)
+        : t.bookedCountOnly(reserved),
     hasWorkout: hasWorkout,
     isToday: isToday,
   );
@@ -353,6 +358,7 @@ DashboardPendingAttendanceStats dashboardBuildPendingAttendance(
 DashboardWorkoutStatus dashboardBuildWorkoutStatus({
   required List<Map<String, dynamic>> classesToday,
   required List<Map<String, dynamic>> todayWorkouts,
+  required AppStrings t,
 }) {
   var missing = 0;
   for (final item in classesToday) {
@@ -368,10 +374,10 @@ DashboardWorkoutStatus dashboardBuildWorkoutStatus({
       );
 
   final summary = classesToday.isEmpty
-      ? 'No classes scheduled today.'
+      ? t.noClassesScheduledToday
       : missing == 0
-      ? 'Today programming is assigned.'
-      : '$missing classes still need a workout.';
+      ? t.todayProgrammingAssigned
+      : t.classesNeedWorkout(missing);
 
   return DashboardWorkoutStatus(
     hasWorkoutToday: hasWorkoutToday,
@@ -384,6 +390,7 @@ DashboardWorkoutStatus dashboardBuildWorkoutStatus({
 List<DashboardTodayHighlightItem> dashboardBuildTodayHighlights({
   required List<Map<String, dynamic>> members,
   required DashboardWorkoutStatus workoutStatus,
+  required AppStrings t,
 }) {
   final now = DateTime.now();
   final items = <DashboardTodayHighlightItem>[];
@@ -400,7 +407,7 @@ List<DashboardTodayHighlightItem> dashboardBuildTodayHighlights({
       DashboardTodayHighlightItem(
         id: 'birthday-${member['id']}',
         title: name,
-        subtitle: 'Birthday today',
+        subtitle: t.birthdayToday,
         type: 'birthday',
       ),
     );
@@ -409,9 +416,7 @@ List<DashboardTodayHighlightItem> dashboardBuildTodayHighlights({
   items.add(
     DashboardTodayHighlightItem(
       id: 'workout-status',
-      title: workoutStatus.hasWorkoutToday
-          ? 'Workout ready'
-          : 'Workout missing',
+      title: workoutStatus.hasWorkoutToday ? t.workoutReady : t.workoutMissing,
       subtitle: workoutStatus.summary,
       type: 'workout',
     ),
@@ -423,6 +428,7 @@ List<DashboardTodayHighlightItem> dashboardBuildTodayHighlights({
 List<DashboardMilestoneItem> dashboardBuildMilestones(
   List<Map<String, dynamic>> members,
   List<Map<String, dynamic>> bookings,
+  AppStrings t,
 ) {
   const thresholds = [10, 50, 100, 500, 1000];
 
@@ -460,7 +466,7 @@ List<DashboardMilestoneItem> dashboardBuildMilestones(
         DashboardMilestoneItem(
           id: 'milestone-reached-$memberId',
           name: name,
-          subtitle: 'Reached $count classes',
+          subtitle: t.reachedClasses(count),
           classesCount: count,
           target: count,
           reached: true,
@@ -486,7 +492,7 @@ List<DashboardMilestoneItem> dashboardBuildMilestones(
       DashboardMilestoneItem(
         id: 'milestone-next-$memberId',
         name: name,
-        subtitle: '$remaining classes left for $nextTarget',
+        subtitle: t.classesLeftForTarget(remaining, nextTarget),
         classesCount: count,
         target: nextTarget,
         reached: false,
@@ -566,6 +572,7 @@ DashboardWeekPerformance dashboardComputeWeekPerformance({
 }
 
 List<DashboardRecommendedAction> dashboardBuildRecommendedActions({
+  required AppStrings t,
   required DashboardTomorrowStats tomorrow,
   required List<DashboardMemberActivityItem> memberActivity,
   required DashboardNextClassItem? nextClass,
@@ -581,9 +588,8 @@ List<DashboardRecommendedAction> dashboardBuildRecommendedActions({
       DashboardRecommendedAction(
         id: 'tomorrow-risk',
         type: 'tomorrow_risk',
-        title: 'Review tomorrow risk',
-        subtitle:
-            '${tomorrow.lowOccupancyTomorrow} classes may need promotion or review.',
+        title: t.reviewTomorrowRiskTitle,
+        subtitle: t.classesNeedPromotionOrReview(tomorrow.lowOccupancyTomorrow),
         priority: 100 + tomorrow.lowOccupancyTomorrow,
       ),
     );
@@ -591,14 +597,17 @@ List<DashboardRecommendedAction> dashboardBuildRecommendedActions({
 
   if (pendingAttendance.pendingClasses > 0) {
     final subtitle = pendingAttendance.pendingBookings > 0
-        ? '${pendingAttendance.pendingClasses} past classes still have ${pendingAttendance.pendingBookings} unreviewed bookings.'
-        : '${pendingAttendance.pendingClasses} past classes still need attendance review.';
+        ? t.pastClassesHaveUnreviewedBookings(
+            pendingAttendance.pendingClasses,
+            pendingAttendance.pendingBookings,
+          )
+        : t.pastClassesNeedAttendanceReview(pendingAttendance.pendingClasses);
 
     actions.add(
       DashboardRecommendedAction(
         id: 'pending-attendance',
         type: 'pending_attendance',
-        title: 'Review pending attendance',
+        title: t.reviewPendingAttendanceTitle,
         subtitle: subtitle,
         priority: 96 + pendingAttendance.pendingClasses,
       ),
@@ -611,8 +620,8 @@ List<DashboardRecommendedAction> dashboardBuildRecommendedActions({
       DashboardRecommendedAction(
         id: 'inactive-members',
         type: 'inactive_members',
-        title: 'Check inactive members',
-        subtitle: '$atRiskMembers members may need a follow-up message.',
+        title: t.checkInactiveMembersTitle,
+        subtitle: t.membersMayNeedFollowUp(atRiskMembers),
         priority: 90 + atRiskMembers,
       ),
     );
@@ -623,8 +632,8 @@ List<DashboardRecommendedAction> dashboardBuildRecommendedActions({
       DashboardRecommendedAction(
         id: 'next-class-workout',
         type: 'next_class_workout',
-        title: 'Assign workout to next class',
-        subtitle: '${nextClass.title} still has no workout assigned.',
+        title: t.assignWorkoutToNextClassTitle,
+        subtitle: t.nextClassHasNoWorkoutAssigned(nextClass.title),
         priority: nextClass.isToday ? 95 : 80,
       ),
     );
@@ -633,7 +642,7 @@ List<DashboardRecommendedAction> dashboardBuildRecommendedActions({
       DashboardRecommendedAction(
         id: 'today-workouts-missing',
         type: 'today_workout_missing',
-        title: 'Finish today programming',
+        title: t.finishTodayProgrammingTitle,
         subtitle:
             '${workoutStatus.classesMissingWorkoutToday} classes still need a workout.',
         priority: 85 + workoutStatus.classesMissingWorkoutToday,
@@ -649,8 +658,8 @@ List<DashboardRecommendedAction> dashboardBuildRecommendedActions({
       DashboardRecommendedAction(
         id: 'birthday-today',
         type: 'birthday',
-        title: 'Wish happy birthday',
-        subtitle: '$birthdayItems members are celebrating today.',
+        title: t.wishHappyBirthdayTitle,
+        subtitle: t.membersCelebratingToday(birthdayItems),
         priority: 75 + birthdayItems,
       ),
     );
@@ -661,9 +670,8 @@ List<DashboardRecommendedAction> dashboardBuildRecommendedActions({
       DashboardRecommendedAction(
         id: 'today-bookings',
         type: 'today_bookings',
-        title: 'Review today bookings',
-        subtitle:
-            '${today.bookingsToday} bookings currently on today schedule.',
+        title: t.reviewTodayBookingsTitle,
+        subtitle: t.bookingsCurrentlyOnTodaySchedule(today.bookingsToday),
         priority: 60 + today.bookingsToday,
       ),
     );
@@ -671,22 +679,21 @@ List<DashboardRecommendedAction> dashboardBuildRecommendedActions({
 
   if (actions.isEmpty) {
     actions.add(
-      const DashboardRecommendedAction(
+      DashboardRecommendedAction(
         id: 'open-admin',
         type: 'open_admin',
-        title: 'Open admin',
-        subtitle:
-            'Everything looks healthy. Review classes, members and plans.',
+        title: t.openAdminTitle,
+        subtitle: t.everythingLooksHealthy,
         priority: 10,
       ),
     );
   } else {
     actions.add(
-      const DashboardRecommendedAction(
+      DashboardRecommendedAction(
         id: 'open-admin',
         type: 'open_admin',
-        title: 'Open admin',
-        subtitle: 'Go to admin tools to manage classes, members and plans.',
+        title: t.openAdminTitle,
+        subtitle: t.goToAdminTools,
         priority: 5,
       ),
     );
@@ -697,14 +704,15 @@ List<DashboardRecommendedAction> dashboardBuildRecommendedActions({
 }
 
 List<DashboardAlertItem> dashboardBuildAlerts({
+  required AppStrings t,
   required List<Map<String, dynamic>> members,
   required List<Map<String, dynamic>> classesToday,
   required List<Map<String, dynamic>> bookings,
 }) {
   final alerts = <DashboardAlertItem>[];
 
-  alerts.addAll(dashboardBuildInactiveMemberAlerts(members, bookings));
-  alerts.addAll(dashboardBuildLowOccupancyAlerts(classesToday, bookings));
+  alerts.addAll(dashboardBuildInactiveMemberAlerts(members, bookings, t));
+  alerts.addAll(dashboardBuildLowOccupancyAlerts(classesToday, bookings, t));
 
   alerts.sort((a, b) => b.priority.compareTo(a.priority));
   return alerts.take(5).toList();
@@ -712,6 +720,7 @@ List<DashboardAlertItem> dashboardBuildAlerts({
 
 List<DashboardAlertItem> dashboardBuildBirthdayAlerts(
   List<Map<String, dynamic>> members,
+  AppStrings t,
 ) {
   final now = DateTime.now();
   final alerts = <DashboardAlertItem>[];
@@ -732,17 +741,17 @@ List<DashboardAlertItem> dashboardBuildBirthdayAlerts(
     if (diff < 0 || diff > 7) continue;
 
     final when = diff == 0
-        ? 'Today'
+        ? t.todayWord
         : diff == 1
-        ? 'Tomorrow'
-        : 'In $diff days';
+        ? t.tomorrowWord
+        : t.inDays(diff);
 
     alerts.add(
       DashboardAlertItem(
         id: 'birthday-${member['id']}',
         type: 'birthday',
-        title: '$name birthday',
-        subtitle: '$when · turns ${nextBirthday.year - dob.year}',
+        title: t.birthdayTitle(name),
+        subtitle: t.turnsAge(when, nextBirthday.year - dob.year),
         priority: 40 - diff,
       ),
     );
@@ -754,6 +763,7 @@ List<DashboardAlertItem> dashboardBuildBirthdayAlerts(
 List<DashboardAlertItem> dashboardBuildInactiveMemberAlerts(
   List<Map<String, dynamic>> members,
   List<Map<String, dynamic>> bookings,
+  AppStrings t,
 ) {
   final now = DateTime.now();
   final activeMembers = members.where((m) => m['is_active'] == true).toList();
@@ -782,6 +792,7 @@ List<DashboardAlertItem> dashboardBuildInactiveMemberAlerts(
       lastActivity: lastActivityByMember[memberId],
       attendedLast28Days: recentAttendanceByMember[memberId] ?? 0,
       now: now,
+      t: t,
     );
 
     if (!snapshot.isAtRisk) continue;
@@ -792,7 +803,7 @@ List<DashboardAlertItem> dashboardBuildInactiveMemberAlerts(
       DashboardAlertItem(
         id: 'inactive-$memberId',
         type: 'inactive_member',
-        title: '$name inactive',
+        title: t.inactiveTitle(name),
         subtitle: snapshot.subtitle,
         priority: snapshot.priority,
       ),
@@ -806,6 +817,7 @@ List<DashboardAlertItem> dashboardBuildInactiveMemberAlerts(
 List<DashboardAlertItem> dashboardBuildLowOccupancyAlerts(
   List<Map<String, dynamic>> classesToday,
   List<Map<String, dynamic>> bookings,
+  AppStrings t,
 ) {
   final alerts = <DashboardAlertItem>[];
 
@@ -830,7 +842,7 @@ List<DashboardAlertItem> dashboardBuildLowOccupancyAlerts(
     final ratio = reserved / maxSpots;
     if (ratio > 0.40) continue;
 
-    final title = (item['title'] ?? item['program_name'] ?? 'Class')
+    final title = (item['title'] ?? item['program_name'] ?? t.classLabel)
         .toString()
         .trim();
     final startsAt = DateTime.tryParse((item['starts_at'] ?? '').toString());
@@ -846,7 +858,7 @@ List<DashboardAlertItem> dashboardBuildLowOccupancyAlerts(
       DashboardAlertItem(
         id: 'low-occupancy-$classId',
         type: 'low_occupancy',
-        title: title.isEmpty ? 'Class with low occupancy' : title,
+        title: title.isEmpty ? t.classWithLowOccupancy : title,
         subtitle: subtitle,
         priority: 60 - reserved,
       ),
@@ -891,6 +903,7 @@ Map<String, int> _attendanceLast28DaysByMember(
 }
 
 _MemberRiskSnapshot _memberRiskSnapshot({
+  required AppStrings t,
   required Map<String, dynamic> member,
   required DateTime? lastActivity,
   required int attendedLast28Days,
@@ -909,15 +922,15 @@ _MemberRiskSnapshot _memberRiskSnapshot({
         memberAgeDays != null && memberAgeDays >= 21;
 
     if (oldEnoughWithoutActivity) {
-      return const _MemberRiskSnapshot(
-        subtitle: 'No bookings yet · member may need onboarding follow-up',
+      return _MemberRiskSnapshot(
+        subtitle: t.noBookingsYetOnboarding,
         priority: 85,
         isAtRisk: true,
       );
     }
 
-    return const _MemberRiskSnapshot(
-      subtitle: 'No bookings yet · new member or no clear pattern',
+    return _MemberRiskSnapshot(
+      subtitle: t.noBookingsYetNewMember,
       priority: 5,
       isAtRisk: false,
     );
@@ -928,7 +941,7 @@ _MemberRiskSnapshot _memberRiskSnapshot({
   if (attendedLast28Days >= 8) {
     if (inactiveDays >= 7) {
       return _MemberRiskSnapshot(
-        subtitle: '$inactiveDays days inactive · high-frequency member at risk',
+        subtitle: t.daysInactiveHighFrequency(inactiveDays),
         priority: 90 + inactiveDays,
         isAtRisk: true,
       );
@@ -936,7 +949,7 @@ _MemberRiskSnapshot _memberRiskSnapshot({
   } else if (attendedLast28Days >= 4) {
     if (inactiveDays >= 10) {
       return _MemberRiskSnapshot(
-        subtitle: '$inactiveDays days inactive · regular member at risk',
+        subtitle: t.daysInactiveRegular(inactiveDays),
         priority: 70 + inactiveDays,
         isAtRisk: true,
       );
@@ -944,7 +957,7 @@ _MemberRiskSnapshot _memberRiskSnapshot({
   } else if (attendedLast28Days >= 1) {
     if (inactiveDays >= 14) {
       return _MemberRiskSnapshot(
-        subtitle: '$inactiveDays days inactive · low-frequency member at risk',
+        subtitle: t.daysInactiveLowFrequency(inactiveDays),
         priority: 50 + inactiveDays,
         isAtRisk: true,
       );
@@ -952,7 +965,7 @@ _MemberRiskSnapshot _memberRiskSnapshot({
   } else {
     if (inactiveDays >= 21) {
       return _MemberRiskSnapshot(
-        subtitle: '$inactiveDays days inactive · no recent pattern',
+        subtitle: t.daysInactiveNoPattern(inactiveDays),
         priority: 35 + inactiveDays,
         isAtRisk: true,
       );
@@ -962,8 +975,8 @@ _MemberRiskSnapshot _memberRiskSnapshot({
   if (inactiveDays <= 0) {
     return _MemberRiskSnapshot(
       subtitle: attendedLast28Days >= 4
-          ? 'Active today · consistent member'
-          : 'Active today',
+          ? t.activeTodayConsistent
+          : t.activeToday,
       priority: -100,
       isAtRisk: false,
     );
@@ -972,8 +985,8 @@ _MemberRiskSnapshot _memberRiskSnapshot({
   if (inactiveDays == 1) {
     return _MemberRiskSnapshot(
       subtitle: attendedLast28Days >= 4
-          ? 'Active 1 day ago · healthy rhythm'
-          : 'Active 1 day ago',
+          ? t.activeOneDayAgoHealthy
+          : t.activeOneDayAgo,
       priority: -90,
       isAtRisk: false,
     );
@@ -981,12 +994,12 @@ _MemberRiskSnapshot _memberRiskSnapshot({
 
   return _MemberRiskSnapshot(
     subtitle: attendedLast28Days >= 8
-        ? 'Active $inactiveDays days ago · usually very consistent'
+        ? t.activeDaysAgoVeryConsistent(inactiveDays)
         : attendedLast28Days >= 4
-        ? 'Active $inactiveDays days ago · regular attendance'
+        ? t.activeDaysAgoRegular(inactiveDays)
         : attendedLast28Days >= 1
-        ? 'Active $inactiveDays days ago'
-        : 'Active $inactiveDays days ago · no recent pattern',
+        ? t.activeDaysAgo(inactiveDays)
+        : t.activeDaysAgoNoPattern(inactiveDays),
     priority: -inactiveDays,
     isAtRisk: false,
   );
@@ -997,7 +1010,7 @@ class _MemberRiskSnapshot {
   final int priority;
   final bool isAtRisk;
 
-  const _MemberRiskSnapshot({
+  _MemberRiskSnapshot({
     required this.subtitle,
     required this.priority,
     required this.isAtRisk,

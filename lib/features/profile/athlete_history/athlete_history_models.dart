@@ -40,16 +40,16 @@ class AthleteHistoryEntry {
     this.updatedAt,
   });
 
-  String get statusLabel {
+  String get statusKey {
     switch (status) {
       case AthleteHistoryStatus.attended:
-        return 'Attended';
+        return 'attended';
       case AthleteHistoryStatus.cancelled:
-        return 'Cancelled';
+        return 'cancelled';
       case AthleteHistoryStatus.noShow:
-        return 'No-show';
+        return 'no_show';
       case AthleteHistoryStatus.booked:
-        return 'Missed';
+        return 'missed';
     }
   }
 

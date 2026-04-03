@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../../l10n/app_text.dart';
+
 import '../../../core/supabase/membership_repository.dart';
 import '../../../core/supabase/notification_repository.dart';
 import '../../../core/supabase/supabase_bootstrap.dart';
@@ -102,15 +104,17 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
 
     final memberId = (data.profile['id'] ?? '').toString().trim();
     if (memberId.isEmpty) {
-      _toast('Member not found');
+      _toast(context.appText.memberNotFound);
       return;
     }
 
     final gymId = (data.profile['gym_id'] ?? '').toString().trim();
     if (gymId.isEmpty) {
-      _toast('Gym not found');
+      _toast(context.appText.gymNotFound);
       return;
     }
+
+    final t = context.appText;
 
     List<Map<String, dynamic>> plans;
     try {
@@ -121,7 +125,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     }
 
     if (plans.isEmpty) {
-      _toast('No plans available yet');
+      _toast(t.noPlansAvailableYet);
       return;
     }
 
@@ -260,7 +264,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   AdminMemberDetailSheetActions(
                     busy: saving,
                     primaryText: 'Assign plan',
-                    busyText: 'Saving...',
+                    busyText: context.appText.saving,
                     onCancel: () => Navigator.of(sheetContext).pop(),
                     onPrimary: () async {
                       if (selectedPlanId.trim().isEmpty) return;
@@ -556,8 +560,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   const SizedBox(height: 18),
                   AdminMemberDetailSheetActions(
                     busy: saving,
-                    primaryText: 'Save',
-                    busyText: 'Saving...',
+                    primaryText: context.appText.save,
+                    busyText: context.appText.saving,
                     onCancel: () => Navigator.pop(sheetContext),
                     onPrimary: () async {
                       setLocalState(() => saving = true);
@@ -593,7 +597,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
 
     final memberId = (data.profile['id'] ?? '').toString().trim();
     if (memberId.isEmpty) {
-      _toast('Member not found');
+      _toast(context.appText.memberNotFound);
       return;
     }
 
@@ -669,7 +673,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   AdminMemberDetailSheetActions(
                     busy: saving,
                     primaryText: 'Save changes',
-                    busyText: 'Saving...',
+                    busyText: context.appText.saving,
                     onCancel: () => Navigator.of(sheetContext).pop(),
                     onPrimary: () async {
                       if (fullNameCtrl.text.trim().isEmpty) {
@@ -679,11 +683,13 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
 
                       setLocalState(() => saving = true);
 
+                      final t = context.appText;
+
                       try {
                         final memberGymId =
                             (data.profile['gym_id'] ?? '').toString().trim();
                         if (memberGymId.isEmpty) {
-                          throw Exception('Gym not found');
+                          throw Exception(memberGymId.isEmpty ? t.gymNotFound : t.gymNotFound);
                         }
 
                         await _repo.updateMemberProfile(
@@ -698,7 +704,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                         if (!sheetContext.mounted) return;
                         Navigator.of(sheetContext).pop();
                         await _load();
-                        _toast('Member updated');
+                        _toast(t.memberUpdated);
                       } finally {
                         if (sheetContext.mounted) {
                           setLocalState(() => saving = false);
@@ -810,7 +816,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: action(
-                title: 'Edit',
+                title: context.appText.edit,
                 icon: Icons.edit_outlined,
                 onTap: _showEditMemberSheet,
               ),

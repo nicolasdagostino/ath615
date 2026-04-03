@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../dashboard_models.dart';
 import 'dashboard_alert_tile.dart';
 import 'dashboard_kpi_card.dart';
+import '../../../l10n/app_text.dart';
 
 class DashboardTomorrowRiskSection extends StatelessWidget {
   final DashboardTomorrowStats tomorrow;
@@ -26,19 +27,19 @@ class DashboardTomorrowRiskSection extends StatelessWidget {
       children: [
         twoCards(
           left: DashboardKpiCard(
-            label: 'Classes tomorrow',
+            label: context.appText.classesTomorrow,
             value: tomorrow.classesTomorrow.toString(),
-            helper: 'Scheduled for tomorrow',
+            helper: context.appText.scheduledForTomorrow,
           ),
           right: DashboardKpiCard(
-            label: 'Low occupancy',
+            label: context.appText.lowOccupancy,
             value: tomorrow.lowOccupancyTomorrow.toString(),
-            helper: 'Need promotion or review',
+            helper: context.appText.needPromotionOrReview,
           ),
         ),
         const SizedBox(height: 12),
         if (tomorrow.riskClasses.isEmpty)
-          emptyPanel('Tomorrow looks healthy right now.')
+          emptyPanel(context.appText.tomorrowLooksHealthy)
         else
           Column(
             children: [

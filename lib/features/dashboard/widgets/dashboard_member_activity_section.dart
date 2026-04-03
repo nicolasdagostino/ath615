@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../dashboard_models.dart';
 import 'dashboard_member_activity_tile.dart';
+import '../../../l10n/app_text.dart';
 
 class DashboardMemberActivitySection extends StatelessWidget {
   final List<DashboardMemberActivityItem> items;
@@ -20,7 +21,7 @@ class DashboardMemberActivitySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return emptyPanel('No active member data yet.');
+      return emptyPanel(context.appText.noActiveMemberData);
     }
 
     return Column(

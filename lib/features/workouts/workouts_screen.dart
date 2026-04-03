@@ -8,6 +8,7 @@ import '../../core/supabase/workout_comment_repository.dart';
 import '../../core/supabase/workout_like_repository.dart';
 import '../../core/supabase/workout_repository.dart';
 import '../../core/supabase/profile_repository.dart';
+import '../../l10n/app_text.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/role_guard.dart';
 
@@ -160,7 +161,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _error = 'Could not load workouts';
+        _error = context.appText.couldNotLoadWorkouts;
       });
     } finally {
       if (mounted) {
@@ -384,14 +385,15 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     } catch (_) {}
   }
 
-  String _timeAgo(DateTime dt) {
+  String _timeAgo(BuildContext context, DateTime dt) {
+    final t = context.appText;
     final now = DateTime.now();
     final diff = now.difference(dt);
 
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
-    if (diff.inDays < 1) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    if (diff.inMinutes < 1) return t.justNow;
+    if (diff.inHours < 1) return t.minutesAgoShort(diff.inMinutes);
+    if (diff.inDays < 1) return t.hoursAgoShort(diff.inHours);
+    if (diff.inDays < 7) return t.daysAgoShort(diff.inDays);
     return DateFormat('MMM d').format(dt);
   }
 
@@ -457,7 +459,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                   },
                   decoration: InputDecoration(
                     isDense: true,
-                    hintText: 'Write a comment...',
+                    hintText: context.appText.writeAComment,
                     hintStyle: _font(
                       13,
                       weight: FontWeight.w500,
@@ -483,7 +485,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
         SizedBox(
           width: 108,
           child: _MiniPostButton(
-            text: posting ? '...' : 'Post',
+            text: posting ? '...' : context.appText.post,
             onTap: posting ? () {} : () => _postComment(workoutId),
           ),
         ),
@@ -527,7 +529,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          "TODAY'S WORKOUTS",
+                          context.appText.todaysWorkoutsUpper,
                           style: _font(
                             18,
                             weight: FontWeight.w800,
@@ -795,7 +797,8 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     final workoutId = item['id'].toString();
     final comments = _commentsByWorkout[workoutId] ?? [];
 
-    final program = (item['program_name'] ?? 'Workout').toString();
+    final program = (item['program_name'] ?? context.appText.workout)
+        .toString();
     final author = (item['created_by_name'] ?? 'Athlete 615').toString();
     final dateIso = (item['workout_date'] ?? '').toString();
 
@@ -933,7 +936,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                   icon: isLiked
                       ? Icons.favorite_rounded
                       : Icons.favorite_border_rounded,
-                  label: 'Like',
+                  label: context.appText.like,
                   iconColor: isLiked
                       ? const Color(0xFFE11D48)
                       : const Color(0xFF667085),
@@ -983,7 +986,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                 return _commentBubble(
                   name: name,
                   text: text,
-                  timeAgo: _timeAgo(createdAt),
+                  timeAgo: _timeAgo(context, createdAt),
                   avatarColor: const Color(0xFF0F766E),
                   avatarUrl: avatarUrl,
                 );
@@ -1084,7 +1087,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                         child: Column(
                           children: [
                             Text(
-                              'REST DAY',
+                              context.appText.restDayUpper,
                               textAlign: TextAlign.center,
                               style: _font(
                                 28,
@@ -1095,7 +1098,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                             ),
                             const SizedBox(height: 14),
                             Text(
-                              "Resting is as important as work. Let your mind and body rest, do some mobility and stretching. Don't be tempted to train if you feel good.",
+                              context.appText.restDayMessage,
                               textAlign: TextAlign.center,
                               style: _font(
                                 13,

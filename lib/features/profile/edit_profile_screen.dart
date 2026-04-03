@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../l10n/app_text.dart';
 import '../../core/supabase/avatar_repository.dart';
 import '../../core/supabase/profile_repository.dart';
 import '../../shared/widgets/app_card.dart';
@@ -35,6 +36,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _pickAndUploadAvatar() async {
+    final t = context.appText;
     setState(() => _saving = true);
     try {
       final file = await _avatarRepo.pickImage();
@@ -45,14 +47,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       final url = await _avatarRepo.uploadAvatar(file);
       if (url == null || url.trim().isEmpty) {
-        throw Exception('Could not upload avatar');
+        throw Exception(t.couldNotUploadAvatar);
       }
 
       await _reload();
       if (!mounted) {
         return;
       }
-      _toast('Profile photo updated');
+      _toast(t.profilePhotoUpdated);
     } catch (e) {
       if (!mounted) {
         return;
@@ -135,7 +137,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final sb = Supabase.instance.client;
     final user = sb.auth.currentUser;
     if (user == null) {
-      throw Exception('No authenticated user');
+      throw Exception(context.appText.noAuthenticatedUser);
     }
 
     final payload = <String, dynamic>{};
@@ -382,11 +384,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         _sheetHeader(
                           icon: Icons.person_outline_rounded,
                           title: title,
-                          subtitle: 'Update your account information.',
+                          subtitle: context.appText.updateAccountInformation,
                           onClose: () => Navigator.pop(sheetContext),
                         ),
                         const SizedBox(height: 16),
-                        _sheetSectionTitle('Details'),
+                        _sheetSectionTitle(context.appText.details),
                         const SizedBox(height: 10),
                         Container(
                           width: double.infinity,
@@ -411,13 +413,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               color: const Color(0xFF111318),
                             ),
                             decoration: _sheetInputDecoration(
-                              hintText: 'Enter $title',
+                              hintText: context.appText.enterField(title),
                             ),
                           ),
                         ),
                         const SizedBox(height: 18),
                         _sheetPrimaryButton(
-                          text: 'Save Changes',
+                          text: context.appText.saveChanges,
                           onPressed: () {
                             Navigator.pop(sheetContext, controller.text.trim());
                           },
@@ -442,7 +444,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (!mounted) {
         return;
       }
-      _toast('$title updated');
+      _toast(context.appText.fieldUpdated(title));
     } catch (e) {
       if (!mounted) {
         return;
@@ -481,12 +483,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       const SizedBox(height: 16),
                       _sheetHeader(
                         icon: Icons.event_rounded,
-                        title: 'Date of Birth',
-                        subtitle: 'Choose your birth date.',
+                        title: context.appText.dateOfBirth,
+                        subtitle: context.appText.chooseBirthDate,
                         onClose: () => Navigator.pop(sheetContext),
                       ),
                       const SizedBox(height: 16),
-                      _sheetSectionTitle('Select Date'),
+                      _sheetSectionTitle(context.appText.selectDate),
                       const SizedBox(height: 10),
                       Container(
                         width: double.infinity,
@@ -542,7 +544,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                       const SizedBox(height: 18),
                       _sheetPrimaryButton(
-                        text: 'Save Changes',
+                        text: context.appText.saveChanges,
                         onPressed: () =>
                             Navigator.pop(sheetContext, selectedDate),
                       ),
@@ -571,7 +573,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (!mounted) {
         return;
       }
-      _toast('Date of birth updated');
+      _toast(context.appText.dateOfBirthUpdated);
     } catch (e) {
       if (!mounted) {
         return;
@@ -583,6 +585,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _showChangePasswordSheet() async {
+    final t = context.appText;
     final passwordController = TextEditingController();
     final confirmController = TextEditingController();
 
@@ -626,12 +629,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             const SizedBox(height: 16),
                             _sheetHeader(
                               icon: Icons.lock_outline_rounded,
-                              title: 'Change Password',
-                              subtitle: 'Set a new password for your account.',
+                              title: context.appText.changePassword,
+                              subtitle: context.appText.setNewPasswordSubtitle,
                               onClose: () => Navigator.pop(sheetContext),
                             ),
                             const SizedBox(height: 16),
-                            _sheetSectionTitle('Security'),
+                            _sheetSectionTitle(context.appText.security),
                             const SizedBox(height: 10),
                             Container(
                               width: double.infinity,
@@ -657,7 +660,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       color: const Color(0xFF111318),
                                     ),
                                     decoration: _sheetInputDecoration(
-                                      hintText: 'New password',
+                                      hintText: context.appText.newPassword,
                                       suffixIcon: IconButton(
                                         onPressed: () {
                                           setModalState(
@@ -685,7 +688,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       color: const Color(0xFF111318),
                                     ),
                                     decoration: _sheetInputDecoration(
-                                      hintText: 'Confirm new password',
+                                      hintText: context.appText.confirmNewPassword,
                                       suffixIcon: IconButton(
                                         onPressed: () {
                                           setModalState(
@@ -706,7 +709,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                             const SizedBox(height: 18),
                             _sheetPrimaryButton(
-                              text: 'Update Password',
+                              text: context.appText.updatePassword,
                               onPressed: () {
                                 Navigator.pop(sheetContext, {
                                   'password': passwordController.text,
@@ -733,15 +736,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final confirm = (result['confirm'] ?? '').trim();
 
     if (password.isEmpty || confirm.isEmpty) {
-      _toast('Please complete both password fields');
+      _toast(t.completeBothPasswordFields);
       return;
     }
     if (password.length < 6) {
-      _toast('Password must be at least 6 characters');
+      _toast(t.passwordMinLength);
       return;
     }
     if (password != confirm) {
-      _toast('Passwords do not match');
+      _toast(t.passwordsDoNotMatch);
       return;
     }
 
@@ -753,7 +756,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (!mounted) {
         return;
       }
-      _toast('Password updated');
+      _toast(t.passwordUpdated);
     } catch (e) {
       if (!mounted) {
         return;
@@ -771,6 +774,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.appText;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
@@ -832,7 +836,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      'ACCOUNT',
+                                      t.accountUpper,
                                       style: _font(
                                         17,
                                         weight: FontWeight.w800,
@@ -842,7 +846,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      'PROFILE',
+                                      t.profileUpper,
                                       style: _font(
                                         11,
                                         weight: FontWeight.w500,
@@ -946,7 +950,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               GestureDetector(
                                 onTap: _saving ? null : _pickAndUploadAvatar,
                                 child: Text(
-                                  _saving ? 'UPLOADING...' : 'UPLOAD NEW PHOTO',
+                                  _saving ? t.uploadingUpper : t.uploadNewPhotoUpper,
                                   style: _font(
                                     14,
                                     weight: FontWeight.w700,
@@ -969,24 +973,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         ),
                         const SizedBox(height: 18),
-                        _SectionLabel('PERSONAL'),
+                        _SectionLabel(t.personalUpper),
                         const SizedBox(height: 6),
                         _SectionCard(
                           children: [
                             _AccountRow(
-                              title: 'Full Name',
+                              title: t.fullName,
                               value: fullName,
                               onTap: waiting || _saving
                                   ? null
                                   : () => _editTextField(
-                                      title: 'Full Name',
+                                      title: t.fullName,
                                       fieldKey: 'full_name',
                                       initialValue: fullName,
                                     ),
                             ),
                             const _SectionDivider(),
                             _AccountRow(
-                              title: 'Date of Birth',
+                              title: context.appText.dateOfBirth,
                               value: birthDate,
                               onTap: waiting || _saving
                                   ? null
@@ -995,29 +999,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ],
                         ),
                         const SizedBox(height: 14),
-                        _SectionLabel('SECURITY'),
+                        _SectionLabel(t.securityUpper),
                         const SizedBox(height: 6),
                         _SectionCard(
                           children: [
                             _AccountRow(
-                              title: 'Change Password',
+                              title: context.appText.changePassword,
                               onTap: _saving ? null : _showChangePasswordSheet,
                             ),
                           ],
                         ),
                         const SizedBox(height: 14),
-                        _SectionLabel('APP'),
+                        _SectionLabel(t.appUpper),
                         const SizedBox(height: 6),
-                        const _SectionCard(
-                          children: [_AccountRow(title: 'Settings')],
+                        _SectionCard(
+                          children: [_AccountRow(title: t.settings)],
                         ),
                         const SizedBox(height: 18),
-                        _SectionLabel('DANGER ZONE'),
+                        _SectionLabel(t.dangerZoneUpper),
                         const SizedBox(height: 6),
-                        const _SectionCard(
+                        _SectionCard(
                           children: [
                             _AccountRow(
-                              title: 'Delete Account',
+                              title: t.deleteAccount,
                               danger: true,
                               showChevron: false,
                             ),

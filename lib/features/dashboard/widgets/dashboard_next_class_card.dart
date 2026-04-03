@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_text.dart';
 
 class DashboardNextClassCard extends StatelessWidget {
   final String title;
@@ -68,7 +69,7 @@ class DashboardNextClassCard extends StatelessWidget {
                 ),
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'NEXT CLASS',
+                  context.appText.nextClassUpper,
                   style: GoogleFonts.barlowCondensed(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -109,7 +110,9 @@ class DashboardNextClassCard extends StatelessWidget {
                     fg: const Color(0xFF064BB3),
                   ),
                   _pill(
-                    hasWorkout ? 'Workout assigned' : 'Workout missing',
+                    hasWorkout
+                        ? context.appText.workoutAssigned
+                        : context.appText.workoutMissing,
                     bg: hasWorkout
                         ? const Color(0xFFDDF5E5)
                         : const Color(0xFFFEE4E2),

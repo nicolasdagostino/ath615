@@ -2,6 +2,7 @@ part of 'admin_screen.dart';
 
 extension _AdminScreenProgramModal on _AdminScreenState {
   void _showProgramModal({Map<String, dynamic>? item}) {
+    final t = context.appText;
     final isEdit = item != null;
     final nameCtrl = TextEditingController(
       text: item?['name']?.toString() ?? '',
@@ -109,7 +110,7 @@ extension _AdminScreenProgramModal on _AdminScreenState {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    isEdit ? 'Edit Program' : 'Create Program',
+                                    isEdit ? t.editProgram : t.createProgramTitle,
                                     style: _font(
                                       24,
                                       weight: FontWeight.w800,
@@ -120,8 +121,8 @@ extension _AdminScreenProgramModal on _AdminScreenState {
                                   const SizedBox(height: 2),
                                   Text(
                                     isEdit
-                                        ? 'Update the program details.'
-                                        : 'Add a new training program for your gym.',
+                                        ? t.updateProgramDetails
+                                        : t.addProgramForGym,
                                     style: _font(
                                       13,
                                       weight: FontWeight.w500,
@@ -166,14 +167,14 @@ extension _AdminScreenProgramModal on _AdminScreenState {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               styledField(
-                                label: 'Program Name',
+                                label: t.programName,
                                 controller: nameCtrl,
                                 hint: 'CrossFit',
                                 textInputAction: TextInputAction.next,
                               ),
                               const SizedBox(height: 12),
                               styledField(
-                                label: 'Short Description',
+                                label: t.shortDescription,
                                 controller: descriptionCtrl,
                                 hint:
                                     'Functional fitness, conditioning and strength',
@@ -188,7 +189,7 @@ extension _AdminScreenProgramModal on _AdminScreenState {
                           children: [
                             Expanded(
                               child: SecondaryButton(
-                                text: 'Cancel',
+                                text: t.cancel,
                                 compact: true,
                                 radius: 16,
                                 textStyle: _font(
@@ -204,8 +205,8 @@ extension _AdminScreenProgramModal on _AdminScreenState {
                             Expanded(
                               child: PrimaryButton(
                                 text: isEdit
-                                    ? 'Save Changes'
-                                    : 'Create Program',
+                                    ? t.saveChanges
+                                    : t.createProgramTitle,
                                 compact: true,
                                 radius: 16,
                                 backgroundColor: const Color(0xFFB59B6A),
@@ -229,7 +230,7 @@ extension _AdminScreenProgramModal on _AdminScreenState {
                                         name: nameCtrl.text,
                                         description: descriptionCtrl.text,
                                       ),
-                                      successMessage: 'Program updated',
+                                      successMessage: t.programUpdated,
                                     );
                                   } else {
                                     await _runAdminAction(
@@ -237,7 +238,7 @@ extension _AdminScreenProgramModal on _AdminScreenState {
                                         name: nameCtrl.text,
                                         description: descriptionCtrl.text,
                                       ),
-                                      successMessage: 'Program created',
+                                      successMessage: t.programCreated,
                                     );
                                   }
 

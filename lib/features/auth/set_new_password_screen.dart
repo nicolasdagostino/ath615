@@ -6,6 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/supabase/supabase_bootstrap.dart';
 import '../../shared/widgets/input_field.dart';
 import '../../shared/widgets/primary_button.dart';
+import '../../l10n/app_text.dart';
 
 class SetNewPasswordScreen extends StatefulWidget {
   const SetNewPasswordScreen({super.key});
@@ -201,7 +202,7 @@ class _SetNewPasswordScreenState extends State<SetNewPasswordScreen> {
                 ),
                 const SizedBox(height: 34),
                 Text(
-                  'SET NEW PASSWORD',
+                  context.appText.setNewPasswordTitle,
                   style: _font(
                     28,
                     weight: FontWeight.w800,
@@ -211,7 +212,7 @@ class _SetNewPasswordScreenState extends State<SetNewPasswordScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Create a new password to recover access to your account.',
+                  context.appText.setNewPasswordSubtitle,
                   style: _font(
                     16,
                     weight: FontWeight.w500,
@@ -222,8 +223,8 @@ class _SetNewPasswordScreenState extends State<SetNewPasswordScreen> {
                 ),
                 const SizedBox(height: 28),
                 _authInput(
-                  label: 'New password',
-                  hint: 'Enter new password',
+                  label: context.appText.newPassword,
+                  hint: context.appText.enterNewPassword,
                   controller: _passCtrl,
                   obscure: _obscurePassword,
                   onToggle: () {
@@ -234,8 +235,8 @@ class _SetNewPasswordScreenState extends State<SetNewPasswordScreen> {
                 ),
                 const SizedBox(height: 16),
                 _authInput(
-                  label: 'Confirm password',
-                  hint: 'Repeat new password',
+                  label: context.appText.confirmPasswordLabel,
+                  hint: context.appText.repeatNewPassword,
                   controller: _confirmCtrl,
                   obscure: _obscureConfirm,
                   onToggle: () {
@@ -247,7 +248,7 @@ class _SetNewPasswordScreenState extends State<SetNewPasswordScreen> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'Use at least 6 characters.',
+                  context.appText.useAtLeast6Chars,
                   style: _font(
                     14,
                     weight: FontWeight.w500,
@@ -267,7 +268,7 @@ class _SetNewPasswordScreenState extends State<SetNewPasswordScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: PrimaryButton(
-                    text: 'UPDATE PASSWORD',
+                    text: context.appText.updatePasswordCta,
                     onPressed: canSubmit ? _save : null,
                     height: 56,
                     radius: 16,

@@ -2,6 +2,7 @@ part of 'admin_screen.dart';
 
 extension _AdminScreenClassModal on _AdminScreenState {
   void _showClassModal({Map<String, dynamic>? item}) {
+    final t = context.appText;
     final isEdit = item != null;
 
     String selectedProgramId = isEdit
@@ -163,7 +164,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Select Date',
+                            t.selectDate,
                             style: _font(
                               15,
                               weight: FontWeight.w800,
@@ -243,7 +244,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                 ),
                               ),
                               child: Text(
-                                'Save Changes',
+                                t.saveChanges,
                                 style: _font(
                                   16,
                                   weight: FontWeight.w700,
@@ -556,7 +557,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                 ),
                               ),
                               child: Text(
-                                'Save Changes',
+                                t.saveChanges,
                                 style: _font(
                                   16,
                                   weight: FontWeight.w700,
@@ -837,7 +838,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                     initialValue: selectedProgramId.isEmpty
                                         ? null
                                         : selectedProgramId,
-                                    decoration: dropdownDecoration('Program'),
+                                    decoration: dropdownDecoration(t.program),
                                     borderRadius: BorderRadius.circular(16),
                                     dropdownColor: Colors.white,
                                     iconEnabledColor: const Color(0xFF667085),
@@ -851,7 +852,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                           (p) => DropdownMenuItem<String>(
                                             value: p['id'].toString(),
                                             child: Text(
-                                              (p['name'] ?? 'Program')
+                                              (p['name'] ?? t.program)
                                                   .toString(),
                                               style: _font(
                                                 13,
@@ -868,7 +869,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                             (p) => Align(
                                               alignment: Alignment.centerLeft,
                                               child: Text(
-                                                (p['name'] ?? 'Program')
+                                                (p['name'] ?? t.program)
                                                     .toString(),
                                                 style: _font(
                                                   13,
@@ -1078,7 +1079,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                       children: [
                                         Expanded(
                                           child: Text(
-                                            'Recurring schedule',
+                                            t.recurringScheduleTitle,
                                             style: _font(
                                               15,
                                               weight: FontWeight.w800,
@@ -1451,7 +1452,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                               children: [
                                 Expanded(
                                   child: SecondaryButton(
-                                    text: 'Cancel',
+                                    text: context.appText.cancel,
                                     compact: true,
                                     radius: 16,
                                     textStyle: _font(
@@ -1467,7 +1468,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                 Expanded(
                                   child: PrimaryButton(
                                     text: isEdit
-                                        ? 'Save Changes'
+                                        ? t.saveChanges
                                         : recurrenceEnabled
                                         ? 'Create Schedule'
                                         : 'Schedule Class',
@@ -1520,7 +1521,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                             location: locationCtrl.text,
                                           ),
                                           successMessage:
-                                              'Recurring schedule created',
+                                              t.recurringScheduleCreated,
                                         );
                                       } else {
                                         await _runAdminAction(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../dashboard_models.dart';
+import '../../../l10n/app_text.dart';
 
 class DashboardMilestonesCard extends StatelessWidget {
   final List<DashboardMilestoneItem> items;
@@ -60,7 +61,7 @@ class DashboardMilestonesCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Milestones',
+                      context.appText.milestonesTitle,
                       style: GoogleFonts.barlowCondensed(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
@@ -71,7 +72,7 @@ class DashboardMilestonesCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Attendance wins worth celebrating.',
+                      context.appText.milestonesSubtitle,
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
@@ -87,7 +88,7 @@ class DashboardMilestonesCard extends StatelessWidget {
           const SizedBox(height: 16),
           if (items.isEmpty)
             Text(
-              'No nearby milestones yet.',
+              context.appText.noNearbyMilestones,
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,

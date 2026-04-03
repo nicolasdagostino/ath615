@@ -7,6 +7,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/supabase/auth_repository.dart';
 import '../../shared/widgets/input_field.dart';
 import '../../shared/widgets/primary_button.dart';
+import '../../l10n/app_text.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -190,7 +191,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           ),
                           const SizedBox(height: 26),
                           Text(
-                            'FORGOT YOUR PASSWORD?',
+                            context.appText.forgotPasswordTitle,
                             style: _font(
                               28,
                               weight: FontWeight.w800,
@@ -200,7 +201,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Enter your email to restore access.',
+                            context.appText.forgotPasswordSubtitle,
                             style: _font(
                               16,
                               weight: FontWeight.w500,
@@ -223,7 +224,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: PrimaryButton(
-                              text: 'RESTORE PASSWORD',
+                              text: context.appText.restorePassword,
                               onPressed: canSubmit ? _sendReset : null,
                               height: 56,
                               radius: 16,
@@ -245,7 +246,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             child: GestureDetector(
                               onTap: () => Navigator.of(context).pop(),
                               child: Text(
-                                'BACK',
+                                context.appText.back,
                                 style: _font(
                                   15,
                                   weight: FontWeight.w800,

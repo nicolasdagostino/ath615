@@ -1,3 +1,4 @@
+import '../../l10n/app_strings.dart';
 import '../../core/supabase/gym_repository.dart';
 import 'dashboard_builders.dart';
 import 'dashboard_loaders.dart';
@@ -11,7 +12,7 @@ class DashboardRepository {
     : _gymRepository = gymRepository ?? GymRepository(),
       _loaders = loaders ?? DashboardLoaders();
 
-  Future<DashboardData> loadDashboard() async {
+  Future<DashboardData> loadDashboard({required AppStrings t}) async {
     final gymId = await _gymRepository.resolveGymId();
 
     final members = await _loaders.loadMemberRows(gymId);
@@ -39,28 +40,33 @@ class DashboardRepository {
     final tomorrowStats = dashboardBuildTomorrowStats(
       classesTomorrow,
       bookings,
+      t,
     );
-    final memberActivity = dashboardBuildMemberActivity(members, bookings);
+    final memberActivity = dashboardBuildMemberActivity(members, bookings, t);
     final alerts = dashboardBuildAlerts(
       members: members,
       classesToday: classesToday,
       bookings: bookings,
+      t: t,
     );
     final nextClass = dashboardBuildNextClass(
       classesToday,
       classesTomorrow,
       bookings,
+      t,
     );
     final workoutStatus = dashboardBuildWorkoutStatus(
       classesToday: classesToday,
       todayWorkouts: todayWorkouts,
+      t: t,
     );
     final pendingAttendance = dashboardBuildPendingAttendance(bookings);
     final todayHighlights = dashboardBuildTodayHighlights(
       members: members,
       workoutStatus: workoutStatus,
+      t: t,
     );
-    final milestones = dashboardBuildMilestones(members, bookings);
+    final milestones = dashboardBuildMilestones(members, bookings, t);
     final recommendedActions = dashboardBuildRecommendedActions(
       tomorrow: tomorrowStats,
       memberActivity: memberActivity,
@@ -69,6 +75,7 @@ class DashboardRepository {
       pendingAttendance: pendingAttendance,
       todayHighlights: todayHighlights,
       today: todayStats,
+      t: t,
     );
 
     return DashboardData(

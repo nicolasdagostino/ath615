@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../l10n/app_text.dart';
+
 import '../../core/supabase/class_attendance_repository.dart';
 import '../../shared/widgets/app_card.dart';
 
@@ -156,6 +158,7 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.appText;
     final title = (widget.classItem['title'] ?? '').toString();
     final program = (widget.classItem['program_name'] ?? 'Class').toString();
     final coach = (widget.classItem['coach_name'] ?? 'TBD').toString();
@@ -451,7 +454,7 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                                   if (status != 'attended' &&
                                       _canMarkAttended())
                                     _ActionButton(
-                                      label: 'Mark attended',
+                                      label: t.markAttended,
                                       backgroundColor: const Color(0xFFEAF6EE),
                                       textColor: const Color(0xFF3D8D5C),
                                       borderColor: const Color(0xFFD6ECDD),
@@ -461,7 +464,7 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                                     ),
                                   if (status != 'booked')
                                     _ActionButton(
-                                      label: 'Set booked',
+                                      label: t.setBooked,
                                       backgroundColor: const Color(0xFFF7F3EA),
                                       textColor: const Color(0xFFB59B6A),
                                       borderColor: const Color(0xFFE8DDC8),
@@ -471,7 +474,7 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                                     ),
                                   if (status != 'cancelled')
                                     _ActionButton(
-                                      label: 'Cancel',
+                                      label: t.cancel,
                                       backgroundColor: const Color(0xFFFDECEC),
                                       textColor: const Color(0xFFC65F5F),
                                       borderColor: const Color(0xFFF3D6D6),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../dashboard_models.dart';
 import 'dashboard_alert_tile.dart';
+import '../../../l10n/app_text.dart';
 
 class DashboardAlertsSection extends StatelessWidget {
   final List<DashboardAlertItem> alerts;
@@ -18,7 +19,7 @@ class DashboardAlertsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (alerts.isEmpty) {
-      return emptyPanel('No urgent alerts right now.');
+      return emptyPanel(context.appText.noUrgentAlerts);
     }
 
     return Column(

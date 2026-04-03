@@ -5,6 +5,7 @@ import '../dashboard_models.dart';
 import 'dashboard_milestones_card.dart';
 import 'dashboard_next_class_card.dart';
 import 'dashboard_today_highlights_card.dart';
+import '../../../l10n/app_text.dart';
 
 class DashboardMorningOverview extends StatelessWidget {
   final DashboardNextClassItem? nextClass;
@@ -61,7 +62,7 @@ class DashboardMorningOverview extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Morning Overview',
+                        context.appText.morningOverviewTitle,
                         style: GoogleFonts.barlowCondensed(
                           fontSize: 26,
                           fontWeight: FontWeight.w800,
@@ -72,7 +73,7 @@ class DashboardMorningOverview extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'The first things an owner checks.',
+                        context.appText.morningOverviewSubtitle,
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -93,7 +94,7 @@ class DashboardMorningOverview extends StatelessWidget {
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    'TODAY',
+                    context.appText.todayUpper,
                     style: GoogleFonts.barlowCondensed(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,

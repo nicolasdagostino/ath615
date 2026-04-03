@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../shared/widgets/app_card.dart';
 import '../athlete_history_models.dart';
+import '../../../../l10n/app_text.dart';
 
 class AthleteHistoryListItem extends StatelessWidget {
   final AthleteHistoryEntry item;
@@ -41,6 +42,7 @@ class AthleteHistoryListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.appText;
     final day = DateFormat('EEE, d MMM').format(item.classStartsAt);
     final time = DateFormat('HH:mm').format(item.classStartsAt);
     final colors = _statusColors(item.status);
@@ -71,7 +73,13 @@ class AthleteHistoryListItem extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  item.statusLabel,
+                  switch (item.statusKey) {
+                          'attended' => t.attended,
+                          'cancelled' => t.cancelled,
+                          'no_show' => t.noShow,
+                          'missed' => t.missed,
+                          _ => item.statusKey,
+                        },
                   style: _font(
                     13,
                     weight: FontWeight.w700,

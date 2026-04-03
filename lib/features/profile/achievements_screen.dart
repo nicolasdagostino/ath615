@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/supabase/achievement_repository.dart';
+import '../../l10n/app_text.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/input_field.dart';
 import '../../shared/widgets/primary_button.dart';
@@ -233,7 +234,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       await _repo.deletePr(id);
       await _load();
       if (!mounted) return;
-      _toast('Record deleted');
+      _toast(context.appText.recordDeleted);
     } catch (e) {
       if (!mounted) return;
       _toast(e.toString().replaceFirst('Exception: ', ''), isError: true);
@@ -297,7 +298,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Date',
+                                    context.appText.dateLabel,
                                     style: _font(
                                       24,
                                       weight: FontWeight.w800,
@@ -307,7 +308,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    'Choose the record date.',
+                                    context.appText.chooseRecordDate,
                                     style: _font(
                                       13,
                                       weight: FontWeight.w500,
@@ -341,7 +342,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Select Date',
+                          context.appText.selectDate,
                           style: _font(
                             15,
                             weight: FontWeight.w800,
@@ -418,7 +419,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                               ),
                             ),
                             child: Text(
-                              'Save Changes',
+                              context.appText.saveChanges,
                               style: _font(
                                 16,
                                 weight: FontWeight.w700,
@@ -446,16 +447,16 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   }
 
   void _showCreatePrModal() {
-    _showRecordModal(title: 'Add Record', primaryText: 'Create');
+    _showRecordModal(title: context.appText.addRecord, primaryText: context.appText.create);
   }
 
   void _showEditPrModal(Map<String, dynamic> item) {
-    _showRecordModal(title: 'Edit Record', primaryText: 'Update', item: item);
+    _showRecordModal(title: context.appText.editRecord, primaryText: context.appText.update, item: item);
   }
 
   void _showPrActions(Map<String, dynamic> item) {
-    final tag = (item['category'] ?? 'Record').toString();
-    final title = (item['movement'] ?? 'Record').toString();
+    final tag = (item['category'] ?? context.appText.record).toString();
+    final title = (item['movement'] ?? context.appText.record).toString();
     final value = _recordValue(item);
 
     Widget actionTile({
@@ -616,7 +617,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    'Record actions',
+                    context.appText.recordActions,
                     style: GoogleFonts.barlowCondensed(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -626,8 +627,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                   const SizedBox(height: 10),
                   actionTile(
                     icon: Icons.edit_rounded,
-                    title: 'Edit record',
-                    subtitle: 'Update movement, score and date',
+                    title: context.appText.editRecord,
+                    subtitle: context.appText.updateMovementScoreDate,
                     iconBg: const Color(0xFFF7F3EA),
                     iconColor: const Color(0xFFB59B6A),
                     onTap: () {
@@ -638,8 +639,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                   const SizedBox(height: 10),
                   actionTile(
                     icon: Icons.delete_outline_rounded,
-                    title: 'Delete record',
-                    subtitle: 'Remove this record from your profile',
+                    title: context.appText.deleteRecord,
+                    subtitle: context.appText.removeRecordFromProfile,
                     iconBg: const Color(0xFFFEE4E2),
                     iconColor: const Color(0xFFE11D48),
                     titleColor: const Color(0xFFE11D48),
@@ -783,7 +784,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                   child: Column(
                                     children: [
                                       Text(
-                                        'RECORDS',
+                                        context.appText.recordsUpper,
                                         textAlign: TextAlign.center,
                                         style: GoogleFonts.barlowCondensed(
                                           fontSize: 18,
@@ -848,7 +849,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                 children: [
                                   DropdownButtonFormField<String>(
                                     initialValue: selectedCategory,
-                                    decoration: dropDeco('Category'),
+                                    decoration: dropDeco(context.appText.category),
                                     items: _categories
                                         .map(
                                           (c) => DropdownMenuItem<String>(
@@ -889,10 +890,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                     initialValue: movementCtrl.text.trim(),
                                     decoration: dropDeco(
                                       selectedCategory == 'Strength'
-                                          ? 'Movement'
+                                          ? context.appText.movement
                                           : (selectedCategory == 'Benchmark'
-                                                ? 'Benchmark'
-                                                : 'Open Workout'),
+                                                ? context.appText.benchmark
+                                                : context.appText.openWorkout),
                                     ),
                                     items: options
                                         .map(
@@ -927,7 +928,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                   const SizedBox(height: 12),
                                   if (isStrength)
                                     InputField(
-                                      label: 'Weight (kg)',
+                                      label: context.appText.weightKg,
                                       controller: weightCtrl,
                                       hint: '100',
                                       keyboardType:
@@ -968,7 +969,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                     )
                                   else
                                     InputField(
-                                      label: 'Score',
+                                      label: context.appText.score,
                                       controller: scoreCtrl,
                                       hint: '7:32',
                                       fillColor: Colors.white,
@@ -1006,7 +1007,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                     },
                                     child: AbsorbPointer(
                                       child: InputField(
-                                        label: 'Date',
+                                        label: context.appText.dateLabel,
                                         textStyle: _font(
                                           16,
                                           weight: FontWeight.w600,
@@ -1035,9 +1036,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                   ),
                                   const SizedBox(height: 12),
                                   InputField(
-                                    label: 'Notes',
+                                    label: context.appText.notes,
                                     controller: notesCtrl,
-                                    hint: 'Optional notes',
+                                    hint: context.appText.optionalNotes,
                                     maxLines: 4,
                                     fillColor: Colors.white,
                                     borderColor: const Color(0xFFE2E8F0),
@@ -1071,7 +1072,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                               children: [
                                 Expanded(
                                   child: SecondaryButton(
-                                    text: 'Cancel',
+                                    text: context.appText.cancel,
                                     radius: 18,
                                     height: 58,
                                     backgroundColor: const Color(0xFFE5E7EB),
@@ -1089,8 +1090,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                 Expanded(
                                   child: PrimaryButton(
                                     text: primaryText == 'Create'
-                                        ? 'Create Record'
-                                        : 'Update Record',
+                                        ? context.appText.createRecord
+                                        : context.appText.updateRecord,
                                     radius: 18,
                                     height: 58,
                                     backgroundColor: const Color(0xFFB59B6A),
@@ -1104,13 +1105,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                       letterSpacing: -0.1,
                                     ),
                                     onPressed: () async {
+                                      final t = context.appText;
                                       final movement = movementCtrl.text.trim();
                                       final achievedOn = dateCtrl.text.trim();
                                       final notes = notesCtrl.text.trim();
 
                                       if (movement.isEmpty) {
                                         _toast(
-                                          'Movement is required',
+                                          t.movementRequired,
                                           isError: true,
                                         );
                                         return;
@@ -1118,7 +1120,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
                                       if (achievedOn.isEmpty) {
                                         _toast(
-                                          'Date is required',
+                                          t.dateRequired,
                                           isError: true,
                                         );
                                         return;
@@ -1131,7 +1133,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                           );
                                           if (weight == null) {
                                             throw Exception(
-                                              'Enter a valid weight in kg',
+                                              t.validWeightRequired,
                                             );
                                           }
 
@@ -1165,7 +1167,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                           final score = scoreCtrl.text.trim();
                                           if (score.isEmpty) {
                                             throw Exception(
-                                              'Score is required',
+                                              t.scoreRequired,
                                             );
                                           }
 
@@ -1203,8 +1205,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                         if (!mounted) return;
                                         _toast(
                                           isEdit
-                                              ? 'Record updated'
-                                              : 'Record created',
+                                              ? t.recordUpdated
+                                              : t.recordCreated,
                                         );
                                       } catch (e) {
                                         if (!mounted) return;
@@ -1236,8 +1238,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   }
 
   Widget _prCard(Map<String, dynamic> item) {
-    final tag = (item['category'] ?? 'Record').toString();
-    final title = (item['movement'] ?? 'Record').toString();
+    final tag = (item['category'] ?? context.appText.record).toString();
+    final title = (item['movement'] ?? context.appText.record).toString();
     final value = _recordValue(item);
 
     return AppCard(
@@ -1301,7 +1303,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
   Widget _milestoneCard(Map<String, dynamic> item) {
     final emoji = (item['emoji'] ?? '🏅').toString();
-    final title = (item['title'] ?? 'Achievement').toString();
+    final title = (item['title'] ?? context.appText.achievement).toString();
     final subtitle = (item['subtitle'] ?? '').toString();
     final date = _formatDate(item['awarded_on']);
 
@@ -1391,7 +1393,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'RECORDS',
+                              context.appText.recordsUpper,
                               style: _font(
                                 17,
                                 weight: FontWeight.w800,

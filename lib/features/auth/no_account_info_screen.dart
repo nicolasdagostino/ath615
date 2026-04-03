@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../shared/widgets/primary_button.dart';
+import '../../l10n/app_text.dart';
 import 'register_screen.dart';
 
 class NoAccountInfoScreen extends StatelessWidget {
@@ -188,7 +189,7 @@ class NoAccountInfoScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 28),
                         Text(
-                          "DON'T HAVE AN ACCOUNT?",
+                          context.appText.noAccountTitle,
                           style: _font(
                             28,
                             weight: FontWeight.w800,
@@ -198,7 +199,7 @@ class NoAccountInfoScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 14),
                         Text(
-                          'ATH615 access is designed for athletes registered in one of our training programs.',
+                          context.appText.noAccountSubtitle1,
                           style: _font(
                             16,
                             weight: FontWeight.w500,
@@ -209,7 +210,7 @@ class NoAccountInfoScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 18),
                         Text(
-                          'You can request access or create your account to start booking classes, following workouts and using the full Athlete Lab experience.',
+                          context.appText.noAccountSubtitle2,
                           style: _font(
                             16,
                             weight: FontWeight.w500,
@@ -222,7 +223,7 @@ class NoAccountInfoScreen extends StatelessWidget {
                         SizedBox(
                           width: double.infinity,
                           child: PrimaryButton(
-                            text: 'CREATE ACCOUNT',
+                            text: context.appText.createAccountTitle,
                             onPressed: () => _openRegister(context),
                             height: 56,
                             radius: 16,
@@ -244,7 +245,7 @@ class NoAccountInfoScreen extends StatelessWidget {
                           child: GestureDetector(
                             onTap: () => Navigator.of(context).pop(),
                             child: Text(
-                              'BACK',
+                              context.appText.back,
                               style: _font(
                                 15,
                                 weight: FontWeight.w800,

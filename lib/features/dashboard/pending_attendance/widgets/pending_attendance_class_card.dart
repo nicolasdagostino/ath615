@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../shared/widgets/app_card.dart';
 import '../pending_attendance_models.dart';
+import '../../../../l10n/app_text.dart';
 
 class PendingAttendanceClassCard extends StatelessWidget {
   final PendingAttendanceClassItem item;
@@ -31,10 +32,7 @@ class PendingAttendanceClassCard extends StatelessWidget {
     );
   }
 
-  Widget _chip({
-    required IconData icon,
-    required String label,
-  }) {
+  Widget _chip({required IconData icon, required String label}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
@@ -116,13 +114,16 @@ class PendingAttendanceClassCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF7F3EA),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    '${item.bookedCount} pending',
+                    context.appText.pendingCount(item.bookedCount),
                     style: _font(
                       13,
                       weight: FontWeight.w700,
@@ -139,19 +140,23 @@ class PendingAttendanceClassCard extends StatelessWidget {
               children: [
                 _chip(
                   icon: Icons.timer_outlined,
-                  label: '${item.durationMinutes} min',
+                  label: context.appText.durationMinutesLabel(
+                    item.durationMinutes,
+                  ),
                 ),
                 _chip(
                   icon: Icons.person_outline_rounded,
-                  label: item.coachName.isEmpty ? 'Coach: TBD' : 'Coach: ${item.coachName}',
+                  label: item.coachName.isEmpty
+                      ? context.appText.coachTbd
+                      : context.appText.coachLabel(item.coachName),
                 ),
                 _chip(
                   icon: Icons.event_available_outlined,
-                  label: 'Booked: ${item.bookedCount}',
+                  label: context.appText.bookedCountLabel(item.bookedCount),
                 ),
                 _chip(
                   icon: Icons.check_circle_outline,
-                  label: 'Attended: ${item.attendedCount}',
+                  label: context.appText.attendedCountLabel(item.attendedCount),
                 ),
               ],
             ),

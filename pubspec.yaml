@@ -8,6 +8,9 @@ environment:
   sdk: ^3.10.8
 
 dependencies:
+  flutter_localizations:
+    sdk: flutter
+  shared_preferences: ^2.5.4
   path: ^1.9.0
   google_fonts: ^8.0.2
   image_picker: ^1.1.2

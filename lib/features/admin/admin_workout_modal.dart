@@ -2,6 +2,7 @@ part of 'admin_screen.dart';
 
 extension _AdminScreenWorkoutModal on _AdminScreenState {
   void _showWorkoutModal({Map<String, dynamic>? item}) {
+    final t = context.appText;
     final isEdit = item != null;
 
     String selectedProgramId = isEdit
@@ -132,7 +133,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Select Date',
+                            t.selectDate,
                             style: _font(
                               15,
                               weight: FontWeight.w800,
@@ -210,7 +211,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                 ),
                               ),
                               child: Text(
-                                'Save Changes',
+                                t.saveChanges,
                                 style: _font(
                                   16,
                                   weight: FontWeight.w700,
@@ -385,7 +386,9 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    isEdit ? 'Edit Workout' : 'Create Workout',
+                                    isEdit
+                                        ? t.editWorkoutModalTitle
+                                        : t.createWorkoutModalTitle,
                                     style: _font(
                                       24,
                                       weight: FontWeight.w800,
@@ -447,7 +450,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                 initialValue: selectedProgramId.isEmpty
                                     ? null
                                     : selectedProgramId,
-                                decoration: dropdownDecoration('Program'),
+                                decoration: dropdownDecoration(t.program),
                                 borderRadius: BorderRadius.circular(16),
                                 dropdownColor: Colors.white,
                                 iconEnabledColor: const Color(0xFF667085),
@@ -472,7 +475,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                     return DropdownMenuItem<String>(
                                       value: p['id'].toString(),
                                       child: Text(
-                                        (p['name'] ?? 'Program').toString(),
+                                        (p['name'] ?? t.program).toString(),
                                         style: _font(
                                           13,
                                           weight: FontWeight.w500,
@@ -487,7 +490,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                     'No program',
                                     ..._programs.map(
                                       (p) =>
-                                          (p['name'] ?? 'Program').toString(),
+                                          (p['name'] ?? t.program).toString(),
                                     ),
                                   ];
                                   return labels
@@ -555,7 +558,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        sectionTitle('Workout image'),
+                        sectionTitle(t.workoutImageSection),
                         const SizedBox(height: 10),
                         InkWell(
                           borderRadius: BorderRadius.circular(22),
@@ -611,7 +614,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                                 ),
                                                 const SizedBox(height: 10),
                                                 Text(
-                                                  'Tap to choose image',
+                                                  t.tapToChooseImage,
                                                   style: _font(
                                                     13,
                                                     weight: FontWeight.w500,
@@ -631,7 +634,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                           children: [
                             Expanded(
                               child: SecondaryButton(
-                                text: 'Cancel',
+                                text: context.appText.cancel,
                                 compact: true,
                                 radius: 16,
                                 textStyle: _font(
@@ -649,8 +652,8 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                 text: uploading
                                     ? 'Uploading...'
                                     : (isEdit
-                                          ? 'Save Changes'
-                                          : 'Create Workout'),
+                                          ? t.saveChanges
+                                          : t.createWorkoutModalTitle),
                                 compact: true,
                                 radius: 16,
                                 backgroundColor: const Color(0xFFB59B6A),

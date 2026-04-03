@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/supabase/notification_repository.dart';
+import '../../l10n/app_text.dart';
 import '../../shared/widgets/app_card.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -104,16 +105,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   int get _unreadCount =>
       _items.where((item) => item['is_read'] != true).length;
 
-  String _timeLabel(String? raw) {
+  String _timeLabel(BuildContext context, String? raw) {
+    final t = context.appText;
     final parsed = raw == null ? null : DateTime.tryParse(raw)?.toLocal();
-    if (parsed == null) return 'Just now';
+    if (parsed == null) return t.justNow;
 
     final diff = DateTime.now().difference(parsed);
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
-    if (diff.inHours < 24) return '${diff.inHours} h ago';
-    if (diff.inDays == 1) return '1 day ago';
-    if (diff.inDays < 7) return '${diff.inDays} days ago';
+    if (diff.inMinutes < 1) return t.justNow;
+    if (diff.inMinutes < 60) return t.minutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return t.hoursAgo(diff.inHours);
+    if (diff.inDays == 1) return t.oneDayAgo;
+    if (diff.inDays < 7) return t.daysAgo(diff.inDays);
     return '${parsed.day}/${parsed.month}/${parsed.year}';
   }
 
@@ -146,20 +148,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return const Color(0xFF667085);
   }
 
-  String _title(Map<String, dynamic> item) {
+  String _title(BuildContext context, Map<String, dynamic> item) {
     final notification = Map<String, dynamic>.from(
       (item['notifications'] as Map?) ?? const {},
     );
     final value = (notification['title'] ?? '').toString().trim();
-    return value.isEmpty ? 'Notification' : value;
+    return value.isEmpty ? context.appText.notification : value;
   }
 
-  String _message(Map<String, dynamic> item) {
+  String _message(BuildContext context, Map<String, dynamic> item) {
     final notification = Map<String, dynamic>.from(
       (item['notifications'] as Map?) ?? const {},
     );
     final value = (notification['message'] ?? '').toString().trim();
-    return value.isEmpty ? 'No details available.' : value;
+    return value.isEmpty ? context.appText.noDetailsAvailable : value;
   }
 
   String _type(Map<String, dynamic> item) {
@@ -169,7 +171,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return (notification['type'] ?? '').toString().trim().toLowerCase();
   }
 
-  Widget _summaryCard() {
+  Widget _summaryCard(BuildContext context) {
+    final t = context.appText;
     final unread = _unreadCount;
     final hasUnread = unread > 0;
 
@@ -195,7 +198,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
           const SizedBox(width: 8),
           Text(
-            hasUnread ? '$unread unread notifications' : 'All caught up',
+            hasUnread ? t.unreadNotifications(unread) : t.allCaughtUp,
             style: _font(
               13,
               weight: FontWeight.w700,
@@ -209,14 +212,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _emptyState() {
+  Widget _emptyState(BuildContext context) {
+    final t = context.appText;
     return AppCard(
       padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'No notifications yet',
+            t.noNotificationsYet,
             style: _font(
               20,
               weight: FontWeight.w800,
@@ -226,7 +230,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Your gym updates, milestones, reminders and announcements will appear here.',
+            t.notificationsEmptySubtitle,
             style: _font(
               14,
               weight: FontWeight.w500,
@@ -239,14 +243,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _errorState() {
+  Widget _errorState(BuildContext context) {
+    final t = context.appText;
     return AppCard(
       padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Could not load notifications',
+            t.couldNotLoadNotifications,
             style: _font(
               20,
               weight: FontWeight.w800,
@@ -256,7 +261,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            _error ?? 'Unknown error',
+            _error ?? t.unknownError,
             style: _font(
               14,
               weight: FontWeight.w500,
@@ -265,13 +270,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          FilledButton(onPressed: _load, child: const Text('Retry')),
+          FilledButton(onPressed: _load, child: Text(t.retry)),
         ],
       ),
     );
   }
 
-  Widget _body() {
+  Widget _body(BuildContext context) {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -281,12 +286,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
         children: [
-          _summaryCard(),
+          _summaryCard(context),
           const SizedBox(height: 14),
           if (_error != null)
-            _errorState()
+            _errorState(context)
           else if (_items.isEmpty)
-            _emptyState()
+            _emptyState(context)
           else
             ...List.generate(_items.length, (index) {
               final item = _items[index];
@@ -303,9 +308,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     icon: _iconForType(type),
                     iconBg: _iconBgForType(type, unread),
                     iconColor: _iconColorForType(type, unread),
-                    title: _title(item),
-                    subtitle: _message(item),
+                    title: _title(context, item),
+                    subtitle: _message(context, item),
                     time: _timeLabel(
+                      context,
                       (item['created_at'] ?? item['read_at'])?.toString(),
                     ),
                     unread: unread,
@@ -359,7 +365,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'NOTIFICATIONS',
+                              context.appText.notificationsUpper,
                               style: _font(
                                 17,
                                 weight: FontWeight.w800,
@@ -369,7 +375,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'PROFILE',
+                              context.appText.profileUpper,
                               style: _font(
                                 11,
                                 weight: FontWeight.w500,
@@ -386,7 +392,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
             ),
           ),
-          Expanded(child: _body()),
+          Expanded(child: _body(context)),
         ],
       ),
     );

@@ -15,6 +15,7 @@ import 'widgets/dashboard_section_header.dart';
 import 'widgets/dashboard_tomorrow_risk_section.dart';
 import '../admin/member_detail/admin_member_detail_screen.dart';
 import 'pending_attendance/pending_attendance_screen.dart';
+import '../../l10n/app_text.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenAdmin;
@@ -46,10 +47,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _dashboardFilter = 'today';
   late Future<DashboardData> _future;
 
+  bool _didLoadInitial = false;
+
   @override
-  void initState() {
-    super.initState();
-    _future = _repo.loadDashboard();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didLoadInitial) return;
+    _didLoadInitial = true;
+    _future = _repo.loadDashboard(t: context.appText);
   }
 
   @override
@@ -59,7 +64,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _refresh() async {
-    final next = _repo.loadDashboard();
+    final next = _repo.loadDashboard(t: context.appText);
     setState(() {
       _future = next;
     });
@@ -95,15 +100,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: ListView(
               shrinkWrap: true,
               children: [
-                Text('Tomorrow risk', style: _sheetTitleStyle()),
+                Text(
+                  context.appText.tomorrowRiskTitle,
+                  style: _sheetTitleStyle(),
+                ),
                 const SizedBox(height: 8),
                 Text(
-                  'Classes that may need promotion, review or schedule adjustments before tomorrow.',
+                  context.appText.tomorrowRiskSheetSubtitle,
                   style: _subtitleStyle(),
                 ),
                 const SizedBox(height: 16),
                 if (tomorrow.riskClasses.isEmpty)
-                  _emptyPanel('Tomorrow looks healthy right now.')
+                  _emptyPanel(context.appText.tomorrowLooksHealthy)
                 else ...[
                   for (var i = 0; i < tomorrow.riskClasses.length; i++) ...[
                     DashboardAlertTile(
@@ -123,11 +131,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       widget.onOpenAdminClasses!.call();
                     } else {
                       _showActionMessage(
-                        'Classes navigation is not available.',
+                        context.appText.classesNavigationUnavailable,
                       );
                     }
                   },
-                  child: const Text('Open Classes'),
+                  child: Text(context.appText.openClasses),
                 ),
               ],
             ),
@@ -153,15 +161,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: ListView(
               shrinkWrap: true,
               children: [
-                Text('Inactive members', style: _sheetTitleStyle()),
+                Text(
+                  context.appText.inactiveMembersTitle,
+                  style: _sheetTitleStyle(),
+                ),
                 const SizedBox(height: 8),
                 Text(
-                  'Members who may need a follow-up message or personal check-in.',
+                  context.appText.inactiveMembersSubtitle,
                   style: _subtitleStyle(),
                 ),
                 const SizedBox(height: 16),
                 if (atRisk.isEmpty)
-                  _emptyPanel('No inactive members right now.')
+                  _emptyPanel(context.appText.noInactiveMembers)
                 else ...[
                   for (var i = 0; i < atRisk.length; i++) ...[
                     DashboardMemberActivityTile(
@@ -179,12 +190,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     if (widget.onOpenAdminMembers != null) {
                       widget.onOpenAdminMembers!.call();
                     } else {
-                      _showActionMessage(
-                        'Members navigation is not available.',
-                      );
+                      _showActionMessage(context.appText.openMembers);
                     }
                   },
-                  child: const Text('Open Members'),
+                  child: Text(context.appText.openMembers),
                 ),
               ],
             ),
@@ -319,11 +328,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Row(
       children: [
-        chip('today', 'TODAY'),
+        chip('today', context.appText.todayUpper),
         const SizedBox(width: 8),
-        chip('tomorrow', 'TOMORROW'),
+        chip('tomorrow', context.appText.tomorrow),
         const SizedBox(width: 8),
-        chip('members', 'MEMBERS'),
+        chip('members', context.appText.membersUpper),
       ],
     );
   }
@@ -355,9 +364,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(height: 28),
         _softDivider(),
         const SizedBox(height: 22),
-        const DashboardSectionHeader(
-          title: 'Recommended actions',
-          subtitle: 'Fast next steps for the owner or admin.',
+        DashboardSectionHeader(
+          title: context.appText.recommendedActionsTitle,
+          subtitle: context.appText.recommendedActionsSubtitle,
         ),
         const SizedBox(height: 14),
         DashboardRecommendedActionsSection(
@@ -388,21 +397,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 } else if (widget.onOpenAdminClasses != null) {
                   widget.onOpenAdminClasses!.call();
                 } else {
-                  _showActionMessage('Classes navigation is not available.');
+                  _showActionMessage(
+                    context.appText.classesNavigationUnavailable,
+                  );
                 }
                 break;
               case 'today_workout_missing':
               case 'today_bookings':
                 await _scrollToToday();
+                if (!mounted) return;
+                final classesNavigationUnavailable =
+                    context.appText.classesNavigationUnavailable;
                 if (widget.onOpenAdminClasses != null) {
                   widget.onOpenAdminClasses!.call();
                 } else {
-                  _showActionMessage('Classes navigation is not available.');
+                  _showActionMessage(classesNavigationUnavailable);
                 }
                 break;
               case 'birthday':
                 _showActionMessage(
-                  'Review today highlights and congratulate them.',
+                  context.appText.reviewHighlightsAndCongratulate,
                 );
                 await _scrollToToday();
                 break;
@@ -412,7 +426,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   widget.onOpenAdmin!.call();
                 } else {
                   _showActionMessage(
-                    'Admin navigation is not available right now.',
+                    context.appText.adminNavigationUnavailable,
                   );
                 }
                 break;
@@ -422,9 +436,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(height: 28),
         _softDivider(),
         const SizedBox(height: 22),
-        const DashboardSectionHeader(
-          title: 'Alerts',
-          subtitle: 'Useful things to review soon.',
+        DashboardSectionHeader(
+          title: context.appText.alertsTitle,
+          subtitle: context.appText.alertsSubtitle,
         ),
         const SizedBox(height: 14),
         DashboardAlertsSection(
@@ -435,9 +449,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(height: 28),
         _softDivider(),
         const SizedBox(height: 22),
-        const DashboardSectionHeader(
-          title: 'Tomorrow risk',
-          subtitle: 'Classes that may need attention before tomorrow.',
+        DashboardSectionHeader(
+          title: context.appText.tomorrowRiskTitle,
+          subtitle: context.appText.tomorrowRiskSubtitle,
         ),
         const SizedBox(height: 14),
         DashboardTomorrowRiskSection(
@@ -453,11 +467,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             } else if (widget.onOpenAdminClasses != null) {
               widget.onOpenAdminClasses!.call();
             } else {
-              _showActionMessage('Classes navigation is not available.');
+              _showActionMessage(context.appText.classesNavigationUnavailable);
             }
           },
           onUnavailable: () {
-            _showActionMessage('Class detail is not available.');
+            _showActionMessage(context.appText.classDetailUnavailable);
           },
         ),
       ],
@@ -468,9 +482,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const DashboardSectionHeader(
-          title: 'Tomorrow risk',
-          subtitle: 'Classes that may need attention before tomorrow.',
+        DashboardSectionHeader(
+          title: context.appText.tomorrowRiskTitle,
+          subtitle: context.appText.tomorrowRiskSubtitle,
         ),
         const SizedBox(height: 14),
         DashboardTomorrowRiskSection(
@@ -486,11 +500,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             } else if (widget.onOpenAdminClasses != null) {
               widget.onOpenAdminClasses!.call();
             } else {
-              _showActionMessage('Classes navigation is not available.');
+              _showActionMessage(context.appText.classesNavigationUnavailable);
             }
           },
           onUnavailable: () {
-            _showActionMessage('Class detail is not available.');
+            _showActionMessage(context.appText.classDetailUnavailable);
           },
         ),
       ],
@@ -501,9 +515,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const DashboardSectionHeader(
-          title: 'Members activity',
-          subtitle: 'Quick CRM-style view of your community.',
+        DashboardSectionHeader(
+          title: context.appText.membersActivityTitle,
+          subtitle: context.appText.membersActivitySubtitle,
         ),
         const SizedBox(height: 14),
         DashboardMemberActivitySection(
@@ -517,8 +531,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   builder: (context, snapshot) {
                     final gymId = (snapshot.data ?? '').trim();
                     if (gymId.isEmpty) {
-                      return const Scaffold(
-                        body: Center(child: Text('Gym not found')),
+                      return Scaffold(
+                        body: Center(child: Text(context.appText.gymNotFound)),
                       );
                     }
                     return AdminMemberDetailScreen(
@@ -532,7 +546,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             await _refresh();
           },
           onUnavailable: () {
-            _showActionMessage('Member detail is not available.');
+            _showActionMessage(context.appText.memberDetailUnavailable);
           },
         ),
       ],
@@ -559,9 +573,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
-          Text('Dashboard', style: _titleStyle()),
+          Text(context.appText.dashboardTitle, style: _titleStyle()),
           const SizedBox(height: 8),
-          Text('Business insights for your gym.', style: _subtitleStyle()),
+          Text(context.appText.dashboardSubtitle, style: _subtitleStyle()),
           const SizedBox(height: 18),
           _buildFilterTabs(),
           const SizedBox(height: 22),
@@ -579,7 +593,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
         children: [
-          Text('Dashboard', style: _titleStyle()),
+          Text(context.appText.dashboardTitle, style: _titleStyle()),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
@@ -589,7 +603,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               border: Border.all(color: const Color(0xFFEAECEF), width: 1),
             ),
             child: Text(
-              'Could not load dashboard data. Pull to refresh.\n\n$error',
+              context.appText.couldNotLoadDashboardData(error.toString()),
               style: _subtitleStyle(),
             ),
           ),
@@ -617,7 +631,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             final data = snapshot.data;
             if (data == null) {
-              return _errorState('No dashboard data available.');
+              return _errorState(context.appText.noDashboardDataAvailable);
             }
 
             return _content(data);

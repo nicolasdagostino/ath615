@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../core/locale/locale_controller.dart';
+import '../../l10n/app_text.dart';
+
 import '../../core/auth/user_session.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/supabase/achievement_repository.dart';
@@ -50,6 +53,141 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
   }
 
+  Future<void> _showLanguageSheet() async {
+    final t = context.appText;
+    final controller = LocaleController.instance;
+    final currentCode = controller.languageCode;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return SafeArea(
+          top: false,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 14, 18, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 42,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD7DBE1),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    t.chooseLanguage,
+                    style: _font(
+                      24,
+                      weight: FontWeight.w800,
+                      color: const Color(0xFF111318),
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    t.appLanguage,
+                    style: _font(
+                      13,
+                      weight: FontWeight.w500,
+                      color: const Color(0xFF8F96A3),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  AppCard(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Column(
+                      children: [
+                        InkWell(
+                          onTap: () async {
+                            await controller.setLanguageCode('en');
+                            if (!sheetContext.mounted) return;
+                            Navigator.of(sheetContext).pop();
+                            if (mounted) setState(() {});
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 16,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    t.english,
+                                    style: _font(
+                                      16,
+                                      weight: FontWeight.w700,
+                                      color: const Color(0xFF111318),
+                                    ),
+                                  ),
+                                ),
+                                if (currentCode == 'en')
+                                  const Icon(
+                                    Icons.check_rounded,
+                                    color: AppColors.primary,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const _SoftDivider(),
+                        InkWell(
+                          onTap: () async {
+                            await controller.setLanguageCode('es');
+                            if (!sheetContext.mounted) return;
+                            Navigator.of(sheetContext).pop();
+                            if (mounted) setState(() {});
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 16,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    t.spanish,
+                                    style: _font(
+                                      16,
+                                      weight: FontWeight.w700,
+                                      color: const Color(0xFF111318),
+                                    ),
+                                  ),
+                                ),
+                                if (currentCode == 'es')
+                                  const Icon(
+                                    Icons.check_rounded,
+                                    color: AppColors.primary,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   String _initialsFromName(String name) {
     final parts = name
         .trim()
@@ -78,6 +216,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _topHeader() {
+    final t = context.appText;
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
@@ -114,7 +253,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'PROFILE',
+                      t.profileUpper,
                       style: _font(
                         17,
                         weight: FontWeight.w800,
@@ -124,7 +263,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'ACCOUNT',
+                      t.accountUpper,
                       style: _font(
                         11,
                         weight: FontWeight.w500,
@@ -178,6 +317,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.appText;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: FutureBuilder<Map<String, dynamic>>(
@@ -192,7 +332,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           final fullName =
               (profile['full_name'] ?? '').toString().trim().isEmpty
-              ? (waiting ? '' : 'Athlete')
+              ? (waiting ? '' : t.athlete)
               : profile['full_name'].toString().trim();
 
           final email = (profile['email'] ?? '').toString().trim().isEmpty
@@ -200,7 +340,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               : profile['email'].toString().trim();
 
           final initials = _initialsFromName(
-            fullName.isEmpty ? 'Athlete' : fullName,
+            fullName.isEmpty ? t.athlete : fullName,
           );
           final avatarUrl = (profile['avatar_url'] ?? '').toString().trim();
           final avatarDisplayUrl = avatarUrl.isEmpty
@@ -298,12 +438,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 22),
-                      _sectionLabel('Profile'),
+                      _sectionLabel(t.profile),
                       const SizedBox(height: 6),
                       _ProfilePrimaryCard(
                         children: [
                           _PrimaryActionRow(
-                            title: 'Account',
+                            title: t.account,
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -314,7 +454,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const _SoftDivider(),
                           _PrimaryActionRow(
-                            title: 'Records',
+                            title:
+                                '${t.language} · ${LocaleController.instance.isSpanish ? t.spanish : t.english}',
+                            onTap: _showLanguageSheet,
+                          ),
+                          const _SoftDivider(),
+                          _PrimaryActionRow(
+                            title: t.records,
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -325,7 +471,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const _SoftDivider(),
                           _PrimaryActionRow(
-                            title: 'Class history',
+                            title: t.classHistory,
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -337,21 +483,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                       const SizedBox(height: 22),
-                      _sectionLabel('Your stats'),
+                      _sectionLabel(t.yourStats),
                       const SizedBox(height: 6),
                       Row(
                         children: [
                           Expanded(
                             child: _StatTile(
                               value: totalClasses,
-                              label: 'Classes',
+                              label: t.classes,
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: _StatTile(
                               value: recordsCount,
-                              label: 'Records',
+                              label: t.records,
                             ),
                           ),
                         ],
@@ -362,35 +508,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Expanded(
                             child: _StatTile(
                               value: strengthCount,
-                              label: 'Strength',
+                              label: t.strength,
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: _StatTile(
                               value: milestonesCount,
-                              label: 'Milestones',
+                              label: t.milestones,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 22),
-                      _sectionLabel('More'),
+                      _sectionLabel(t.more),
                       const SizedBox(height: 6),
                       _ProfilePrimaryCard(
-                        children: const [
+                        children: [
                           _PrimaryActionRow(
-                            title: 'Help Center',
+                            title: t.helpCenter,
                             compact: false,
                           ),
                           _SoftDivider(),
                           _PrimaryActionRow(
-                            title: 'Privacy Policy',
+                            title: t.privacyPolicy,
                             compact: false,
                           ),
                           _SoftDivider(),
                           _PrimaryActionRow(
-                            title: 'Terms of Service',
+                            title: t.termsOfService,
                             compact: false,
                           ),
                         ],
@@ -399,7 +545,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _ProfilePrimaryCard(
                         children: [
                           _PrimaryActionRow(
-                            title: 'Log Out',
+                            title: t.logOut,
                             danger: true,
                             compact: false,
                             showChevron: false,

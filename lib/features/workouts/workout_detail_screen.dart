@@ -8,6 +8,7 @@ import '../../core/supabase/workout_comment_repository.dart';
 import '../../core/supabase/workout_like_repository.dart';
 import '../../core/supabase/workout_repository.dart';
 import '../../core/supabase/profile_repository.dart';
+import '../../l10n/app_text.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/role_guard.dart';
 
@@ -151,31 +152,34 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
     }
   }
 
-  String _timeAgo(DateTime dt) {
+  String _timeAgo(BuildContext context, DateTime dt) {
+    final t = context.appText;
     final now = DateTime.now();
     final diff = now.difference(dt);
 
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
-    if (diff.inDays < 1) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    if (diff.inMinutes < 1) return t.justNow;
+    if (diff.inHours < 1) return t.minutesAgoShort(diff.inMinutes);
+    if (diff.inDays < 1) return t.hoursAgoShort(diff.inHours);
+    if (diff.inDays < 7) return t.daysAgoShort(diff.inDays);
     return DateFormat('MMM d').format(dt);
   }
 
   Future<void> _load() async {
     try {
-      Map<String, dynamic>? workout = _workout;
-      final targetId = widget.workoutId ?? _workout?['id']?.toString();
+      final t = context.appText;
+      final initialWorkout = _workout;
+      Map<String, dynamic>? workout = initialWorkout;
+      final targetId = widget.workoutId ?? initialWorkout?['id']?.toString();
 
       if (targetId == null || targetId.isEmpty) {
-        throw Exception('Workout not found');
+        throw Exception(t.workoutNotFound);
       }
 
       final fetched = await _repo.getWorkoutById(targetId);
-      workout = fetched ?? _workout;
+      workout = fetched ?? initialWorkout;
 
       if (workout == null) {
-        throw Exception('Workout not found');
+        throw Exception(t.workoutNotFound);
       }
 
       final comments = await _commentRepo.listCommentsForWorkout(targetId);
@@ -440,7 +444,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                   },
                   decoration: InputDecoration(
                     isDense: true,
-                    hintText: 'Write a comment...',
+                    hintText: context.appText.writeAComment,
                     hintStyle: _font(
                       13,
                       weight: FontWeight.w500,
@@ -466,7 +470,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
         SizedBox(
           width: 108,
           child: _MiniPostButton(
-            text: _posting ? '...' : 'Post',
+            text: _posting ? '...' : context.appText.post,
             onTap: _posting ? () {} : _postComment,
           ),
         ),
@@ -492,7 +496,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
 
   Widget _topHeader() {
     final subtitle = _workout == null
-        ? 'Workout details'
+        ? context.appText.workoutDetails
         : DateFormat('EEEE, MMMM d').format(
             DateTime.tryParse((_workout?['workout_date'] ?? '').toString()) ??
                 DateTime.now(),
@@ -515,7 +519,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'WORKOUT DETAIL',
+                          context.appText.workoutDetailUpper,
                           style: _font(
                             18,
                             weight: FontWeight.w800,
@@ -813,7 +817,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       );
     }
 
-    final program = (workout['program_name'] ?? 'Workout').toString();
+    final program = (workout['program_name'] ?? context.appText.workout).toString();
     final author = (workout['created_by_name'] ?? 'Athlete 615').toString();
     final dateIso = (workout['workout_date'] ?? '').toString();
     final description = (workout['description'] ?? '').toString().trim();
@@ -959,7 +963,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                               icon: _isLiked
                                   ? Icons.favorite_rounded
                                   : Icons.favorite_border_rounded,
-                              label: 'Like',
+                              label: context.appText.like,
                               iconColor: _isLiked
                                   ? const Color(0xFFE11D48)
                                   : const Color(0xFF667085),
@@ -1011,7 +1015,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                             return _commentBubble(
                               name: name,
                               text: text,
-                              timeAgo: _timeAgo(createdAt),
+                              timeAgo: _timeAgo(context, createdAt),
                               avatarColor: const Color(0xFF0F766E),
                               avatarUrl: avatarUrl,
                             );

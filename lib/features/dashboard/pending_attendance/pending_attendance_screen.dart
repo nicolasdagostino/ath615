@@ -6,6 +6,7 @@ import '../../admin/class_attendance_screen.dart';
 import 'pending_attendance_models.dart';
 import 'pending_attendance_repository.dart';
 import 'widgets/pending_attendance_day_section.dart';
+import '../../../l10n/app_text.dart';
 
 class PendingAttendanceScreen extends StatefulWidget {
   final String? gymId;
@@ -13,7 +14,8 @@ class PendingAttendanceScreen extends StatefulWidget {
   const PendingAttendanceScreen({super.key, this.gymId});
 
   @override
-  State<PendingAttendanceScreen> createState() => _PendingAttendanceScreenState();
+  State<PendingAttendanceScreen> createState() =>
+      _PendingAttendanceScreenState();
 }
 
 class _PendingAttendanceScreenState extends State<PendingAttendanceScreen> {
@@ -92,7 +94,7 @@ class _PendingAttendanceScreenState extends State<PendingAttendanceScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'No pending attendance',
+            context.appText.noPendingAttendance,
             textAlign: TextAlign.center,
             style: _font(
               20,
@@ -102,7 +104,7 @@ class _PendingAttendanceScreenState extends State<PendingAttendanceScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'All past classes look reviewed right now.',
+            context.appText.allPastClassesReviewed,
             textAlign: TextAlign.center,
             style: _font(
               14,
@@ -142,7 +144,7 @@ class _PendingAttendanceScreenState extends State<PendingAttendanceScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'PENDING ATTENDANCE',
+                            context.appText.pendingAttendanceUpper,
                             style: _font(
                               18,
                               weight: FontWeight.w800,
@@ -152,9 +154,9 @@ class _PendingAttendanceScreenState extends State<PendingAttendanceScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            totalClasses == 1
-                                ? '1 class to review'
-                                : '$totalClasses classes to review',
+                            context.appText.pendingClassesToReview(
+                              totalClasses,
+                            ),
                             style: _font(
                               12,
                               weight: FontWeight.w500,
@@ -204,7 +206,9 @@ class _PendingAttendanceScreenState extends State<PendingAttendanceScreen> {
                     const Padding(
                       padding: EdgeInsets.only(top: 80),
                       child: Center(
-                        child: CircularProgressIndicator(color: Color(0xFFB59B6A)),
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFB59B6A),
+                        ),
                       ),
                     )
                   else if (_error != null)

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'core/locale/locale_controller.dart';
 import 'core/theme/app_theme.dart';
 import 'core/supabase/supabase_bootstrap.dart';
 import 'core/supabase/auth_deep_link_handler.dart';
@@ -19,6 +21,7 @@ Future<void> main() async {
   PushNotificationService.initialize();
   await SupabaseBootstrap.init();
   await AuthDeepLinkHandler.start();
+  await LocaleController.instance.load();
   runApp(const Ath615App());
 }
 
@@ -27,17 +30,29 @@ class Ath615App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: PushNavigation.navigatorKey,
-      debugShowCheckedModeBanner: false,
-      title: 'Ath615',
-      theme: AppTheme.build(),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const AuthGate(),
-        '/login': (context) => const LoginScreen(),
-        '/debug-session': (context) => const DebugSessionScreen(),
-        '/set-password': (context) => const SetNewPasswordScreen(),
+    return AnimatedBuilder(
+      animation: LocaleController.instance,
+      builder: (context, _) {
+        return MaterialApp(
+          navigatorKey: PushNavigation.navigatorKey,
+          debugShowCheckedModeBanner: false,
+          title: 'Ath615',
+          theme: AppTheme.build(),
+          locale: LocaleController.instance.locale,
+          supportedLocales: const [Locale('en'), Locale('es')],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          initialRoute: '/',
+          routes: {
+            '/': (context) => const AuthGate(),
+            '/login': (context) => const LoginScreen(),
+            '/debug-session': (context) => const DebugSessionScreen(),
+            '/set-password': (context) => const SetNewPasswordScreen(),
+          },
+        );
       },
     );
   }

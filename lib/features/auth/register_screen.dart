@@ -5,6 +5,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/supabase/auth_repository.dart';
 import '../../shared/widgets/input_field.dart';
 import '../../shared/widgets/primary_button.dart';
+import '../../l10n/app_text.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -200,7 +201,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 34),
               Text(
-                'CREATE ACCOUNT',
+                context.appText.createAccountTitle,
                 style: _font(
                   28,
                   weight: FontWeight.w800,
@@ -210,7 +211,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Join Athlete Lab and start your training journey.',
+                context.appText.createAccountSubtitle,
                 style: _font(
                   16,
                   weight: FontWeight.w500,
@@ -221,23 +222,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 26),
               _authInput(
-                label: 'Full Name',
-                hint: 'Enter full name',
+                label: context.appText.fullName,
+                hint: context.appText.enterFullName,
                 controller: _nameCtrl,
                 textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 18),
               _authInput(
-                label: 'Email',
-                hint: 'Enter email',
+                label: context.appText.email,
+                hint: context.appText.enterEmail,
                 controller: _emailCtrl,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 18),
               _authInput(
-                label: 'Password',
-                hint: 'Create password',
+                label: context.appText.passwordLabel,
+                hint: context.appText.createPasswordHint,
                 controller: _passwordCtrl,
                 obscure: _obscurePassword,
                 textInputAction: TextInputAction.done,
@@ -268,7 +269,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               SizedBox(
                 width: double.infinity,
                 child: PrimaryButton(
-                  text: _loading ? 'CREATING ACCOUNT...' : 'CREATE ACCOUNT',
+                  text: _loading
+                      ? context.appText.creatingAccount
+                      : context.appText.createAccountTitle,
                   onPressed: canSubmit ? _signUp : null,
                   height: 56,
                   radius: 16,
@@ -299,9 +302,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         fontWeight: FontWeight.w500,
                       ),
                       children: [
-                        const TextSpan(text: 'ALREADY HAVE AN ACCOUNT? '),
                         TextSpan(
-                          text: 'SIGN IN',
+                          text: '${context.appText.alreadyHaveAccount} ',
+                        ),
+                        TextSpan(
+                          text: context.appText.signIn,
                           style: GoogleFonts.barlowCondensed(
                             color: AppColors.authAccent,
                             fontWeight: FontWeight.w800,

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/supabase/workout_repository.dart';
 import '../../shared/widgets/app_card.dart';
+import '../../l10n/app_text.dart';
 import '../workouts/workout_detail_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -70,7 +71,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _error = 'Could not load workouts';
+        _error = context.appText.couldNotLoadWorkouts;
       });
     } finally {
       if (mounted) {
@@ -125,10 +126,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   Widget _topHeader() {
-    final title = _mode == 'popular' ? 'POPULAR WORKOUTS' : 'EXPLORE WORKOUTS';
+    final title = _mode == 'popular'
+        ? context.appText.popularWorkoutsUpper
+        : context.appText.exploreWorkoutsUpper;
     final subtitle = _mode == 'popular'
-        ? 'Browse the most liked workouts'
-        : 'Search recent and benchmark workouts';
+        ? context.appText.browseMostLikedWorkouts
+        : context.appText.searchRecentAndBenchmarkWorkouts;
 
     return Container(
       color: Colors.white,
@@ -241,7 +244,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  'RECENT',
+                  context.appText.recentUpper,
                   style: _font(
                     13,
                     weight: isRecent ? FontWeight.w700 : FontWeight.w500,
@@ -270,7 +273,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  'POPULAR',
+                  context.appText.popularUpper,
                   style: _font(
                     13,
                     weight: !isRecent ? FontWeight.w700 : FontWeight.w500,
@@ -304,7 +307,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               controller: _searchCtrl,
               onChanged: (_) => _load(),
               decoration: InputDecoration(
-                hintText: 'Search workouts',
+                hintText: context.appText.searchWorkouts,
                 hintStyle: _font(
                   13,
                   weight: FontWeight.w500,
@@ -330,7 +333,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   Widget _filterHeader() {
-    final title = _mode == 'popular' ? 'Popular workouts' : 'Recent workouts';
+    final title = _mode == 'popular'
+        ? context.appText.popularWorkouts
+        : context.appText.recentWorkouts;
     return Text(
       title.toUpperCase(),
       style: _font(
@@ -347,8 +352,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
         .where((e) => e['is_benchmark'] == true)
         .length;
     final text = _mode == 'popular'
-        ? '${_items.length} results · $benchmarkCount benchmarks'
-        : '${_items.length} results';
+        ? context.appText.resultsWithBenchmarks(_items.length, benchmarkCount)
+        : context.appText.resultsCount(_items.length);
 
     return Text(
       text,
@@ -397,8 +402,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   String _resolvedTitle(Map<String, dynamic> item) {
-    final program = (item['program_name'] ?? 'Workout').toString().trim();
-    final rawTitle = (item['title'] ?? 'Workout').toString().trim();
+    final program =
+        (item['program_name'] ?? context.appText.defaultWorkoutTitle)
+            .toString()
+            .trim();
+    final rawTitle = (item['title'] ?? context.appText.defaultWorkoutTitle)
+        .toString()
+        .trim();
     final rawDate = (item['workout_date'] ?? '').toString();
 
     if (rawTitle.isEmpty) return program;
@@ -412,7 +422,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   Widget _card(Map<String, dynamic> item) {
-    final program = (item['program_name'] ?? 'Workout').toString();
+    final program =
+        (item['program_name'] ?? context.appText.defaultWorkoutTitle)
+            .toString();
     final title = _resolvedTitle(item);
     final description = (item['description'] ?? '').toString().trim();
     final likes = (item['likes_count'] ?? 0).toString();
@@ -483,7 +495,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
-                        'BENCHMARK',
+                        context.appText.benchmarkUpper,
                         style: _font(
                           11,
                           weight: FontWeight.w700,
@@ -532,7 +544,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               Row(
                 children: [
                   Text(
-                    '$likes likes',
+                    context.appText.likesCount(likes),
                     style: _font(
                       12,
                       weight: FontWeight.w500,
@@ -541,7 +553,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   ),
                   const SizedBox(width: 14),
                   Text(
-                    '$comments comments',
+                    context.appText.commentsCount(comments),
                     style: _font(
                       12,
                       weight: FontWeight.w500,
@@ -656,7 +668,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       padding: const EdgeInsets.only(top: 40),
                       child: Center(
                         child: Text(
-                          'No workouts found',
+                          context.appText.noWorkoutsFound,
                           style: _font(
                             16,
                             weight: FontWeight.w500,

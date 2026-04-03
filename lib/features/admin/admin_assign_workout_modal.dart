@@ -2,8 +2,9 @@ part of 'admin_screen.dart';
 
 extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
   void _showAssignWorkoutModal(Map<String, dynamic> classItem) {
+    final t = context.appText;
     if (_workouts.isEmpty) {
-      _toast('Create a workout first');
+      _toast(t.createWorkoutFirst);
       return;
     }
 
@@ -126,7 +127,7 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Assign Workout',
+                                      t.assignWorkoutModalTitle,
                                       style: _font(
                                         24,
                                         weight: FontWeight.w800,
@@ -397,8 +398,7 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
                                         classId: classItem['id'].toString(),
                                         workoutId: selectedWorkoutId,
                                       ),
-                                      successMessage:
-                                          'Workout assigned to class',
+                                      successMessage: t.workoutAssignedToClass,
                                     );
                                     if (!context.mounted) return;
                                     Navigator.pop(context);

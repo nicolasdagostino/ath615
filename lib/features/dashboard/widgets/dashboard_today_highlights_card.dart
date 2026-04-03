@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../dashboard_models.dart';
+import '../../../l10n/app_text.dart';
 
 class DashboardTodayHighlightsCard extends StatelessWidget {
   final List<DashboardTodayHighlightItem> items;
@@ -60,7 +61,7 @@ class DashboardTodayHighlightsCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Today Highlights',
+                      context.appText.todayHighlightsTitle,
                       style: GoogleFonts.barlowCondensed(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
@@ -71,7 +72,7 @@ class DashboardTodayHighlightsCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Useful things to check first thing in the morning.',
+                      context.appText.todayHighlightsSubtitle,
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
@@ -87,7 +88,7 @@ class DashboardTodayHighlightsCard extends StatelessWidget {
           const SizedBox(height: 16),
           if (items.isEmpty)
             Text(
-              'Nothing urgent for today.',
+              context.appText.nothingUrgentToday,
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,

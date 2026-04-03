@@ -5,6 +5,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/supabase/auth_repository.dart';
 import '../../shared/widgets/input_field.dart';
 import '../../shared/widgets/primary_button.dart';
+import '../../l10n/app_text.dart';
 import 'forgot_password_screen.dart';
 import 'no_account_info_screen.dart';
 
@@ -233,7 +234,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 34),
                 Text(
-                  'ATHLETE LOGIN',
+                  context.appText.athleteLoginTitle,
                   style: _font(
                     28,
                     weight: FontWeight.w800,
@@ -243,7 +244,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Lift. Squat. Pull. Push.',
+                  context.appText.authTagline,
                   style: _font(
                     16,
                     weight: FontWeight.w500,
@@ -254,15 +255,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 26),
                 _authInput(
-                  label: 'Email',
-                  hint: 'Enter email',
+                  label: context.appText.email,
+                  hint: context.appText.enterEmail,
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 18),
                 _authInput(
-                  label: 'Password',
-                  hint: 'Enter password',
+                  label: context.appText.passwordLabel,
+                  hint: context.appText.enterPassword,
                   controller: _passwordCtrl,
                   obscure: _obscurePassword,
                   suffixIcon: IconButton(
@@ -306,7 +307,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: PrimaryButton(
-                    text: _loading ? 'ATHLETE LOGIN' : 'ATHLETE LOGIN',
+                    text: context.appText.athleteLoginTitle,
                     onPressed: canSubmit ? _signIn : null,
                     height: 56,
                     radius: 16,
@@ -328,7 +329,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: GestureDetector(
                     onTap: _openForgotPassword,
                     child: Text(
-                      'FORGOT PASSWORD?',
+                      context.appText.forgotPassword,
                       style: _font(
                         15,
                         weight: FontWeight.w800,
@@ -343,7 +344,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: GestureDetector(
                     onTap: _openNoAccountInfo,
                     child: Text(
-                      "DON'T HAVE AN ACCOUNT?",
+                      context.appText.noAccountTitle,
                       textAlign: TextAlign.center,
                       style: _font(
                         15,

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../l10n/app_text.dart';
+
 import '../../core/supabase/booking_repository.dart';
 import '../../core/supabase/class_attendance_repository.dart';
 import '../../core/supabase/class_repository.dart';
@@ -361,7 +363,7 @@ class _BookingScreenState extends State<BookingScreen> {
         _applyLocalBookedState(classId);
       });
 
-      _showToast('Class booked');
+      _showToast(context.appText.classBooked);
     } catch (e) {
       if (!mounted) return;
       _showToast(e.toString().replaceFirst('Exception: ', ''), isError: true);
@@ -375,6 +377,7 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Future<void> _cancelBooking(Map<String, dynamic> classItem) async {
+    final t = context.appText;
     final classId = classItem['id'].toString();
     if (_busyClassId == classId) return;
 
@@ -389,9 +392,9 @@ class _BookingScreenState extends State<BookingScreen> {
         booking = _bookingForClass(classId);
       }
 
-      if (booking == null) throw Exception('Booking not found');
+      if (booking == null) throw Exception(t.bookingNotFound);
       if ((booking['id'] ?? '').toString().isEmpty) {
-        throw Exception('Booking id not found');
+        throw Exception(t.bookingIdNotFound);
       }
 
       await _bookingRepo.cancelBooking(booking['id'].toString());
@@ -401,7 +404,7 @@ class _BookingScreenState extends State<BookingScreen> {
         _applyLocalCancelledState(classId);
       });
 
-      _showToast('Booking cancelled');
+      _showToast(context.appText.bookingCancelled);
     } catch (e) {
       if (!mounted) return;
       _showToast(e.toString().replaceFirst('Exception: ', ''), isError: true);
@@ -419,7 +422,7 @@ class _BookingScreenState extends State<BookingScreen> {
       await _attendanceRepo.checkInToClass(classItem['id'].toString());
 
       if (!mounted) return;
-      _showToast('Checked in successfully');
+      _showToast(context.appText.checkedInSuccess);
       await _load();
     } catch (e) {
       if (!mounted) return;
@@ -728,6 +731,7 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   String _classTimeStatus(Map<String, dynamic> item) {
+    final t = context.appText;
     try {
       final startsAt = DateTime.parse(item['starts_at'].toString()).toLocal();
       final duration = _asInt(item['duration_minutes'], 60);
@@ -736,11 +740,11 @@ class _BookingScreenState extends State<BookingScreen> {
       final now = DateTime.now();
 
       if (now.isAfter(endsAt)) {
-        return 'Finished';
+        return t.finished;
       }
 
       if (now.isAfter(startsAt) && now.isBefore(endsAt)) {
-        return 'In progress';
+        return t.inProgress;
       }
 
       final diff = startsAt.difference(now);
@@ -752,26 +756,27 @@ class _BookingScreenState extends State<BookingScreen> {
         final daysDiff = classDay.difference(today).inDays;
 
         if (daysDiff == 1) {
-          return 'Tomorrow';
+          return t.tomorrow;
         }
 
-        return 'In $daysDiff days';
+        return t.inDays(daysDiff);
       }
 
       final hours = diff.inHours;
       final minutes = diff.inMinutes % 60;
 
       if (hours <= 0) {
-        return 'Starts in $minutes min';
+        return t.startsInMinutes(minutes);
       }
 
-      return 'Starts in ${hours}h ${minutes}m';
+      return t.startsInHoursMinutes(hours, minutes);
     } catch (_) {
       return '';
     }
   }
 
   Widget _classCard(Map<String, dynamic> item) {
+    final t = context.appText;
     final titleRaw = (item['title'] ?? 'Class').toString().trim();
     final programRaw = (item['program_name'] ?? 'Class').toString().trim();
     final coach = (item['coach_name'] ?? 'TBD').toString().trim();
@@ -834,9 +839,9 @@ class _BookingScreenState extends State<BookingScreen> {
                   ),
                 ),
                 if (topStatus == 'checked_in')
-                  _statusPill('CHECKED IN', success: true)
+                  _statusPill(t.checkedInUpper, success: true)
                 else if (topStatus == 'booked')
-                  _statusPill('BOOKED', success: false),
+                  _statusPill(t.bookedUpper, success: false),
               ],
             ),
             const SizedBox(height: 14),
@@ -859,12 +864,12 @@ class _BookingScreenState extends State<BookingScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: _metaItem(label: 'COACH', value: coach),
+                  child: _metaItem(label: t.coach.toUpperCase(), value: coach),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _metaItem(
-                    label: 'SPOTS',
+                    label: t.spots.toUpperCase(),
                     value: '$remaining / $total',
                     crossAxisAlignment: CrossAxisAlignment.end,
                   ),
@@ -874,7 +879,7 @@ class _BookingScreenState extends State<BookingScreen> {
             const SizedBox(height: 18),
             if (_isAdmin) ...[
               _actionButton(
-                text: 'Roster',
+                text: t.roster,
                 onPressed: () async {
                   await Navigator.of(context).push(
                     MaterialPageRoute(
@@ -887,10 +892,10 @@ class _BookingScreenState extends State<BookingScreen> {
               const SizedBox(height: 6),
             ],
             if (_isCheckedIn(item))
-              _actionButton(text: 'Checked in', onPressed: null)
+              _actionButton(text: t.checkedIn, onPressed: null)
             else if (_canCheckIn(item))
               _actionButton(
-                text: "I'm here",
+                text: t.imHere,
                 filled: true,
                 onPressed: _busyClassId == item['id'].toString()
                     ? null
@@ -898,22 +903,22 @@ class _BookingScreenState extends State<BookingScreen> {
               )
             else if (_isBooked(item) && _canCancelBooking(item))
               _actionButton(
-                text: 'Cancel booking',
+                text: t.cancelBooking,
                 onPressed: _busyClassId == item['id'].toString()
                     ? null
                     : () => _cancelBooking(item),
               )
             else if (_isClassFinished(item))
-              _actionButton(text: 'Class finished', onPressed: null)
+              _actionButton(text: t.classFinished, onPressed: null)
             else if (_isBookingClosed(item))
-              _actionButton(text: 'Booking closed', onPressed: null)
+              _actionButton(text: t.bookingClosed, onPressed: null)
             else if (_activeMembership == null)
-              _actionButton(text: 'Membership required', onPressed: null)
+              _actionButton(text: t.membershipRequired, onPressed: null)
             else if (_asInt(item['remaining_spots'], 0) <= 0)
-              _actionButton(text: 'Class full', onPressed: null)
+              _actionButton(text: t.classFull, onPressed: null)
             else
               _actionButton(
-                text: 'Book class',
+                text: t.bookClass,
                 filled: true,
                 onPressed: _busyClassId == item['id'].toString()
                     ? null
@@ -923,7 +928,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 (booking['status'] ?? '').toString() == 'cancelled') ...[
               const SizedBox(height: 6),
               Text(
-                'This booking was cancelled.',
+                t.bookingWasCancelled,
                 style: _font(
                   12,
                   weight: FontWeight.w500,
@@ -993,6 +998,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.appText;
     final membershipName =
         ((_activeMembership?['membership_plans'] ?? const {})['name'] ??
                 _activeMembership?['plan_name'] ??
@@ -1000,8 +1006,8 @@ class _BookingScreenState extends State<BookingScreen> {
             .toString();
     final hasActiveMembership = _activeMembership != null;
     final membershipText = hasActiveMembership
-        ? 'Membership active · $membershipName'
-        : 'No active membership';
+        ? '${t.membershipActive} · $membershipName'
+        : t.noActiveMembership;
 
     return Scaffold(
       body: Column(

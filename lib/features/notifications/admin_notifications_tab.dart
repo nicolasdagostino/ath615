@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_text.dart';
 import 'widgets/admin_notification_editor_sheet.dart';
 import '../../core/supabase/gym_repository.dart';
 import '../../core/supabase/notification_repository.dart';
@@ -139,6 +140,8 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final t = context.appText;
+
             Future<void> saveWithStatus({
               required String targetStatus,
               required bool publishAfterSave,
@@ -146,11 +149,11 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
               final title = titleCtrl.text.trim();
               final message = messageCtrl.text.trim();
               if (title.isEmpty || message.isEmpty) {
-                _toast('Title and message are required.', isError: true);
+                _toast(t.titleAndMessageRequiredShort, isError: true);
                 return;
               }
               if (_gymId == null || _gymId!.trim().isEmpty) {
-                _toast('Gym not found for this admin.', isError: true);
+                _toast(t.adminGymMissing, isError: true);
                 return;
               }
 
@@ -197,11 +200,11 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                 _toast(
                   publishAfterSave
                       ? (isEdit
-                            ? 'Notification published.'
-                            : 'Notification created & published.')
+                            ? t.publishedNow
+                            : t.createdAndPublished)
                       : (isEdit
-                            ? 'Notification saved.'
-                            : 'Notification created as draft.'),
+                            ? t.savedDraft
+                            : t.createdDraft),
                 );
               } catch (e) {
                 _toast(
@@ -214,8 +217,8 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
             }
 
             final effectivePrimaryLabel = status == 'published'
-                ? 'Publish now'
-                : 'Save changes';
+                ? t.publishNow
+                : t.saveChanges;
 
             return AdminNotificationEditorSheet(
               isEdit: isEdit,
@@ -467,7 +470,7 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                     children: [
                       Expanded(
                         child: SecondaryButton(
-                          text: 'Cancel',
+                          text: context.appText.cancel,
                           compact: true,
                           radius: 16,
                           textStyle: _font(
@@ -483,7 +486,7 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: PrimaryButton(
-                          text: 'Delete',
+                          text: context.appText.delete,
                           compact: true,
                           radius: 16,
                           backgroundColor: const Color(0xFFE11D48),
@@ -1013,142 +1016,5 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
   }
 }
 
-class _FieldLabel extends StatelessWidget {
-  final String text;
 
-  const _FieldLabel({required this.text});
 
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: GoogleFonts.barlowCondensed(
-        fontSize: 14,
-        fontWeight: FontWeight.w700,
-        color: const Color(0xFF111318),
-        letterSpacing: -0.1,
-      ),
-    );
-  }
-}
-
-class _SoftTextField extends StatelessWidget {
-  final TextEditingController controller;
-  final String hint;
-  final int minLines;
-  final int maxLines;
-
-  const _SoftTextField({
-    required this.controller,
-    required this.hint,
-    required this.minLines,
-    required this.maxLines,
-  });
-
-  TextStyle _font(
-    double size, {
-    FontWeight weight = FontWeight.w500,
-    Color color = const Color(0xFF111318),
-    double? height,
-    double? letterSpacing,
-  }) {
-    return GoogleFonts.barlowCondensed(
-      fontSize: size,
-      fontWeight: weight,
-      color: color,
-      height: height,
-      letterSpacing: letterSpacing,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      minLines: minLines,
-      maxLines: maxLines,
-      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-      cursorColor: const Color(0xFFB59B6A),
-      style: _font(13, weight: FontWeight.w500, color: const Color(0xFF111318)),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: _font(
-          13,
-          weight: FontWeight.w500,
-          color: const Color(0xFF98A2B3),
-        ),
-        filled: true,
-        fillColor: const Color(0xFFF8FAFC),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFB59B6A), width: 1.2),
-        ),
-      ),
-    );
-  }
-}
-
-class _DropdownCard<T> extends StatelessWidget {
-  final T value;
-  final List<DropdownMenuItem<T>> items;
-  final ValueChanged<T?> onChanged;
-
-  const _DropdownCard({
-    required this.value,
-    required this.items,
-    required this.onChanged,
-  });
-
-  TextStyle _font(
-    double size, {
-    FontWeight weight = FontWeight.w500,
-    Color color = const Color(0xFF111318),
-    double? height,
-    double? letterSpacing,
-  }) {
-    return GoogleFonts.barlowCondensed(
-      fontSize: size,
-      fontWeight: weight,
-      color: color,
-      height: height,
-      letterSpacing: letterSpacing,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<T>(
-          value: value,
-          isExpanded: true,
-          style: _font(
-            13,
-            weight: FontWeight.w500,
-            color: const Color(0xFF111318),
-          ),
-          items: items,
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-}

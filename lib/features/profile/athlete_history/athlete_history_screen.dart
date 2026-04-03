@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../l10n/app_text.dart';
+
 import '../../../core/constants/app_colors.dart';
 import 'athlete_history_models.dart';
 import 'athlete_history_repository.dart';
@@ -73,6 +75,7 @@ class _AthleteHistoryScreenState extends State<AthleteHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.appText;
     final counts = AthleteHistoryCounts(
       total: _items.length,
       attended: _items
@@ -96,7 +99,7 @@ class _AthleteHistoryScreenState extends State<AthleteHistoryScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          'Class history',
+          t.attendanceHistory,
           style: _font(
             22,
             weight: FontWeight.w800,
@@ -116,7 +119,7 @@ class _AthleteHistoryScreenState extends State<AthleteHistoryScreen> {
           padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
           children: [
             Text(
-              'Past bookings and attendance',
+              t.pastBookingsAndAttendance,
               style: _font(
                 14,
                 weight: FontWeight.w500,
