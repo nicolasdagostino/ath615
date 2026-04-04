@@ -23,9 +23,9 @@ class _BottomNavShellState extends State<BottomNavShell> {
   late int index;
   final _sb = Supabase.instance.client;
 
-  late Future<bool> _isAdminFuture;
+  late Future<String> _roleFuture;
 
-  bool? _resolvedIsAdmin;
+  String? _resolvedRole;
   String? _cachedLanguageCode;
   List<Widget>? _cachedScreens;
   List<_NavItemData>? _cachedItems;
@@ -39,12 +39,12 @@ class _BottomNavShellState extends State<BottomNavShell> {
   void initState() {
     super.initState();
     index = widget.initialIndex;
-    _isAdminFuture = _isAdmin();
+    _roleFuture = _resolveRole();
   }
 
-  Future<bool> _isAdmin() async {
+  Future<String> _resolveRole() async {
     final user = _sb.auth.currentUser;
-    if (user == null) return false;
+    if (user == null) return 'athlete';
 
     try {
       final byId = await _sb
@@ -56,7 +56,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
       if (byId != null) {
         final role = (byId['role'] ?? '').toString().toLowerCase().trim();
         debugPrint('BOTTOM_NAV byId role=$role email=${byId['email']}');
-        if (role == 'admin') return true;
+        if (role.isNotEmpty) return role;
       }
 
       if ((user.email ?? '').trim().isNotEmpty) {
@@ -69,15 +69,19 @@ class _BottomNavShellState extends State<BottomNavShell> {
         if (byEmail != null) {
           final role = (byEmail['role'] ?? '').toString().toLowerCase().trim();
           debugPrint('BOTTOM_NAV byEmail role=$role email=${byEmail['email']}');
-          if (role == 'admin') return true;
+          if (role.isNotEmpty) return role;
         }
       }
     } catch (e) {
-      debugPrint('BOTTOM_NAV _isAdmin error: $e');
+      debugPrint('BOTTOM_NAV _resolveRole error: $e');
     }
 
-    return false;
+    return 'athlete';
   }
+
+  bool _canSeeDashboard(String role) => role == 'admin' || role == 'coach';
+
+  bool _canSeeAdmin(String role) => role == 'admin';
 
   void _goToAdminTab({
     int initialTabIndex = 0,
@@ -98,19 +102,19 @@ class _BottomNavShellState extends State<BottomNavShell> {
       _adminInitialMemberId = initialMemberId;
       _adminInitialClassId = initialClassId;
       _adminOpenAssignWorkout = openAssignWorkout;
-      _cachedScreens = _screens(_resolvedIsAdmin ?? false);
+      _cachedScreens = _screens(_resolvedRole ?? 'athlete');
       index = adminIndex;
     });
   }
 
-  List<Widget> _screens(bool isAdmin) {
+  List<Widget> _screens(String role) {
     final base = <Widget>[
       const WorkoutsScreen(),
       BookingScreen(key: ValueKey('booking_$_bookingScreenSeed')),
       const ExploreScreen(),
     ];
 
-    if (isAdmin) {
+    if (_canSeeDashboard(role)) {
       base.add(
         DashboardScreen(
           onOpenAdmin: () => _goToAdminTab(initialTabIndex: 0),
@@ -125,24 +129,26 @@ class _BottomNavShellState extends State<BottomNavShell> {
           ),
         ),
       );
-      base.add(
-        AdminScreen(
-          key: ValueKey(
-            'admin_${_adminInitialTabIndex}_${_adminInitialMemberId ?? ''}_${_adminInitialClassId ?? ''}_${_adminOpenAssignWorkout ? 'assign' : 'actions'}',
+      if (_canSeeAdmin(role)) {
+        base.add(
+          AdminScreen(
+            key: ValueKey(
+              'admin_${_adminInitialTabIndex}_${_adminInitialMemberId ?? ''}_${_adminInitialClassId ?? ''}_${_adminOpenAssignWorkout ? 'assign' : 'actions'}',
+            ),
+            initialTabIndex: _adminInitialTabIndex,
+            initialMemberId: _adminInitialMemberId,
+            initialClassId: _adminInitialClassId,
+            initialOpenAssignWorkout: _adminOpenAssignWorkout,
           ),
-          initialTabIndex: _adminInitialTabIndex,
-          initialMemberId: _adminInitialMemberId,
-          initialClassId: _adminInitialClassId,
-          initialOpenAssignWorkout: _adminOpenAssignWorkout,
-        ),
-      );
+        );
+      }
     }
 
     base.add(const ProfileScreen());
     return base;
   }
 
-  List<_NavItemData> _items(bool isAdmin) {
+  List<_NavItemData> _items(String role) {
     final t = context.appText;
 
     final base = <_NavItemData>[
@@ -163,7 +169,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
       ),
     ];
 
-    if (isAdmin) {
+    if (_canSeeDashboard(role)) {
       base.add(
         _NavItemData(
           icon: Icons.space_dashboard_outlined,
@@ -171,13 +177,15 @@ class _BottomNavShellState extends State<BottomNavShell> {
           label: t.navDashboard,
         ),
       );
-      base.add(
-        _NavItemData(
-          icon: Icons.admin_panel_settings_outlined,
-          activeIcon: Icons.admin_panel_settings,
-          label: t.navAdmin,
-        ),
-      );
+      if (_canSeeAdmin(role)) {
+        base.add(
+          _NavItemData(
+            icon: Icons.admin_panel_settings_outlined,
+            activeIcon: Icons.admin_panel_settings,
+            label: t.navAdmin,
+          ),
+        );
+      }
     }
 
     base.add(
@@ -191,22 +199,22 @@ class _BottomNavShellState extends State<BottomNavShell> {
     return base;
   }
 
-  void _ensureCache(bool isAdmin) {
+  void _ensureCache(String role) {
     final languageCode = Localizations.localeOf(
       context,
     ).languageCode.toLowerCase();
 
-    if (_resolvedIsAdmin == isAdmin &&
+    if (_resolvedRole == role &&
         _cachedLanguageCode == languageCode &&
         _cachedScreens != null &&
         _cachedItems != null) {
       return;
     }
 
-    _resolvedIsAdmin = isAdmin;
+    _resolvedRole = role;
     _cachedLanguageCode = languageCode;
-    _cachedScreens = _screens(isAdmin);
-    _cachedItems = _items(isAdmin);
+    _cachedScreens = _screens(role);
+    _cachedItems = _items(role);
 
     if (index >= _cachedScreens!.length) {
       index = _cachedScreens!.length - 1;
@@ -293,7 +301,7 @@ class _BottomNavShellState extends State<BottomNavShell> {
                     setState(() {
                       if (isBooking) {
                         _bookingScreenSeed++;
-                        _cachedScreens = _screens(_resolvedIsAdmin ?? false);
+                        _cachedScreens = _screens(_resolvedRole ?? 'athlete');
                       }
                       index = i;
                     });
@@ -309,8 +317,8 @@ class _BottomNavShellState extends State<BottomNavShell> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
-      future: _isAdminFuture,
+    return FutureBuilder<String>(
+      future: _roleFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting &&
             _cachedScreens == null) {
@@ -319,8 +327,8 @@ class _BottomNavShellState extends State<BottomNavShell> {
           );
         }
 
-        final isAdmin = snapshot.data ?? _resolvedIsAdmin ?? false;
-        _ensureCache(isAdmin);
+        final role = snapshot.data ?? _resolvedRole ?? 'athlete';
+        _ensureCache(role);
 
         final currentScreens = _cachedScreens!;
         final currentItems = _cachedItems!;

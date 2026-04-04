@@ -1,5 +1,6 @@
 import '../../l10n/app_strings.dart';
 import '../../core/supabase/gym_repository.dart';
+import '../../core/supabase/supabase_bootstrap.dart';
 import 'dashboard_builders.dart';
 import 'dashboard_loaders.dart';
 import 'dashboard_models.dart';
@@ -15,18 +16,47 @@ class DashboardRepository {
   Future<DashboardData> loadDashboard({required AppStrings t}) async {
     final gymId = await _gymRepository.resolveGymId();
 
+    String? currentRole;
+    String? coachId;
+
+    final user = sb.auth.currentUser;
+    if (user != null) {
+      try {
+        final profile = await sb
+            .from('profiles')
+            .select('id, role')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        currentRole = (profile?['role'] ?? '').toString().toLowerCase().trim();
+        if (currentRole == 'coach') {
+          coachId = (profile?['id'] ?? user.id).toString().trim();
+        }
+      } catch (_) {}
+    }
+
     final members = await _loaders.loadMemberRows(gymId);
-    final classesToday = await _loaders.loadDayClasses(gymId, dayOffset: 0);
-    final classesTomorrow = await _loaders.loadDayClasses(gymId, dayOffset: 1);
+    final classesToday = await _loaders.loadDayClasses(
+      gymId,
+      dayOffset: 0,
+      coachId: coachId,
+    );
+    final classesTomorrow = await _loaders.loadDayClasses(
+      gymId,
+      dayOffset: 1,
+      coachId: coachId,
+    );
     final thisWeekClasses = await _loaders.loadWeekClasses(
       gymId,
       weekOffset: 0,
+      coachId: coachId,
     );
     final lastWeekClasses = await _loaders.loadWeekClasses(
       gymId,
       weekOffset: -1,
+      coachId: coachId,
     );
-    final bookings = await _loaders.loadGymBookings(gymId);
+    final bookings = await _loaders.loadGymBookings(gymId, coachId: coachId);
     final todayWorkouts = await _loaders.loadTodayWorkouts(gymId);
 
     final todayStats = dashboardBuildTodayStats(classesToday, bookings);
@@ -93,6 +123,7 @@ class DashboardRepository {
       milestones: milestones,
       recommendedActions: recommendedActions,
       gymId: gymId,
+      isCoachView: currentRole == 'coach',
     );
   }
 }

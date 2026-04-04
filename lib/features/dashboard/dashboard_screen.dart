@@ -14,8 +14,11 @@ import 'widgets/dashboard_recommended_actions_section.dart';
 import 'widgets/dashboard_section_header.dart';
 import 'widgets/dashboard_tomorrow_risk_section.dart';
 import '../admin/member_detail/admin_member_detail_screen.dart';
+import '../admin/class_attendance_screen.dart';
 import 'pending_attendance/pending_attendance_screen.dart';
+import 'pending_attendance/pending_attendance_repository.dart';
 import '../../l10n/app_text.dart';
+import '../../shared/widgets/app_card.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenAdmin;
@@ -41,11 +44,13 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final _gymRepository = GymRepository();
   final _repo = DashboardRepository();
+  final _pendingAttendanceRepository = PendingAttendanceRepository();
   final _scrollController = ScrollController();
   final _todaySectionKey = GlobalKey();
 
   String _dashboardFilter = 'today';
   late Future<DashboardData> _future;
+  int _pendingAttendanceClasses = 0;
 
   bool _didLoadInitial = false;
 
@@ -294,7 +299,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildFilterTabs() {
+  String _uiText(String es, String en) {
+    final isSpanish = Localizations.localeOf(
+      context,
+    ).languageCode.toLowerCase().startsWith('es');
+    return isSpanish ? es : en;
+  }
+
+  Widget _buildFilterTabs({required bool isCoachView}) {
     Widget chip(String key, String label) {
       final selected = _dashboardFilter == key;
       return Expanded(
@@ -330,9 +342,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         chip('today', context.appText.todayUpper),
         const SizedBox(width: 8),
-        chip('tomorrow', context.appText.tomorrow),
+        chip('tomorrow', context.appText.tomorrow.toUpperCase()),
         const SizedBox(width: 8),
-        chip('members', context.appText.membersUpper),
+        chip(
+          isCoachView ? 'attendance' : 'members',
+          isCoachView
+              ? (_pendingAttendanceClasses > 0
+                    ? _uiText(
+                        'ATTENDANCE ($_pendingAttendanceClasses)',
+                        'ATTENDANCE ($_pendingAttendanceClasses)',
+                      )
+                    : _uiText('ATTENDANCE', 'ATTENDANCE'))
+              : context.appText.membersUpper,
+        ),
       ],
     );
   }
@@ -347,9 +369,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
             nextClass: data.nextClass,
             highlights: data.todayHighlights,
             milestones: data.milestones,
-            onNextClassTap: () {
+            isCoachView: data.isCoachView,
+            pendingAttendanceCount: data.pendingAttendance.pendingClasses,
+            onNextClassTap: () async {
               final classId = data.nextClass?.id.trim();
               if (classId == null || classId.isEmpty) return;
+
+              if (data.isCoachView &&
+                  data.pendingAttendance.pendingClasses > 0) {
+                try {
+                  final groups = await _pendingAttendanceRepository
+                      .loadPendingAttendance(gymId: data.gymId);
+
+                  final pendingClasses = <dynamic>[
+                    for (final group in groups) ...group.classes,
+                  ];
+
+                  if (!mounted) return;
+
+                  if (pendingClasses.length == 1) {
+                    final classItem = pendingClasses.first.classItem;
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            ClassAttendanceScreen(classItem: classItem),
+                      ),
+                    );
+                  } else {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            PendingAttendanceScreen(gymId: data.gymId),
+                      ),
+                    );
+                  }
+
+                  await _refresh();
+                  return;
+                } catch (_) {
+                  if (!mounted) return;
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          PendingAttendanceScreen(gymId: data.gymId),
+                    ),
+                  );
+                  await _refresh();
+                  return;
+                }
+              }
+
               if (widget.onOpenAdminClassDetail != null) {
                 widget.onOpenAdminClassDetail!.call(
                   classId,
@@ -365,12 +434,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _softDivider(),
         const SizedBox(height: 22),
         DashboardSectionHeader(
-          title: context.appText.recommendedActionsTitle,
-          subtitle: context.appText.recommendedActionsSubtitle,
+          title: data.isCoachView
+              ? _uiText('Attendance', 'Attendance')
+              : context.appText.recommendedActionsTitle,
+          subtitle: data.isCoachView
+              ? _uiText(
+                  'Review classes that still need attendance.',
+                  'Review classes that still need attendance.',
+                )
+              : context.appText.recommendedActionsSubtitle,
         ),
         const SizedBox(height: 14),
         DashboardRecommendedActionsSection(
-          actions: data.recommendedActions,
+          actions: data.isCoachView
+              ? data.recommendedActions
+                    .where((a) => a.type == 'pending_attendance')
+                    .toList()
+              : data.recommendedActions,
           iconForActionType: _iconForActionType,
           onActionTap: (action) async {
             switch (action.type) {
@@ -433,31 +513,77 @@ class _DashboardScreenState extends State<DashboardScreen> {
             }
           },
         ),
-        const SizedBox(height: 28),
-        _softDivider(),
-        const SizedBox(height: 22),
+        if (!data.isCoachView) ...[
+          const SizedBox(height: 28),
+          _softDivider(),
+          const SizedBox(height: 22),
+          DashboardSectionHeader(
+            title: context.appText.alertsTitle,
+            subtitle: context.appText.alertsSubtitle,
+          ),
+          const SizedBox(height: 14),
+          DashboardAlertsSection(
+            alerts: data.alerts,
+            iconForType: _iconForType,
+            emptyPanel: _emptyPanel,
+          ),
+          const SizedBox(height: 28),
+          _softDivider(),
+          const SizedBox(height: 22),
+          DashboardSectionHeader(
+            title: context.appText.tomorrowRiskTitle,
+            subtitle: context.appText.tomorrowRiskSubtitle,
+          ),
+          const SizedBox(height: 14),
+          DashboardTomorrowRiskSection(
+            tomorrow: data.tomorrow,
+            emptyPanel: _emptyPanel,
+            twoCards: _twoCards,
+            onClassTap: (classId, needsWorkoutAssignment) {
+              if (widget.onOpenAdminClassDetail != null) {
+                widget.onOpenAdminClassDetail!.call(
+                  classId,
+                  needsWorkoutAssignment,
+                );
+              } else if (widget.onOpenAdminClasses != null) {
+                widget.onOpenAdminClasses!.call();
+              } else {
+                _showActionMessage(
+                  context.appText.classesNavigationUnavailable,
+                );
+              }
+            },
+            onUnavailable: () {
+              _showActionMessage(context.appText.classDetailUnavailable);
+            },
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildTomorrowContent(DashboardData data) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         DashboardSectionHeader(
-          title: context.appText.alertsTitle,
-          subtitle: context.appText.alertsSubtitle,
-        ),
-        const SizedBox(height: 14),
-        DashboardAlertsSection(
-          alerts: data.alerts,
-          iconForType: _iconForType,
-          emptyPanel: _emptyPanel,
-        ),
-        const SizedBox(height: 28),
-        _softDivider(),
-        const SizedBox(height: 22),
-        DashboardSectionHeader(
-          title: context.appText.tomorrowRiskTitle,
-          subtitle: context.appText.tomorrowRiskSubtitle,
+          title: data.isCoachView
+              ? _uiText('Tomorrow', 'Tomorrow')
+              : context.appText.tomorrowRiskTitle,
+          subtitle: data.isCoachView
+              ? _uiText(
+                  'Your upcoming classes for tomorrow.',
+                  'Your upcoming classes for tomorrow.',
+                )
+              : context.appText.tomorrowRiskSubtitle,
         ),
         const SizedBox(height: 14),
         DashboardTomorrowRiskSection(
           tomorrow: data.tomorrow,
           emptyPanel: _emptyPanel,
           twoCards: _twoCards,
+          isCoachView: data.isCoachView,
+          uiText: _uiText,
           onClassTap: (classId, needsWorkoutAssignment) {
             if (widget.onOpenAdminClassDetail != null) {
               widget.onOpenAdminClassDetail!.call(
@@ -478,34 +604,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildTomorrowContent(DashboardData data) {
+  Widget _buildAttendanceContent(DashboardData data) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DashboardSectionHeader(
-          title: context.appText.tomorrowRiskTitle,
-          subtitle: context.appText.tomorrowRiskSubtitle,
+          title: _uiText('Attendance', 'Attendance'),
+          subtitle: _uiText(
+            'Open pending classes and review attendance.',
+            'Open pending classes and review attendance.',
+          ),
         ),
         const SizedBox(height: 14),
-        DashboardTomorrowRiskSection(
-          tomorrow: data.tomorrow,
-          emptyPanel: _emptyPanel,
-          twoCards: _twoCards,
-          onClassTap: (classId, needsWorkoutAssignment) {
-            if (widget.onOpenAdminClassDetail != null) {
-              widget.onOpenAdminClassDetail!.call(
-                classId,
-                needsWorkoutAssignment,
-              );
-            } else if (widget.onOpenAdminClasses != null) {
-              widget.onOpenAdminClasses!.call();
-            } else {
-              _showActionMessage(context.appText.classesNavigationUnavailable);
-            }
-          },
-          onUnavailable: () {
-            _showActionMessage(context.appText.classDetailUnavailable);
-          },
+        AppCard(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                data.pendingAttendance.pendingClasses > 0
+                    ? _uiText('Pending attendance', 'Pending attendance')
+                    : _uiText('All caught up', 'All caught up'),
+                style: _titleStyle().copyWith(fontSize: 24),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                data.pendingAttendance.pendingClasses > 0
+                    ? _uiText(
+                        '${data.pendingAttendance.pendingClasses} classes still need review.',
+                        '${data.pendingAttendance.pendingClasses} classes still need review.',
+                      )
+                    : _uiText(
+                        'There are no past classes waiting for attendance review.',
+                        'There are no past classes waiting for attendance review.',
+                      ),
+                style: _subtitleStyle(),
+              ),
+              const SizedBox(height: 14),
+              FilledButton(
+                onPressed: () async {
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          PendingAttendanceScreen(gymId: data.gymId),
+                    ),
+                  );
+                  await _refresh();
+                },
+                child: Text(_uiText('Open attendance', 'Open attendance')),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -554,12 +703,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _content(DashboardData data) {
+    _pendingAttendanceClasses = data.pendingAttendance.pendingClasses;
     Widget activeContent() {
       switch (_dashboardFilter) {
         case 'tomorrow':
           return _buildTomorrowContent(data);
+        case 'attendance':
+          return _buildAttendanceContent(data);
         case 'members':
-          return _buildMembersContent(data);
+          return data.isCoachView
+              ? _buildAttendanceContent(data)
+              : _buildMembersContent(data);
         case 'today':
         default:
           return _buildTodayContent(data);
@@ -575,9 +729,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Text(context.appText.dashboardTitle, style: _titleStyle()),
           const SizedBox(height: 8),
-          Text(context.appText.dashboardSubtitle, style: _subtitleStyle()),
+          Text(
+            data.isCoachView
+                ? _uiText(
+                    'Your classes and attendance for today.',
+                    'Your classes and attendance for today.',
+                  )
+                : context.appText.dashboardSubtitle,
+            style: _subtitleStyle(),
+          ),
           const SizedBox(height: 18),
-          _buildFilterTabs(),
+          _buildFilterTabs(isCoachView: data.isCoachView),
           const SizedBox(height: 22),
           activeContent(),
         ],

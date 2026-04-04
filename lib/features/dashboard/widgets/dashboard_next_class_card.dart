@@ -7,6 +7,7 @@ class DashboardNextClassCard extends StatelessWidget {
   final String subtitle;
   final String occupancyLabel;
   final bool hasWorkout;
+  final String? secondaryAttentionLabel;
   final VoidCallback? onTap;
   final bool compact;
   final bool embedded;
@@ -17,6 +18,7 @@ class DashboardNextClassCard extends StatelessWidget {
     required this.subtitle,
     required this.occupancyLabel,
     required this.hasWorkout,
+    this.secondaryAttentionLabel,
     this.onTap,
     this.compact = false,
     this.embedded = false,
@@ -109,6 +111,13 @@ class DashboardNextClassCard extends StatelessWidget {
                     bg: const Color(0xFFEFF4FB),
                     fg: const Color(0xFF064BB3),
                   ),
+                  if (secondaryAttentionLabel != null &&
+                      secondaryAttentionLabel!.trim().isNotEmpty)
+                    _pill(
+                      secondaryAttentionLabel!,
+                      bg: const Color(0xFFFFF4E5),
+                      fg: const Color(0xFFB54708),
+                    ),
                   _pill(
                     hasWorkout
                         ? context.appText.workoutAssigned

@@ -38,7 +38,7 @@ class _BookingScreenState extends State<BookingScreen> {
   List<Map<String, dynamic>> _myBookings = [];
   Map<String, dynamic>? _activeMembership;
   String? _busyClassId;
-  bool _isAdmin = false;
+  bool _canManageAttendance = false;
 
   @override
   void initState() {
@@ -143,7 +143,7 @@ class _BookingScreenState extends State<BookingScreen> {
     });
 
     try {
-      var isAdmin = false;
+      var canManageAttendance = false;
       final user = sb.auth.currentUser;
       if (user != null) {
         final byId = await sb
@@ -153,12 +153,12 @@ class _BookingScreenState extends State<BookingScreen> {
             .maybeSingle();
 
         final role = (byId?['role'] ?? '').toString().toLowerCase().trim();
-        isAdmin = role == 'admin';
+        canManageAttendance = role == 'admin' || role == 'coach';
       }
 
       final classes = await _classRepo.listClassesForDate(
         _dateIso(_selectedDay),
-        includePast: isAdmin,
+        includePast: canManageAttendance,
       );
       final bookings = await _bookingRepo.listMyBookings();
       final activeMembership = await _membershipRepo.myActiveMembership();
@@ -168,7 +168,7 @@ class _BookingScreenState extends State<BookingScreen> {
         _classes = classes;
         _myBookings = bookings;
         _activeMembership = activeMembership;
-        _isAdmin = isAdmin;
+        _canManageAttendance = canManageAttendance;
       });
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -433,8 +433,8 @@ class _BookingScreenState extends State<BookingScreen> {
   List<DateTime> _days() {
     final now = DateTime.now();
     final base = DateTime(now.year, now.month, now.day);
-    final startOffset = _isAdmin ? -_adminPastDays : 0;
-    final totalDays = _isAdmin
+    final startOffset = _canManageAttendance ? -_adminPastDays : 0;
+    final totalDays = _canManageAttendance
         ? (_adminPastDays + _adminFutureDays + 1)
         : _athleteVisibleDays;
 
@@ -907,7 +907,7 @@ class _BookingScreenState extends State<BookingScreen> {
             const SizedBox(height: 12),
             Container(height: 0.8, color: const Color(0xFFEFF1F4)),
             const SizedBox(height: 16),
-            if (_isAdmin) ...[
+            if (_canManageAttendance) ...[
               _actionButton(
                 text: t.roster,
                 onPressed: () async {

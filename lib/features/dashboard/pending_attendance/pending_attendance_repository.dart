@@ -15,7 +15,24 @@ class PendingAttendanceRepository {
         .trim();
     if (resolvedGymId.isEmpty) return const [];
 
-    final rows = await sb
+    String? coachId;
+    final user = sb.auth.currentUser;
+    if (user != null) {
+      try {
+        final profile = await sb
+            .from('profiles')
+            .select('id, role')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        final role = (profile?['role'] ?? '').toString().toLowerCase().trim();
+        if (role == 'coach') {
+          coachId = (profile?['id'] ?? user.id).toString().trim();
+        }
+      } catch (_) {}
+    }
+
+    dynamic query = sb
         .from('class_bookings')
         .select('''
           id,
@@ -24,14 +41,20 @@ class PendingAttendanceRepository {
           classes!inner(
             id,
             gym_id,
+            coach_id,
             title,
             starts_at,
             duration_minutes,
             location
           )
         ''')
-        .eq('classes.gym_id', resolvedGymId)
-        .order('created_at', ascending: false);
+        .eq('classes.gym_id', resolvedGymId);
+
+    if (coachId != null && coachId.isNotEmpty) {
+      query = query.eq('classes.coach_id', coachId);
+    }
+
+    final rows = await query.order('created_at', ascending: false);
 
     final rawRows = List<Map<String, dynamic>>.from(rows);
     final classIds = rawRows
@@ -42,10 +65,16 @@ class PendingAttendanceRepository {
 
     final classMetaById = <String, Map<String, dynamic>>{};
     if (classIds.isNotEmpty) {
-      final classMetaRows = await sb
+      dynamic classMetaQuery = sb
           .from('v_classes_with_spots')
           .select('id, program_name, coach_name')
           .inFilter('id', classIds);
+
+      if (coachId != null && coachId.isNotEmpty) {
+        classMetaQuery = classMetaQuery.eq('coach_id', coachId);
+      }
+
+      final classMetaRows = await classMetaQuery;
 
       for (final raw in List<Map<String, dynamic>>.from(classMetaRows)) {
         final classId = (raw['id'] ?? '').toString().trim();

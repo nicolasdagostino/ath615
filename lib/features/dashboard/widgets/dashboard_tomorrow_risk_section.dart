@@ -11,6 +11,8 @@ class DashboardTomorrowRiskSection extends StatelessWidget {
   final Widget Function({required Widget left, required Widget right}) twoCards;
   final void Function(String classId, bool needsWorkoutAssignment) onClassTap;
   final VoidCallback onUnavailable;
+  final bool isCoachView;
+  final String Function(String es, String en)? uiText;
 
   const DashboardTomorrowRiskSection({
     super.key,
@@ -19,27 +21,60 @@ class DashboardTomorrowRiskSection extends StatelessWidget {
     required this.twoCards,
     required this.onClassTap,
     required this.onUnavailable,
+    this.isCoachView = false,
+    this.uiText,
   });
 
   @override
   Widget build(BuildContext context) {
+    final text =
+        uiText ??
+        (String es, String en) {
+          final isSpanish = Localizations.localeOf(
+            context,
+          ).languageCode.toLowerCase().startsWith('es');
+          return isSpanish ? es : en;
+        };
+
     return Column(
       children: [
-        twoCards(
-          left: DashboardKpiCard(
-            label: context.appText.classesTomorrow,
+        if (isCoachView)
+          DashboardKpiCard(
+            label: text('CLASES MAÑANA', 'CLASSES TOMORROW'),
             value: tomorrow.classesTomorrow.toString(),
-            helper: context.appText.scheduledForTomorrow,
+            helper: tomorrow.classesTomorrow > 0
+                ? text(
+                    'Tus próximas clases asignadas.',
+                    'Your upcoming assigned classes.',
+                  )
+                : text(
+                    'No tienes clases programadas.',
+                    'You have no classes scheduled.',
+                  ),
+          )
+        else
+          twoCards(
+            left: DashboardKpiCard(
+              label: context.appText.classesTomorrow,
+              value: tomorrow.classesTomorrow.toString(),
+              helper: context.appText.scheduledForTomorrow,
+            ),
+            right: DashboardKpiCard(
+              label: context.appText.lowOccupancy,
+              value: tomorrow.lowOccupancyTomorrow.toString(),
+              helper: context.appText.needPromotionOrReview,
+            ),
           ),
-          right: DashboardKpiCard(
-            label: context.appText.lowOccupancy,
-            value: tomorrow.lowOccupancyTomorrow.toString(),
-            helper: context.appText.needPromotionOrReview,
-          ),
-        ),
         const SizedBox(height: 12),
         if (tomorrow.riskClasses.isEmpty)
-          emptyPanel(context.appText.tomorrowLooksHealthy)
+          emptyPanel(
+            isCoachView
+                ? text(
+                    'No classes scheduled for tomorrow.',
+                    'No classes scheduled for tomorrow.',
+                  )
+                : context.appText.tomorrowLooksHealthy,
+          )
         else
           Column(
             children: [
@@ -57,7 +92,7 @@ class DashboardTomorrowRiskSection extends StatelessWidget {
                     );
                   },
                   child: DashboardAlertTile(
-                    icon: Icons.event_busy_outlined,
+                    icon: Icons.event_available_outlined,
                     title: tomorrow.riskClasses[i].title,
                     subtitle: tomorrow.riskClasses[i].subtitle,
                   ),

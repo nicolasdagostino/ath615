@@ -296,7 +296,7 @@ DashboardNextClassItem? dashboardBuildNextClass(
   final title = (nextItem['title'] ?? nextItem['program_name'] ?? 'Class')
       .toString()
       .trim();
-  final coach = (nextItem['coach_name'] ?? '').toString().trim();
+  final programName = (nextItem['program_name'] ?? '').toString().trim();
   final hasWorkout = (nextItem['workout_id'] ?? '')
       .toString()
       .trim()
@@ -305,8 +305,9 @@ DashboardNextClassItem? dashboardBuildNextClass(
   final subtitleParts = <String>[
     isToday ? t.todayTimeLabel(hh, mm) : t.tomorrowTimeLabel(hh, mm),
   ];
-  if (coach.isNotEmpty) {
-    subtitleParts.add(coach);
+  if (programName.isNotEmpty &&
+      programName.toLowerCase() != title.toLowerCase()) {
+    subtitleParts.add(programName);
   }
 
   return DashboardNextClassItem(

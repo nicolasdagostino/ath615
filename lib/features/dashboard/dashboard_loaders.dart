@@ -23,6 +23,7 @@ class DashboardLoaders {
   Future<List<Map<String, dynamic>>> loadDayClasses(
     String? gymId, {
     required int dayOffset,
+    String? coachId,
   }) async {
     final now = DateTime.now();
     final start = DateTime(
@@ -42,6 +43,9 @@ class DashboardLoaders {
     if (gymId != null && gymId.isNotEmpty) {
       query = query.eq('gym_id', gymId);
     }
+    if (coachId != null && coachId.isNotEmpty) {
+      query = query.eq('coach_id', coachId);
+    }
 
     final data = await query.order('starts_at', ascending: true);
     return List<Map<String, dynamic>>.from(data);
@@ -50,6 +54,7 @@ class DashboardLoaders {
   Future<List<Map<String, dynamic>>> loadWeekClasses(
     String? gymId, {
     required int weekOffset,
+    String? coachId,
   }) async {
     final range = dashboardWeekRange(weekOffset: weekOffset);
 
@@ -63,20 +68,29 @@ class DashboardLoaders {
     if (gymId != null && gymId.isNotEmpty) {
       query = query.eq('gym_id', gymId);
     }
+    if (coachId != null && coachId.isNotEmpty) {
+      query = query.eq('coach_id', coachId);
+    }
 
     final data = await query.order('starts_at', ascending: true);
     return List<Map<String, dynamic>>.from(data);
   }
 
-  Future<List<Map<String, dynamic>>> loadGymBookings(String? gymId) async {
+  Future<List<Map<String, dynamic>>> loadGymBookings(
+    String? gymId, {
+    String? coachId,
+  }) async {
     dynamic query = sb
         .from('class_bookings')
         .select(
-          'id, member_id, class_id, status, created_at, classes!inner(id, gym_id, starts_at)',
+          'id, member_id, class_id, status, created_at, classes!inner(id, gym_id, starts_at, coach_id)',
         );
 
     if (gymId != null && gymId.isNotEmpty) {
       query = query.eq('classes.gym_id', gymId);
+    }
+    if (coachId != null && coachId.isNotEmpty) {
+      query = query.eq('classes.coach_id', coachId);
     }
 
     final data = await query.order('created_at', ascending: false);

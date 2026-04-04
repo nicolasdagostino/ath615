@@ -213,6 +213,7 @@ class DashboardData {
   final List<DashboardMilestoneItem> milestones;
   final List<DashboardRecommendedAction> recommendedActions;
   final String? gymId;
+  final bool isCoachView;
 
   const DashboardData({
     required this.today,
@@ -229,5 +230,6 @@ class DashboardData {
     required this.milestones,
     required this.recommendedActions,
     required this.gymId,
+    required this.isCoachView,
   });
 }

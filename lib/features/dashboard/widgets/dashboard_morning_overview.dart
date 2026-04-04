@@ -12,6 +12,8 @@ class DashboardMorningOverview extends StatelessWidget {
   final List<DashboardTodayHighlightItem> highlights;
   final List<DashboardMilestoneItem> milestones;
   final VoidCallback? onNextClassTap;
+  final bool isCoachView;
+  final int pendingAttendanceCount;
 
   const DashboardMorningOverview({
     super.key,
@@ -19,10 +21,30 @@ class DashboardMorningOverview extends StatelessWidget {
     required this.highlights,
     required this.milestones,
     this.onNextClassTap,
+    this.isCoachView = false,
+    this.pendingAttendanceCount = 0,
   });
+
+  String _text(BuildContext context, String es, String en) {
+    final isSpanish = Localizations.localeOf(
+      context,
+    ).languageCode.toLowerCase().startsWith('es');
+    return isSpanish ? es : en;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final title = isCoachView
+        ? _text(context, 'Resumen del coach', 'Coach overview')
+        : context.appText.morningOverviewTitle;
+    final subtitle = isCoachView
+        ? _text(
+            context,
+            'Tu próxima clase y las asistencias pendientes.',
+            'Your next class and pending attendance.',
+          )
+        : context.appText.morningOverviewSubtitle;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
       decoration: BoxDecoration(
@@ -62,7 +84,7 @@ class DashboardMorningOverview extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        context.appText.morningOverviewTitle,
+                        title,
                         style: GoogleFonts.barlowCondensed(
                           fontSize: 26,
                           fontWeight: FontWeight.w800,
@@ -73,7 +95,7 @@ class DashboardMorningOverview extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        context.appText.morningOverviewSubtitle,
+                        subtitle,
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -113,15 +135,28 @@ class DashboardMorningOverview extends StatelessWidget {
               subtitle: nextClass!.subtitle,
               occupancyLabel: nextClass!.occupancyLabel,
               hasWorkout: nextClass!.hasWorkout,
+              secondaryAttentionLabel: isCoachView && pendingAttendanceCount > 0
+                  ? _text(
+                      context,
+                      pendingAttendanceCount == 1
+                          ? '1 clase pendiente'
+                          : '$pendingAttendanceCount clases pendientes',
+                      pendingAttendanceCount == 1
+                          ? '1 class pending'
+                          : '$pendingAttendanceCount classes pending',
+                    )
+                  : null,
               onTap: onNextClassTap,
               compact: true,
               embedded: true,
             ),
           ],
-          const SizedBox(height: 12),
-          DashboardTodayHighlightsCard(items: highlights, embedded: true),
-          const SizedBox(height: 12),
-          DashboardMilestonesCard(items: milestones, embedded: true),
+          if (!isCoachView) ...[
+            const SizedBox(height: 12),
+            DashboardTodayHighlightsCard(items: highlights, embedded: true),
+            const SizedBox(height: 12),
+            DashboardMilestonesCard(items: milestones, embedded: true),
+          ],
         ],
       ),
     );
