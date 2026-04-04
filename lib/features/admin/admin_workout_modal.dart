@@ -20,10 +20,6 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
           item?['workout_date']?.toString() ??
           DateFormat('yyyy-MM-dd').format(DateTime.now()),
     );
-    final typeCtrl = TextEditingController(
-      text: item?['workout_type']?.toString() ?? '',
-    );
-
     String imageUrl = item?['image_url']?.toString() ?? '';
     File? pickedImage;
     bool uploading = false;
@@ -546,13 +542,6 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                               ),
                               const SizedBox(height: 12),
                               styledField(
-                                label: context.appText.workoutTypeLabel,
-                                controller: typeCtrl,
-                                hint: context.appText.workoutTypeHint,
-                                textInputAction: TextInputAction.next,
-                              ),
-                              const SizedBox(height: 12),
-                              styledField(
                                 label: context.appText.description,
                                 controller: descriptionCtrl,
                                 hint: context.appText.descriptionHintWorkout,
@@ -704,7 +693,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                                 description:
                                                     descriptionCtrl.text,
                                                 workoutDate: dateCtrl.text,
-                                                workoutType: typeCtrl.text,
+                                                workoutType: '',
                                                 imageUrl: finalImageUrl,
                                               ),
                                               successMessage: t.workoutUpdated,
@@ -717,7 +706,7 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
                                                 description:
                                                     descriptionCtrl.text,
                                                 workoutDate: dateCtrl.text,
-                                                workoutType: typeCtrl.text,
+                                                workoutType: '',
                                                 imageUrl: finalImageUrl,
                                               ),
                                               successMessage: t.workoutCreated,

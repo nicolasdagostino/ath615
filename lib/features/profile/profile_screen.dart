@@ -339,6 +339,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ? '-'
               : profile['email'].toString().trim();
 
+          final gymName = (profile['gym_name'] ??
+                  profile['gym_label'] ??
+                  profile['gym'] ??
+                  '')
+              .toString()
+              .trim();
+
           final initials = _initialsFromName(
             fullName.isEmpty ? t.athlete : fullName,
           );
@@ -369,55 +376,85 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Column(
                           children: [
                             Container(
-                              width: 108,
-                              height: 108,
+                              width: 118,
+                              height: 118,
+                              padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFB0B4BF),
-                                borderRadius: BorderRadius.circular(28),
+                                color: const Color(0xFFFFFBF5),
+                                borderRadius: BorderRadius.circular(32),
+                                border: Border.all(
+                                  color: const Color(0xFFE7D7B0),
+                                ),
                               ),
-                              clipBehavior: Clip.antiAlias,
-                              alignment: Alignment.center,
-                              child: avatarDisplayUrl.isNotEmpty
-                                  ? Image.network(
-                                      avatarDisplayUrl,
-                                      width: 108,
-                                      height: 108,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, error, stackTrace) {
-                                        return Center(
-                                          child: Text(
-                                            initials,
-                                            style: _font(
-                                              38,
-                                              weight: FontWeight.w800,
-                                              color: Colors.white,
-                                              letterSpacing: -0.5,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFB0B4BF),
+                                  borderRadius: BorderRadius.circular(28),
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                alignment: Alignment.center,
+                                child: avatarDisplayUrl.isNotEmpty
+                                    ? Image.network(
+                                        avatarDisplayUrl,
+                                        width: 110,
+                                        height: 110,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, error, stackTrace) {
+                                          return Center(
+                                            child: Text(
+                                              initials,
+                                              style: _font(
+                                                38,
+                                                weight: FontWeight.w800,
+                                                color: Colors.white,
+                                                letterSpacing: -0.5,
+                                              ),
                                             ),
-                                          ),
-                                        );
-                                      },
-                                    )
-                                  : Text(
-                                      initials,
-                                      style: _font(
-                                        38,
-                                        weight: FontWeight.w800,
-                                        color: Colors.white,
-                                        letterSpacing: -0.5,
+                                          );
+                                        },
+                                      )
+                                    : Text(
+                                        initials,
+                                        style: _font(
+                                          38,
+                                          weight: FontWeight.w800,
+                                          color: Colors.white,
+                                          letterSpacing: -0.5,
+                                        ),
                                       ),
-                                    ),
+                              ),
                             ),
                             const SizedBox(height: 18),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF7F3EA),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                gymName.isNotEmpty ? gymName.toUpperCase() : 'ATHLETE',
+                                style: _font(
+                                  11,
+                                  weight: FontWeight.w800,
+                                  color: const Color(0xFF8A6F3E),
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 14),
                             Text(
                               fullName.toUpperCase(),
                               textAlign: TextAlign.center,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: _font(
-                                26,
+                                28,
                                 weight: FontWeight.w800,
                                 color: const Color(0xFF0E0E11),
-                                letterSpacing: -0.3,
+                                letterSpacing: -0.35,
                                 height: 0.96,
                               ),
                             ),
@@ -434,6 +471,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 letterSpacing: 0.0,
                               ),
                             ),
+                            if (gymName.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                gymName,
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: _font(
+                                  13,
+                                  weight: FontWeight.w700,
+                                  color: const Color(0xFF8A6F3E),
+                                  letterSpacing: 0.0,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -443,7 +495,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _ProfilePrimaryCard(
                         children: [
                           _PrimaryActionRow(
+                            icon: Icons.person_outline_rounded,
                             title: t.account,
+
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -454,13 +508,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const _SoftDivider(),
                           _PrimaryActionRow(
+                            icon: Icons.language_rounded,
                             title:
                                 '${t.language} · ${LocaleController.instance.isSpanish ? t.spanish : t.english}',
+
                             onTap: _showLanguageSheet,
                           ),
                           const _SoftDivider(),
                           _PrimaryActionRow(
+                            icon: Icons.emoji_events_outlined,
                             title: t.records,
+
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -471,7 +529,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const _SoftDivider(),
                           _PrimaryActionRow(
+                            icon: Icons.history_rounded,
                             title: t.classHistory,
+
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -491,6 +551,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: _StatTile(
                               value: totalClasses,
                               label: t.classes,
+                              icon: Icons.calendar_today_rounded,
+                              iconBg: const Color(0xFFF7F3EA),
+                              iconColor: const Color(0xFFB59B6A),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -498,6 +561,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: _StatTile(
                               value: recordsCount,
                               label: t.records,
+                              icon: Icons.emoji_events_rounded,
+                              iconBg: const Color(0xFFF4F3FF),
+                              iconColor: const Color(0xFF7A5AF8),
                             ),
                           ),
                         ],
@@ -509,6 +575,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: _StatTile(
                               value: strengthCount,
                               label: t.strength,
+                              icon: Icons.fitness_center_rounded,
+                              iconBg: const Color(0xFFF5F7FA),
+                              iconColor: const Color(0xFF667085),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -516,6 +585,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: _StatTile(
                               value: milestonesCount,
                               label: t.milestones,
+                              icon: Icons.workspace_premium_rounded,
+                              iconBg: const Color(0xFFF7F3EA),
+                              iconColor: const Color(0xFFB59B6A),
                             ),
                           ),
                         ],
@@ -526,16 +598,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _ProfilePrimaryCard(
                         children: [
                           _PrimaryActionRow(
+                            icon: Icons.help_outline_rounded,
                             title: t.helpCenter,
+
                             compact: false,
                           ),
                           _SoftDivider(),
                           _PrimaryActionRow(
+                            icon: Icons.privacy_tip_outlined,
                             title: t.privacyPolicy,
+
                             compact: false,
                           ),
                           _SoftDivider(),
                           _PrimaryActionRow(
+                            icon: Icons.description_outlined,
                             title: t.termsOfService,
                             compact: false,
                           ),
@@ -545,6 +622,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _ProfilePrimaryCard(
                         children: [
                           _PrimaryActionRow(
+                            icon: Icons.logout_rounded,
                             title: t.logOut,
                             danger: true,
                             compact: false,
@@ -642,6 +720,7 @@ class _ProfilePrimaryCard extends StatelessWidget {
 }
 
 class _PrimaryActionRow extends StatelessWidget {
+  final IconData? icon;
   final String title;
   final VoidCallback? onTap;
   final bool danger;
@@ -649,6 +728,7 @@ class _PrimaryActionRow extends StatelessWidget {
   final bool showChevron;
 
   const _PrimaryActionRow({
+    this.icon,
     required this.title,
     this.onTap,
     this.danger = false,
@@ -685,21 +765,41 @@ class _PrimaryActionRow extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: compact ? 10 : 11),
         child: Row(
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: _font(
-                      compact ? 15 : 15,
-                      weight: FontWeight.w800,
-                      color: titleColor,
-                      letterSpacing: 0.0,
-                      height: 0.98,
-                    ),
+            if (icon != null) ...[
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: danger
+                      ? const Color(0xFFFFF1EF)
+                      : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: danger
+                        ? const Color(0xFFF3C7C2)
+                        : const Color(0xFFE7EBF0),
                   ),
-                ],
+                ),
+                child: Icon(
+                  icon,
+                  size: 18,
+                  color: danger
+                      ? const Color(0xFFB42318)
+                      : const Color(0xFF667085),
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: Text(
+                title,
+                style: _font(
+                  15,
+                  weight: FontWeight.w800,
+                  color: titleColor,
+                  letterSpacing: -0.05,
+                  height: 0.98,
+                ),
               ),
             ),
             if (showChevron) ...[
@@ -722,8 +822,17 @@ class _PrimaryActionRow extends StatelessWidget {
 class _StatTile extends StatelessWidget {
   final String value;
   final String label;
+  final IconData icon;
+  final Color iconBg;
+  final Color iconColor;
 
-  const _StatTile({required this.value, required this.label});
+  const _StatTile({
+    required this.value,
+    required this.label,
+    required this.icon,
+    required this.iconBg,
+    required this.iconColor,
+  });
 
   TextStyle _font(
     double size, {
@@ -748,6 +857,16 @@ class _StatTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, size: 20, color: iconColor),
+          ),
+          const SizedBox(height: 16),
           Text(
             value,
             style: _font(

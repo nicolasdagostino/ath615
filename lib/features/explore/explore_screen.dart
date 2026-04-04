@@ -238,7 +238,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 curve: Curves.easeOut,
                 decoration: BoxDecoration(
                   color: isRecent
-                      ? const Color(0xFF111318)
+                      ? const Color(0xFFB59B6A)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(999),
                 ),
@@ -336,14 +336,20 @@ class _ExploreScreenState extends State<ExploreScreen> {
     final title = _mode == 'popular'
         ? context.appText.popularWorkouts
         : context.appText.recentWorkouts;
-    return Text(
-      title.toUpperCase(),
-      style: _font(
-        15,
-        weight: FontWeight.w700,
-        color: const Color(0xFF111318),
-        letterSpacing: 0.8,
-      ),
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title.toUpperCase(),
+            style: _font(
+              15,
+              weight: FontWeight.w700,
+              color: const Color(0xFF111318),
+              letterSpacing: 0.8,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -424,8 +430,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
   Widget _card(Map<String, dynamic> item) {
     final program =
         (item['program_name'] ?? context.appText.defaultWorkoutTitle)
-            .toString();
-    final title = _resolvedTitle(item);
+            .toString()
+            .trim();
+    final title = _resolvedTitle(item).trim();
     final description = (item['description'] ?? '').toString().trim();
     final likes = (item['likes_count'] ?? 0).toString();
     final comments = (item['comments_count'] ?? 0).toString();
@@ -455,7 +462,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           );
         },
         child: AppCard(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -464,6 +471,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -491,8 +499,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         vertical: 7,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF7F3EA),
+                        color: const Color(0xFFFFFBF5),
                         borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: const Color(0xFFE7D7B0)),
                       ),
                       child: Text(
                         context.appText.benchmarkUpper,
@@ -506,41 +515,45 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     ),
                 ],
               ),
-              const SizedBox(height: 14),
-              Text(
-                date,
-                style: _font(
-                  12,
-                  weight: FontWeight.w500,
-                  color: const Color(0xFF8F96A3),
-                ),
-              ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 12),
               Text(
                 title,
                 style: _font(
                   24,
                   weight: FontWeight.w800,
                   color: const Color(0xFF111318),
-                  letterSpacing: -0.7,
+                  letterSpacing: -0.45,
                   height: 1.0,
                 ),
               ),
+              if (date.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  date,
+                  style: _font(
+                    12,
+                    weight: FontWeight.w500,
+                    color: const Color(0xFF8F96A3),
+                  ),
+                ),
+              ],
               if (description.isNotEmpty) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Text(
                   description,
-                  maxLines: 4,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   style: _font(
-                    14,
+                    13,
                     weight: FontWeight.w500,
                     color: const Color(0xFF667085),
-                    height: 1.18,
+                    height: 1.28,
                   ),
                 ),
               ],
               const SizedBox(height: 14),
+              Container(height: 0.6, color: const Color(0xFFF1F3F6)),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Text(
@@ -561,10 +574,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     ),
                   ),
                   const Spacer(),
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    size: 22,
-                    color: Color(0xFF98A2B3),
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: const Icon(
+                      Icons.chevron_right_rounded,
+                      size: 20,
+                      color: Color(0xFF98A2B3),
+                    ),
                   ),
                 ],
               ),
@@ -664,17 +686,45 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       ),
                     )
                   else if (_items.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 40),
-                      child: Center(
-                        child: Text(
-                          context.appText.noWorkoutsFound,
-                          style: _font(
-                            16,
-                            weight: FontWeight.w500,
-                            color: const Color(0xFF667085),
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(top: 22),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 22,
+                        vertical: 26,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(color: const Color(0xFFEFF1F4)),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 46,
+                            height: 46,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF7F3EA),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.search_off_rounded,
+                              color: Color(0xFFB59B6A),
+                              size: 22,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 12),
+                          Text(
+                            context.appText.noWorkoutsFound,
+                            textAlign: TextAlign.center,
+                            style: _font(
+                              18,
+                              weight: FontWeight.w800,
+                              color: const Color(0xFF111318),
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                        ],
                       ),
                     )
                   else

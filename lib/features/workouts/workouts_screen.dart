@@ -798,9 +798,11 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     final comments = _commentsByWorkout[workoutId] ?? [];
 
     final program = (item['program_name'] ?? context.appText.workout)
-        .toString();
+        .toString()
+        .trim();
     final author = (item['created_by_name'] ?? context.appText.athlete615)
-        .toString();
+        .toString()
+        .trim();
     final dateIso = (item['workout_date'] ?? '').toString();
 
     String formattedDate = dateIso;
@@ -810,7 +812,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     } catch (_) {}
 
     final description = (item['description'] ?? '').toString().trim();
-    final type = (item['workout_type'] ?? '').toString().trim();
+    final title = (item['title'] ?? context.appText.workout).toString().trim();
 
     final likes = (item['likes_count'] ?? 0).toString();
     final commentsCount = comments.length.toString();
@@ -824,7 +826,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircleAvatar(
                   radius: 20,
@@ -869,44 +871,51 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-              decoration: BoxDecoration(
-                color: _programChipBg(program),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                program.toUpperCase(),
-                style: _font(
-                  11,
-                  weight: FontWeight.w700,
-                  color: _programColor(program),
-                  letterSpacing: 0.9,
+            const SizedBox(height: 16),
+            _imageSection(item),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 11,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _programChipBg(program),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    program.toUpperCase(),
+                    style: _font(
+                      11,
+                      weight: FontWeight.w700,
+                      color: _programColor(program),
+                      letterSpacing: 0.9,
+                    ),
+                  ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: _font(
+                25,
+                weight: FontWeight.w800,
+                color: const Color(0xFF111318),
+                letterSpacing: -0.35,
+                height: 1.0,
               ),
             ),
-            const SizedBox(height: 14),
-            if (type.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                type.toUpperCase(),
-                style: _font(
-                  11,
-                  weight: FontWeight.w700,
-                  color: const Color(0xFF98A2B3),
-                  letterSpacing: 1.1,
-                ),
-              ),
-            ],
             if (description.isNotEmpty) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               _parsedDescription(description),
             ],
-
-            const SizedBox(height: 18),
-            _imageSection(item),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Text(
@@ -950,7 +959,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Container(height: 0.6, color: const Color(0xFFF1F3F6)),
             const SizedBox(height: 14),
             if (comments.isEmpty)

@@ -125,6 +125,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return raw;
   }
 
+  String _gymName(Map<String, dynamic> profile) {
+    final direct = _stringValue(profile['gym_name']);
+    if (direct.isNotEmpty) return direct;
+
+    final gym = profile['gyms'];
+    if (gym is Map<String, dynamic>) {
+      return _stringValue(gym['name']);
+    }
+    if (gym is Map) {
+      return _stringValue(gym['name']);
+    }
+    return '';
+  }
+
   DateTime? _birthDateValue(Map<String, dynamic> profile) {
     final raw = _stringValue(
       profile['date_of_birth'] ?? profile['birth_date'] ?? profile['dob'],
@@ -149,6 +163,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (values.containsKey('date_of_birth')) {
       payload['date_of_birth'] = values['date_of_birth'];
+    }
+
+    if (values.containsKey('phone')) {
+      final phone = _stringValue(values['phone']);
+      payload['phone'] = phone.isEmpty ? null : phone;
     }
 
     if (payload.isEmpty) return;
@@ -261,22 +280,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       hintStyle: _font(
         13,
         weight: FontWeight.w500,
-        color: const Color(0xFF98A2B3),
+        color: const Color(0xFF9AA3AF),
       ),
       filled: true,
-      fillColor: const Color(0xFFF8FAFC),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      fillColor: const Color(0xFFFCFDFE),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
       suffixIcon: suffixIcon,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         borderSide: const BorderSide(color: Color(0xFFB59B6A), width: 1.2),
       ),
     );
@@ -306,9 +325,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           elevation: 0,
           backgroundColor: const Color(0xFFB59B6A),
           foregroundColor: Colors.white,
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size.fromHeight(54),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
           ),
         ),
         child: Text(
@@ -363,7 +382,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             top: false,
             child: Container(
               decoration: const BoxDecoration(
-                color: Color(0xFFF6F7F9),
+                color: Color(0xFFF7F8FA),
                 borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
               ),
               child: GestureDetector(
@@ -387,7 +406,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           subtitle: context.appText.updateAccountInformation,
                           onClose: () => Navigator.pop(sheetContext),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 18),
                         _sheetSectionTitle(context.appText.details),
                         const SizedBox(height: 10),
                         Container(
@@ -395,8 +414,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           padding: const EdgeInsets.all(18),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(22),
-                            border: Border.all(color: const Color(0xFFEAECEF)),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(color: const Color(0xFFE8ECF1)),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x080D1210),
+                                blurRadius: 10,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
                           ),
                           child: TextField(
                             controller: controller,
@@ -407,9 +433,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             textCapitalization: capitalizeWords
                                 ? TextCapitalization.words
                                 : TextCapitalization.none,
+                            keyboardType: fieldKey == 'phone'
+                                ? TextInputType.phone
+                                : TextInputType.text,
                             style: _font(
-                              13,
-                              weight: FontWeight.w500,
+                              14,
+                              weight: FontWeight.w600,
                               color: const Color(0xFF111318),
                             ),
                             decoration: _sheetInputDecoration(
@@ -417,7 +446,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 20),
                         _sheetPrimaryButton(
                           text: context.appText.saveChanges,
                           onPressed: () {
@@ -468,7 +497,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           top: false,
           child: Container(
             decoration: const BoxDecoration(
-              color: Color(0xFFF6F7F9),
+              color: Color(0xFFF7F8FA),
               borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
             ),
             child: Padding(
@@ -487,7 +516,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         subtitle: context.appText.chooseBirthDate,
                         onClose: () => Navigator.pop(sheetContext),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 18),
                       _sheetSectionTitle(context.appText.selectDate),
                       const SizedBox(height: 10),
                       Container(
@@ -542,7 +571,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 20),
                       _sheetPrimaryButton(
                         text: context.appText.saveChanges,
                         onPressed: () =>
@@ -608,7 +637,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 top: false,
                 child: Container(
                   decoration: const BoxDecoration(
-                    color: Color(0xFFF6F7F9),
+                    color: Color(0xFFF7F8FA),
                     borderRadius: BorderRadius.vertical(
                       top: Radius.circular(30),
                     ),
@@ -633,7 +662,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               subtitle: context.appText.setNewPasswordSubtitle,
                               onClose: () => Navigator.pop(sheetContext),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 18),
                             _sheetSectionTitle(context.appText.security),
                             const SizedBox(height: 10),
                             Container(
@@ -707,7 +736,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 18),
+                            const SizedBox(height: 20),
                             _sheetPrimaryButton(
                               text: context.appText.updatePassword,
                               onPressed: () {
@@ -789,6 +818,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               final initials = _initials(profile);
               final email = waiting ? '' : _displayOrDash(profile['email']);
               final fullName = waiting ? '' : _fullName(profile);
+              final phone = waiting ? '' : _displayOrDash(profile['phone']);
+              final gymName = waiting ? '' : _gymName(profile);
               final birthDate = waiting ? '' : _birthDate(profile);
               final birthDateValue = waiting ? null : _birthDateValue(profile);
               final avatarUrl = waiting
@@ -846,7 +877,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      t.profileUpper,
+                                      t.edit,
                                       style: _font(
                                         11,
                                         weight: FontWeight.w500,
@@ -869,115 +900,140 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         AppCard(
-                          padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+                          padding: const EdgeInsets.fromLTRB(22, 24, 22, 22),
                           child: Column(
                             children: [
-                              Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  Container(
-                                    width: 96,
-                                    height: 96,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFA4A7B3),
-                                      borderRadius: BorderRadius.circular(26),
-                                    ),
-                                    clipBehavior: Clip.antiAlias,
-                                    alignment: Alignment.center,
-                                    child: waiting
-                                        ? const SizedBox(
-                                            width: 22,
-                                            height: 22,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                            ),
-                                          )
-                                        : avatarDisplayUrl.isNotEmpty
-                                        ? Image.network(
-                                            avatarDisplayUrl,
-                                            width: 96,
-                                            height: 96,
-                                            fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (_, error, stackTrace) {
-                                                  return Center(
-                                                    child: Text(
-                                                      initials,
-                                                      style: _font(
-                                                        34,
-                                                        weight: FontWeight.w800,
-                                                        color: Colors.white,
-                                                        letterSpacing: -0.4,
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                          )
-                                        : Text(
-                                            initials,
-                                            style: _font(
-                                              34,
-                                              weight: FontWeight.w800,
-                                              color: Colors.white,
-                                              letterSpacing: -0.4,
-                                            ),
-                                          ),
-                                  ),
-                                  Positioned(
-                                    right: -4,
-                                    top: -4,
-                                    child: Container(
-                                      width: 32,
-                                      height: 32,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: const Color(0xFFEAECEF),
-                                          width: 1.2,
-                                        ),
-                                      ),
-                                      child: const Icon(
-                                        Icons.delete_outline_rounded,
-                                        size: 18,
-                                        color: Color(0xFFB42318),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 14),
-                              GestureDetector(
-                                onTap: _saving ? null : _pickAndUploadAvatar,
-                                child: Text(
-                                  _saving ? t.uploadingUpper : t.uploadNewPhotoUpper,
-                                  style: _font(
-                                    14,
-                                    weight: FontWeight.w700,
-                                    color: const Color(0xFFB59B6A),
-                                    letterSpacing: 0.2,
+                              Container(
+                                width: 118,
+                                height: 118,
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFFBF5),
+                                  borderRadius: BorderRadius.circular(32),
+                                  border: Border.all(
+                                    color: const Color(0xFFE7D7B0),
                                   ),
                                 ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFA4A7B3),
+                                    borderRadius: BorderRadius.circular(28),
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  alignment: Alignment.center,
+                                  child: waiting
+                                      ? const SizedBox(
+                                          width: 22,
+                                          height: 22,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : avatarDisplayUrl.isNotEmpty
+                                      ? Image.network(
+                                          avatarDisplayUrl,
+                                          width: 110,
+                                          height: 110,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, error, stackTrace) {
+                                            return Center(
+                                              child: Text(
+                                                initials,
+                                                style: _font(
+                                                  38,
+                                                  weight: FontWeight.w800,
+                                                  color: Colors.white,
+                                                  letterSpacing: -0.5,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        )
+                                      : Text(
+                                          initials,
+                                          style: _font(
+                                            38,
+                                            weight: FontWeight.w800,
+                                            color: Colors.white,
+                                            letterSpacing: -0.5,
+                                          ),
+                                        ),
+                                ),
                               ),
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 18),
+                              if (gymName.isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF7F3EA),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(
+                                    gymName.toUpperCase(),
+                                    style: _font(
+                                      11,
+                                      weight: FontWeight.w800,
+                                      color: const Color(0xFF8A6F3E),
+                                      letterSpacing: 0.8,
+                                    ),
+                                  ),
+                                ),
+                              if (gymName.isNotEmpty) const SizedBox(height: 14),
                               Text(
-                                email,
+                                fullName == '-' ? t.athlete.toUpperCase() : fullName.toUpperCase(),
                                 textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                                 style: _font(
-                                  14,
-                                  weight: FontWeight.w500,
-                                  color: const Color(0xFF98A2B3),
+                                  28,
+                                  weight: FontWeight.w800,
+                                  color: const Color(0xFF0E0E11),
+                                  letterSpacing: -0.35,
+                                  height: 0.96,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              const SizedBox(height: 16),
+                              GestureDetector(
+                                onTap: _saving ? null : _pickAndUploadAvatar,
+                                child: Container(
+                                  height: 42,
+                                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF7F3EA),
+                                    borderRadius: BorderRadius.circular(999),
+                                    border: Border.all(
+                                      color: const Color(0xFFE7D7B0),
+                                    ),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    _saving
+                                        ? t.uploadingUpper
+                                        : t.uploadNewPhotoUpper,
+                                    style: _font(
+                                      14,
+                                      weight: FontWeight.w800,
+                                      color: const Color(0xFF8A6F3E),
+                                      letterSpacing: -0.05,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
                         const SizedBox(height: 18),
+                        const SizedBox(height: 18),
                         _SectionLabel(t.personalUpper),
                         const SizedBox(height: 6),
                         _SectionCard(
                           children: [
                             _AccountRow(
+                              icon: Icons.badge_outlined,
                               title: t.fullName,
                               value: fullName,
                               onTap: waiting || _saving
@@ -990,6 +1046,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                             const _SectionDivider(),
                             _AccountRow(
+                              icon: Icons.call_outlined,
+                              title: context.appText.phone,
+                              value: phone,
+                              onTap: waiting || _saving
+                                  ? null
+                                  : () => _editTextField(
+                                      title: context.appText.phone,
+                                      fieldKey: 'phone',
+                                      initialValue: phone,
+                                      capitalizeWords: false,
+                                    ),
+                            ),
+                            const _SectionDivider(),
+                            _AccountRow(
+                              icon: Icons.event_rounded,
                               title: context.appText.dateOfBirth,
                               value: birthDate,
                               onTap: waiting || _saving
@@ -1004,23 +1075,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         _SectionCard(
                           children: [
                             _AccountRow(
+                              icon: Icons.lock_outline_rounded,
                               title: context.appText.changePassword,
                               onTap: _saving ? null : _showChangePasswordSheet,
                             ),
                           ],
                         ),
                         const SizedBox(height: 14),
-                        _SectionLabel(t.appUpper),
-                        const SizedBox(height: 6),
-                        _SectionCard(
-                          children: [_AccountRow(title: t.settings)],
-                        ),
                         const SizedBox(height: 18),
                         _SectionLabel(t.dangerZoneUpper),
                         const SizedBox(height: 6),
                         _SectionCard(
                           children: [
                             _AccountRow(
+                              icon: Icons.delete_outline_rounded,
                               title: t.deleteAccount,
                               danger: true,
                               showChevron: false,
@@ -1098,6 +1166,7 @@ class _SectionCard extends StatelessWidget {
 }
 
 class _AccountRow extends StatelessWidget {
+  final IconData? icon;
   final String title;
   final String? value;
   final bool danger;
@@ -1105,6 +1174,7 @@ class _AccountRow extends StatelessWidget {
   final VoidCallback? onTap;
 
   const _AccountRow({
+    this.icon,
     required this.title,
     this.value,
     this.danger = false,
@@ -1141,6 +1211,31 @@ class _AccountRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 11),
         child: Row(
           children: [
+            if (icon != null) ...[
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: danger
+                      ? const Color(0xFFFFF1F0)
+                      : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: danger
+                        ? const Color(0xFFF3C7C2)
+                        : const Color(0xFFE7EBF0),
+                  ),
+                ),
+                child: Icon(
+                  icon,
+                  size: 18,
+                  color: danger
+                      ? const Color(0xFFB42318)
+                      : const Color(0xFF667085),
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
             Expanded(
               child: Text(
                 title,

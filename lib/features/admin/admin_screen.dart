@@ -98,8 +98,9 @@ class _AdminScreenState extends State<AdminScreen> {
 
   AppStrings get t => context.appText;
 
-  bool get _isSpanish =>
-      Localizations.localeOf(context).languageCode.toLowerCase().startsWith('es');
+  bool get _isSpanish => Localizations.localeOf(
+    context,
+  ).languageCode.toLowerCase().startsWith('es');
 
   String _uiText(String es, String en) => _isSpanish ? es : en;
 
@@ -446,7 +447,11 @@ class _AdminScreenState extends State<AdminScreen> {
       final resolvedTitle =
           title ?? _uiText('Fecha de nacimiento', 'Date of Birth');
       final resolvedSubtitle =
-          subtitle ?? _uiText('Elige la fecha de nacimiento del atleta.', 'Choose the athlete birth date.');
+          subtitle ??
+          _uiText(
+            'Elige la fecha de nacimiento del atleta.',
+            'Choose the athlete birth date.',
+          );
       final now = DateTime.now();
       DateTime selectedDate =
           DateTime.tryParse(controller.text.trim()) ?? DateTime(1990, 1, 1);
@@ -744,7 +749,10 @@ class _AdminScreenState extends State<AdminScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          _uiText('Crea una cuenta real de atleta y envía el email de invitación automáticamente.', 'Create a real athlete account and send the invitation email automatically.'),
+                          _uiText(
+                            'Crea una cuenta real de atleta y envía el email de invitación automáticamente.',
+                            'Create a real athlete account and send the invitation email automatically.',
+                          ),
                           style: _font(
                             13,
                             weight: FontWeight.w500,
@@ -832,6 +840,10 @@ class _AdminScreenState extends State<AdminScreen> {
                               child: Text(_uiText('Atleta', 'Athlete')),
                             ),
                             DropdownMenuItem(
+                              value: 'coach',
+                              child: Text(_uiText('Coach', 'Coach')),
+                            ),
+                            DropdownMenuItem(
                               value: 'admin',
                               child: Text(_uiText('Admin', 'Admin')),
                             ),
@@ -878,7 +890,10 @@ class _AdminScreenState extends State<AdminScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      _uiText('Miembro activo', 'Active member'),
+                                      _uiText(
+                                        'Miembro activo',
+                                        'Active member',
+                                      ),
                                       style: _font(
                                         14,
                                         weight: FontWeight.w700,
@@ -887,7 +902,10 @@ class _AdminScreenState extends State<AdminScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      _uiText('Permitir acceso a la app después de configurar la contraseña', 'Allow access to the app after password setup'),
+                                      _uiText(
+                                        'Permitir acceso a la app después de configurar la contraseña',
+                                        'Allow access to the app after password setup',
+                                      ),
                                       style: _font(
                                         12,
                                         weight: FontWeight.w500,
@@ -2530,9 +2548,29 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Widget _memberRoleChip(String role) {
-    final isAdminRole = role == 'admin';
-    final bg = isAdminRole ? const Color(0xFFF7F3EA) : const Color(0xFFEFF4FB);
-    final fg = isAdminRole ? const Color(0xFFB59B6A) : const Color(0xFF245BEB);
+    final normalizedRole = role.trim().toLowerCase();
+
+    Color bg;
+    Color fg;
+    String label;
+
+    switch (normalizedRole) {
+      case 'admin':
+        bg = const Color(0xFFF7F3EA);
+        fg = const Color(0xFFB59B6A);
+        label = 'ADMIN';
+        break;
+      case 'coach':
+        bg = const Color(0xFFEFF4FB);
+        fg = const Color(0xFF245BEB);
+        label = 'COACH';
+        break;
+      default:
+        bg = const Color(0xFFEFF4FB);
+        fg = const Color(0xFF245BEB);
+        label = 'ATHLETE';
+        break;
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -2541,7 +2579,7 @@ class _AdminScreenState extends State<AdminScreen> {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        isAdminRole ? 'ADMIN' : 'ATHLETE',
+        label,
         style: _font(
           10,
           weight: FontWeight.w800,
@@ -2957,9 +2995,7 @@ class _AdminScreenState extends State<AdminScreen> {
           color: selected ? const Color(0xFFB59B6A) : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: selected
-                ? const Color(0xFFB59B6A)
-                : const Color(0xFFE2E8F0),
+            color: selected ? const Color(0xFFB59B6A) : const Color(0xFFE2E8F0),
           ),
           boxShadow: selected
               ? const [
@@ -3904,6 +3940,33 @@ class _AdminScreenState extends State<AdminScreen> {
                                 },
                         ),
                       ],
+                      if (role != 'coach') ...[
+                        const SizedBox(height: 10),
+                        actionTile(
+                          icon: Icons.fitness_center_rounded,
+                          title: _uiText('Convertir en coach', 'Make coach'),
+                          subtitle: _uiText(
+                            'Dar acceso como coach de este gym',
+                            'Give this member coach access for this gym',
+                          ),
+                          onTap: _adminActionBusy
+                              ? null
+                              : () async {
+                                  if (!context.mounted) return;
+                                  Navigator.pop(context);
+                                  await _runAdminAction(
+                                    () => _updateMemberRole(
+                                      profileId: memberId,
+                                      role: 'coach',
+                                    ),
+                                    successMessage: _uiText(
+                                      'Rol actualizado a coach',
+                                      'Role updated to coach',
+                                    ),
+                                  );
+                                },
+                        ),
+                      ],
                       if (role != 'admin') ...[
                         const SizedBox(height: 10),
                         actionTile(
@@ -4326,12 +4389,14 @@ class _AdminScreenState extends State<AdminScreen> {
             final totalValue = item['max_spots'] ?? 0;
             final remaining = remainingValue.toString();
             final total = totalValue.toString();
-            final workoutTitle = (item['workout_title'] ?? '').toString().trim();
+            final workoutTitle = (item['workout_title'] ?? '')
+                .toString()
+                .trim();
             final hasWorkout = workoutTitle.isNotEmpty;
             final duration = (item['duration_minutes'] ?? 60).toString();
             final isFull = (item['remaining_spots'] ?? 0) <= 0;
-            final classHeadline = title.isNotEmpty &&
-                    title.toLowerCase() != program.toLowerCase()
+            final classHeadline =
+                title.isNotEmpty && title.toLowerCase() != program.toLowerCase()
                 ? title
                 : program;
 
@@ -4390,8 +4455,14 @@ class _AdminScreenState extends State<AdminScreen> {
                                   ),
                                   child: Text(
                                     hasWorkout
-                                        ? _uiText('Con workout', 'Workout assigned')
-                                        : _uiText('Sin workout', 'Workout missing'),
+                                        ? _uiText(
+                                            'Con workout',
+                                            'Workout assigned',
+                                          )
+                                        : _uiText(
+                                            'Sin workout',
+                                            'Workout missing',
+                                          ),
                                     style: _font(
                                       11,
                                       weight: FontWeight.w800,
@@ -4442,7 +4513,10 @@ class _AdminScreenState extends State<AdminScreen> {
                                       ? Icons.block_rounded
                                       : Icons.groups_2_outlined,
                                   text: isFull
-                                      ? _uiText('Completa · $total/$total', 'Full · $total/$total')
+                                      ? _uiText(
+                                          'Completa · $total/$total',
+                                          'Full · $total/$total',
+                                        )
                                       : t.spotsCountLabel(remaining, total),
                                 ),
                               ],
@@ -4482,7 +4556,9 @@ class _AdminScreenState extends State<AdminScreen> {
                                     child: Text(
                                       hasWorkout
                                           ? t.workoutTitleWithName(workoutTitle)
-                                          : context.appText.workoutNotAssignedLabel,
+                                          : context
+                                                .appText
+                                                .workoutNotAssignedLabel,
                                       style: _font(
                                         13,
                                         weight: FontWeight.w700,
@@ -4510,9 +4586,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           decoration: BoxDecoration(
                             color: const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: const Color(0xFFE2E8F0),
-                            ),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
                           ),
                           child: const Icon(
                             Icons.more_horiz_rounded,
@@ -4628,11 +4702,9 @@ class _AdminScreenState extends State<AdminScreen> {
                     .toString()
                     .trim();
             final rawDate = (item['workout_date'] ?? '').toString();
-            final type = (item['workout_type'] ?? '').toString().trim();
-            final title =
-                (item['title'] ?? _uiText('Workout', 'Workout'))
-                    .toString()
-                    .trim();
+            final title = (item['title'] ?? _uiText('Workout', 'Workout'))
+                .toString()
+                .trim();
             final description = (item['description'] ?? '').toString().trim();
             final imageUrl = (item['image_url'] ?? '').toString().trim();
 
@@ -4714,29 +4786,6 @@ class _AdminScreenState extends State<AdminScreen> {
                                     ),
                                   ),
                                 ),
-                                if (type.isNotEmpty)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF8FAFC),
-                                      borderRadius: BorderRadius.circular(999),
-                                      border: Border.all(
-                                        color: const Color(0xFFE2E8F0),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      type,
-                                      style: _font(
-                                        11,
-                                        weight: FontWeight.w800,
-                                        color: const Color(0xFF475467),
-                                        letterSpacing: 0.2,
-                                      ),
-                                    ),
-                                  ),
                               ],
                             ),
                             const SizedBox(height: 10),
@@ -4789,9 +4838,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           decoration: BoxDecoration(
                             color: const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: const Color(0xFFE2E8F0),
-                            ),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
                           ),
                           child: const Icon(
                             Icons.more_horiz_rounded,

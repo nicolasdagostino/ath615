@@ -564,6 +564,7 @@ class _BookingScreenState extends State<BookingScreen> {
     required String text,
     required VoidCallback? onPressed,
     bool filled = false,
+    bool loading = false,
     Color? fillColor,
     Color? textColor,
   }) {
@@ -575,20 +576,41 @@ class _BookingScreenState extends State<BookingScreen> {
     return SizedBox(
       width: double.infinity,
       height: 54,
-      child: Material(
-        color: bg,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 160),
+        opacity: onPressed == null && !loading ? 0.72 : 1,
+        child: Material(
+          color: bg,
           borderRadius: BorderRadius.circular(16),
-          onTap: onPressed,
-          child: Center(
-            child: Text(
-              text.toUpperCase(),
-              style: _font(
-                16,
-                weight: FontWeight.w800,
-                color: onPressed == null ? const Color(0xFF98A2B3) : fg,
-                letterSpacing: 0.8,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: loading ? null : onPressed,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              child: Center(
+                key: ValueKey('${text}_$loading'),
+                child: loading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            filled ? Colors.white : const Color(0xFF344054),
+                          ),
+                        ),
+                      )
+                    : Text(
+                        text.toUpperCase(),
+                        style: _font(
+                          16,
+                          weight: FontWeight.w800,
+                          color: onPressed == null
+                              ? const Color(0xFF98A2B3)
+                              : fg,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
               ),
             ),
           ),
@@ -779,7 +801,6 @@ class _BookingScreenState extends State<BookingScreen> {
     final t = context.appText;
     final titleRaw = (item['title'] ?? '').toString().trim();
     final programRaw = (item['program_name'] ?? t.classLabel).toString().trim();
-    final coach = (item['coach_name'] ?? t.coachTbd).toString().trim();
     final remaining = _asInt(item['remaining_spots'], 0);
     final total = _asInt(item['max_spots'], 0);
     final booking = _bookingForClass(item['id'].toString());
@@ -827,7 +848,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 if (topStatus == 'checked_in')
                   _statusPill(t.checkedInUpper, success: true)
                 else if (topStatus == 'booked')
-                  _statusPill(t.bookedUpper, success: false),
+                  _statusPill(t.bookedUpper, success: true),
               ],
             ),
             const SizedBox(height: 4),
@@ -906,6 +927,7 @@ class _BookingScreenState extends State<BookingScreen> {
               _actionButton(
                 text: t.imHere,
                 filled: true,
+                loading: _busyClassId == item['id'].toString(),
                 onPressed: _busyClassId == item['id'].toString()
                     ? null
                     : () => _checkIn(item),
@@ -913,6 +935,7 @@ class _BookingScreenState extends State<BookingScreen> {
             else if (_isBooked(item) && _canCancelBooking(item))
               _actionButton(
                 text: t.cancelBooking,
+                loading: _busyClassId == item['id'].toString(),
                 onPressed: _busyClassId == item['id'].toString()
                     ? null
                     : () => _cancelBooking(item),
@@ -929,6 +952,7 @@ class _BookingScreenState extends State<BookingScreen> {
               _actionButton(
                 text: t.bookClass,
                 filled: true,
+                loading: _busyClassId == item['id'].toString(),
                 onPressed: _busyClassId == item['id'].toString()
                     ? null
                     : () => _bookClass(item),

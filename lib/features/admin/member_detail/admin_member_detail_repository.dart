@@ -3,10 +3,9 @@ import '../../../core/supabase/supabase_bootstrap.dart';
 import 'admin_member_detail_models.dart';
 
 class AdminMemberDetailRepository {
-    final _membershipRepository = MembershipRepository();
+  final _membershipRepository = MembershipRepository();
 
-AdminMemberDetailRepository();
-
+  AdminMemberDetailRepository();
 
   Future<void> updateMemberProfile({
     required String gymId,
@@ -41,7 +40,9 @@ AdminMemberDetailRepository();
 
     final profile = await sb
         .from('profiles')
-        .select('id, gym_id, full_name, email, phone, is_active, member_since, notes')
+        .select(
+          'id, gym_id, full_name, email, phone, is_active, member_since, notes',
+        )
         .eq('id', id)
         .eq('gym_id', resolvedGymId)
         .maybeSingle();
@@ -54,7 +55,6 @@ AdminMemberDetailRepository();
         .from('v_active_member_memberships')
         .select('*')
         .eq('member_id', id)
-        .eq('gym_id', resolvedGymId)
         .order('created_at', ascending: false)
         .limit(1)
         .maybeSingle();
@@ -132,7 +132,9 @@ AdminMemberDetailRepository();
 
       final classId = (row['class_id'] ?? '').toString().trim();
       final classData = row['classes'];
-      final classMap = classData is Map ? Map<String, dynamic>.from(classData) : const <String, dynamic>{};
+      final classMap = classData is Map
+          ? Map<String, dynamic>.from(classData)
+          : const <String, dynamic>{};
       final extra = classMetaById[classId] ?? const <String, dynamic>{};
 
       final startsAt = _parseDateTime(classMap['starts_at']);
@@ -163,7 +165,9 @@ AdminMemberDetailRepository();
       activeMembership: activeMembership == null
           ? null
           : Map<String, dynamic>.from(activeMembership),
-      membershipHistory: membershipHistory.map((e) => Map<String, dynamic>.from(e)).toList(),
+      membershipHistory: membershipHistory
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList(),
       activity: AdminMemberActivitySummary(
         lastActivityAt: lastActivityAt,
         attendedCount: attendedCount,

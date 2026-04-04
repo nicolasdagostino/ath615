@@ -158,7 +158,7 @@ class AppStrings {
 
   String get missed => isSpanish ? 'Perdida' : 'Missed';
 
-  String get classBooked => isSpanish ? 'Clase reservada' : 'Class booked';
+  String get classBooked => isSpanish ? '¡Dentro! 🔥' : "You're in 🔥";
 
   String get bookingCancelled =>
       isSpanish ? 'Reserva cancelada' : 'Booking cancelled';
@@ -191,7 +191,7 @@ class AppStrings {
 
   String get spots => isSpanish ? 'Plazas' : 'Spots';
 
-  String get bookedUpper => isSpanish ? 'RESERVADO' : 'BOOKED';
+  String get bookedUpper => isSpanish ? 'DENTRO' : "YOU'RE IN";
 
   String get checkedInUpper => isSpanish ? 'REGISTRADO' : 'CHECKED IN';
 
@@ -317,6 +317,8 @@ class AppStrings {
   String get memberSince => isSpanish ? 'Miembro desde' : 'Member since';
 
   String get phone => isSpanish ? 'Teléfono' : 'Phone';
+
+  String get gym => isSpanish ? 'Gimnasio' : 'Gym';
 
   String get birthday => isSpanish ? 'Cumpleaños' : 'Birthday';
 
@@ -530,6 +532,8 @@ class AppStrings {
   String get fullName => isSpanish ? 'Nombre completo' : 'Full Name';
 
   String get email => isSpanish ? 'Email' : 'Email';
+
+  String get emailLabel => isSpanish ? 'EMAIL' : 'EMAIL';
   String get enterFullName =>
       isSpanish ? 'Introduce nombre completo' : 'Enter full name';
   String get enterEmail => isSpanish ? 'Introduce email' : 'Enter email';

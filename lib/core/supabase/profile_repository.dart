@@ -19,7 +19,7 @@ class ProfileRepository {
         .from('profiles')
         .select('*')
         .eq('gym_id', gymId)
-        .inFilter('role', ['athlete', 'member', 'admin'])
+        .inFilter('role', ['athlete', 'member', 'coach', 'admin'])
         .order('full_name', ascending: true);
 
     return List<Map<String, dynamic>>.from(data);
