@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../features/auth/auth_gate.dart';
-import '../../features/workouts/workout_detail_screen.dart';
+import 'notification_intent.dart';
+import 'notification_intent_store.dart';
 import '../supabase/auth_deep_link_handler.dart';
 
 class PushNavigation {
@@ -31,10 +32,12 @@ class PushNavigation {
 
     if ((type == 'workout_published' || type == 'workout_comment_reminder') &&
         workoutId.isNotEmpty) {
-      nav.push(
-        MaterialPageRoute(
-          builder: (_) => WorkoutDetailScreen(workoutId: workoutId),
-        ),
+      NotificationIntentStore.set(
+        NotificationIntent.workoutDetail(workoutId, initialIndex: 0),
+      );
+      nav.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AuthGate(initialIndex: 0)),
+        (_) => false,
       );
       return;
     }

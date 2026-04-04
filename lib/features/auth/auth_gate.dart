@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/auth/user_session.dart';
+import '../../core/notifications/notification_intent_store.dart';
 import '../../core/supabase/auth_repository.dart';
 import '../../shared/widgets/bottom_nav_shell.dart';
 import 'login_screen.dart';
@@ -56,6 +57,10 @@ class _AuthGateState extends State<AuthGate> {
                 ),
               );
             }
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              NotificationIntentStore.consumeIfAvailable();
+            });
 
             return BottomNavShell(initialIndex: widget.initialIndex);
           },

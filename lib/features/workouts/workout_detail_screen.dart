@@ -166,20 +166,20 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
 
   Future<void> _load() async {
     try {
-      final t = context.appText;
+      const workoutNotFoundFallback = 'Workout not found';
       final initialWorkout = _workout;
       Map<String, dynamic>? workout = initialWorkout;
       final targetId = widget.workoutId ?? initialWorkout?['id']?.toString();
 
       if (targetId == null || targetId.isEmpty) {
-        throw Exception(t.workoutNotFound);
+        throw Exception(workoutNotFoundFallback);
       }
 
       final fetched = await _repo.getWorkoutById(targetId);
       workout = fetched ?? initialWorkout;
 
       if (workout == null) {
-        throw Exception(t.workoutNotFound);
+        throw Exception(workoutNotFoundFallback);
       }
 
       final comments = await _commentRepo.listCommentsForWorkout(targetId);
@@ -823,7 +823,6 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
         .toString();
     final dateIso = (workout['workout_date'] ?? '').toString();
     final description = (workout['description'] ?? '').toString().trim();
-    final type = (workout['workout_type'] ?? '').toString().trim();
     final imageUrl = (workout['image_url'] ?? '').toString();
     final likes = (workout['likes_count'] ?? 0).toString();
     final commentsCount = _comments.length.toString();
@@ -849,19 +848,61 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        _imageSection(imageUrl),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 11,
+                                vertical: 7,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _programChipBg(program),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                program.toUpperCase(),
+                                style: _font(
+                                  11,
+                                  weight: FontWeight.w700,
+                                  color: _programColor(program),
+                                  letterSpacing: 0.9,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          workout['title']?.toString().trim().isNotEmpty == true
+                              ? workout['title'].toString().trim()
+                              : context.appText.workout,
+                          style: _font(
+                            25,
+                            weight: FontWeight.w800,
+                            color: const Color(0xFF111318),
+                            letterSpacing: -0.35,
+                            height: 1.0,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             CircleAvatar(
-                              radius: 20,
+                              radius: 18,
                               backgroundColor: const Color(0xFFE9EEF5),
                               child: const Icon(
                                 Icons.person,
-                                size: 20,
+                                size: 18,
                                 color: Color(0xFF8A90A0),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -869,7 +910,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                                   Text(
                                     author,
                                     style: _font(
-                                      15,
+                                      14,
                                       weight: FontWeight.w700,
                                       color: const Color(0xFF111318),
                                     ),
@@ -895,46 +936,11 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 14),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 11,
-                            vertical: 7,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _programChipBg(program),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            program.toUpperCase(),
-                            style: _font(
-                              11,
-                              weight: FontWeight.w700,
-                              color: _programColor(program),
-                              letterSpacing: 0.9,
-                            ),
-                          ),
-                        ),
-                        if (type.isNotEmpty) ...[
-                          const SizedBox(height: 14),
-                          Text(
-                            type.toUpperCase(),
-                            style: _font(
-                              11,
-                              weight: FontWeight.w700,
-                              color: const Color(0xFF98A2B3),
-                              letterSpacing: 1.1,
-                            ),
-                          ),
-                        ],
                         if (description.isNotEmpty) ...[
                           const SizedBox(height: 16),
                           _parsedDescription(description),
                         ],
-
-                        const SizedBox(height: 18),
-                        _imageSection(imageUrl),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             Text(
@@ -978,7 +984,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 8),
                         Container(height: 0.6, color: const Color(0xFFF1F3F6)),
                         const SizedBox(height: 14),
                         if (_comments.isEmpty)
