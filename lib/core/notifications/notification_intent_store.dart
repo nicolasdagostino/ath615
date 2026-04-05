@@ -23,7 +23,15 @@ class NotificationIntentStore {
     final intent = consume();
     if (intent == null) return;
 
-    final nav = AuthDeepLinkHandler.navigatorKey.currentState;
+    NavigatorState? nav = AuthDeepLinkHandler.navigatorKey.currentState;
+    if (nav == null) {
+      for (var i = 0; i < 10; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 120));
+        nav = AuthDeepLinkHandler.navigatorKey.currentState;
+        if (nav != null) break;
+      }
+    }
+
     if (nav == null) {
       _pending = intent;
       return;

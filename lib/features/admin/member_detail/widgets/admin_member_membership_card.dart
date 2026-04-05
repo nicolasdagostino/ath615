@@ -19,6 +19,29 @@ class AdminMemberMembershipCard extends StatelessWidget {
     return text.isEmpty || text == 'null' ? fallback : text;
   }
 
+  TextStyle _font(
+    double size, {
+    FontWeight weight = FontWeight.w500,
+    Color color = const Color(0xFF111318),
+    double? height,
+    double? letterSpacing,
+  }) {
+    return GoogleFonts.barlowCondensed(
+      fontSize: size,
+      fontWeight: weight,
+      color: color,
+      height: height,
+      letterSpacing: letterSpacing,
+    );
+  }
+
+  String _pretty(String raw) {
+    final value = raw.trim();
+    if (value.isEmpty || value == '—') return '—';
+    final clean = value.replaceAll('_', ' ');
+    return clean[0].toUpperCase() + clean.substring(1);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (item == null) {
@@ -29,9 +52,9 @@ class AdminMemberMembershipCard extends StatelessWidget {
           children: [
             Text(
               _text(context, 'MEMBRESÍA ACTIVA', 'ACTIVE MEMBERSHIP'),
-              style: GoogleFonts.barlowCondensed(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
+              style: _font(
+                12,
+                weight: FontWeight.w700,
                 color: const Color(0xFF98A2B3),
                 letterSpacing: 0.9,
               ),
@@ -47,9 +70,9 @@ class AdminMemberMembershipCard extends StatelessWidget {
               ),
               child: Text(
                 _text(context, 'Sin membresía activa', 'No active membership'),
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                style: _font(
+                  14,
+                  weight: FontWeight.w600,
                   color: const Color(0xFF667085),
                 ),
               ),
@@ -60,8 +83,8 @@ class AdminMemberMembershipCard extends StatelessWidget {
     }
 
     final planName = _value(item!['plan_name'] ?? item!['name'], 'Plan');
-    final planType = _value(item!['plan_type'], '—');
-    final billing = _value(item!['billing_period'], '—');
+    final planType = _pretty(_value(item!['plan_type'], '—'));
+    final billing = _pretty(_value(item!['billing_period'], '—'));
     final bookingWindow = _value(item!['booking_window_days'], '—');
     final startDate = _value(item!['start_date'], '—');
     final endDate = _value(item!['end_date'], '—');
@@ -74,9 +97,9 @@ class AdminMemberMembershipCard extends StatelessWidget {
         children: [
           Text(
             _text(context, 'MEMBRESÍA ACTIVA', 'ACTIVE MEMBERSHIP'),
-            style: GoogleFonts.barlowCondensed(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
+            style: _font(
+              12,
+              weight: FontWeight.w700,
               color: const Color(0xFF98A2B3),
               letterSpacing: 0.9,
             ),
@@ -84,101 +107,96 @@ class AdminMemberMembershipCard extends StatelessWidget {
           const SizedBox(height: 12),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFF7F3EA),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFE7D7B0)),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFE7EBF0)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.78),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Icon(
-                        Icons.workspace_premium_rounded,
-                        size: 20,
-                        color: Color(0xFFB59B6A),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         planName,
-                        style: GoogleFonts.barlowCondensed(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
+                        style: _font(
+                          18,
+                          weight: FontWeight.w800,
                           color: const Color(0xFF111318),
-                          height: 0.98,
-                          letterSpacing: -0.2,
+                          letterSpacing: -0.1,
+                          height: 1.0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F5E9),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        'ACTIVE',
+                        style: _font(
+                          11,
+                          weight: FontWeight.w800,
+                          color: const Color(0xFF18794E),
+                          letterSpacing: 0.6,
+                          height: 1,
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _chip('${_text(context, 'Tipo', 'Type')}: $planType'),
-                    _chip('${_text(context, 'Facturación', 'Billing')}: $billing'),
-                    _chip('${_text(context, 'Ventana', 'Window')}: $bookingWindow ${_text(context, 'días', 'days')}'),
-                  ],
+                const SizedBox(height: 8),
+                Text(
+                  '$planType · $billing',
+                  style: _font(
+                    13,
+                    weight: FontWeight.w600,
+                    color: const Color(0xFF667085),
+                    height: 1.2,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.72),
+                    color: const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE7EBF0)),
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        _text(context, 'Uso', 'Usage'),
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF8A6F3E),
-                          letterSpacing: 0.3,
-                        ),
+                      _infoRow(
+                        context,
+                        _text(context, 'Inicio', 'Start'),
+                        startDate,
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        '${_text(context, 'Inicio', 'Start')}: $startDate',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF475467),
-                        ),
+                      _infoRow(
+                        context,
+                        _text(context, 'Vence', 'Ends'),
+                        endDate,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${_text(context, 'Vence', 'Ends')}: $endDate',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF475467),
-                        ),
+                      const SizedBox(height: 8),
+                      _infoRow(
+                        context,
+                        _text(context, 'Créditos restantes', 'Credits remaining'),
+                        creditsRemaining,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${_text(context, 'Créditos restantes', 'Credits remaining')}: $creditsRemaining',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF475467),
-                        ),
+                      const SizedBox(height: 8),
+                      _infoRow(
+                        context,
+                        _text(context, 'Ventana de reserva', 'Booking window'),
+                        '$bookingWindow ${_text(context, 'días', 'days')}',
                       ),
                     ],
                   ),
@@ -191,21 +209,35 @@ class AdminMemberMembershipCard extends StatelessWidget {
     );
   }
 
-  Widget _chip(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        text,
-        style: GoogleFonts.inter(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: const Color(0xFF8A6F3E),
+  Widget _infoRow(BuildContext context, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: _font(
+              13,
+              weight: FontWeight.w600,
+              color: const Color(0xFF667085),
+              height: 1.1,
+            ),
+          ),
         ),
-      ),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: _font(
+              13,
+              weight: FontWeight.w700,
+              color: const Color(0xFF111318),
+              height: 1.1,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

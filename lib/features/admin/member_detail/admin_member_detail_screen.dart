@@ -77,6 +77,27 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  String _normalizedPlanType(Map<String, dynamic> plan) {
+    return (plan['plan_type'] ?? '').toString().trim().toLowerCase();
+  }
+
+  bool _hasConflictingActiveMembership({
+    required String selectedPlanType,
+    required List<Map<String, dynamic>> activeMemberships,
+  }) {
+    if (selectedPlanType != 'unlimited' && selectedPlanType != 'weekly_limit') {
+      return false;
+    }
+
+    for (final membership in activeMemberships) {
+      final type = (membership['plan_type'] ?? '').toString().trim().toLowerCase();
+      if (type == 'unlimited' || type == 'weekly_limit') {
+        return true;
+      }
+    }
+    return false;
+  }
+
   Future<void> _load() async {
     setState(() {
       _loading = true;
@@ -316,6 +337,51 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                       });
 
                       try {
+                        final selectedPlan = plans.firstWhere(
+                          (plan) =>
+                              (plan['id'] ?? '').toString().trim() ==
+                              selectedPlanId.trim(),
+                          orElse: () => <String, dynamic>{},
+                        );
+
+                        final selectedPlanType = _normalizedPlanType(selectedPlan);
+
+                        final activeMemberships =
+                            await _membershipRepo.listActiveMemberMemberships(
+                              memberId,
+                              gymId: gymId,
+                            );
+
+                        if (_hasConflictingActiveMembership(
+                          selectedPlanType: selectedPlanType,
+                          activeMemberships: activeMemberships,
+                        )) {
+                          final activeUnlimited = activeMemberships.firstWhere(
+                            (m) =>
+                                (m['plan_type'] ?? '')
+                                    .toString()
+                                    .trim()
+                                    .toLowerCase() ==
+                                'unlimited',
+                            orElse: () => <String, dynamic>{},
+                          );
+
+                          final planName =
+                              (activeUnlimited['plan_name'] ??
+                                      activeUnlimited['name'] ??
+                                      'Unlimited')
+                                  .toString()
+                                  .trim();
+
+                          _toast(
+                            _txt(
+                              'Ya tiene activo: $planName',
+                              'Already active: $planName',
+                            ),
+                          );
+                          return;
+                        }
+
                         final alreadyPaidToday =
                             await _paymentsRepo.hasPaidPlanToday(
                               memberId: memberId,
@@ -582,6 +648,52 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                       });
 
                       try {
+                        final selectedPlan = plans.firstWhere(
+                          (plan) =>
+                              (plan['id'] ?? '').toString().trim() ==
+                              selectedPlanId.trim(),
+                          orElse: () => <String, dynamic>{},
+                        );
+
+                        final selectedPlanType = _normalizedPlanType(selectedPlan);
+
+                        final activeMemberships =
+                            await _membershipRepo.listActiveMemberMemberships(
+                              memberId,
+                              gymId: gymId,
+                            );
+
+                        if (_hasConflictingActiveMembership(
+                          selectedPlanType: selectedPlanType,
+                          activeMemberships: activeMemberships,
+                        )) {
+                          final activeBlockingMembership = activeMemberships.firstWhere(
+                            (m) {
+                              final type = (m['plan_type'] ?? '')
+                                  .toString()
+                                  .trim()
+                                  .toLowerCase();
+                              return type == 'unlimited' || type == 'weekly_limit';
+                            },
+                            orElse: () => <String, dynamic>{},
+                          );
+
+                          final planName =
+                              (activeBlockingMembership['plan_name'] ??
+                                      activeBlockingMembership['name'] ??
+                                      'Active membership')
+                                  .toString()
+                                  .trim();
+
+                          _toast(
+                            _txt(
+                              'Ya tiene activo: $planName',
+                              'Already active: $planName',
+                            ),
+                          );
+                          return;
+                        }
+
                         await _paymentsRepo.createPayment(
                           memberId: memberId,
                           planId: selectedPlanId.trim(),

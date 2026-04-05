@@ -46,6 +46,24 @@ class MembershipRepository {
     return List<Map<String, dynamic>>.from(data);
   }
 
+  Future<List<Map<String, dynamic>>> listActiveMemberMemberships(
+    String memberId, {
+    String? gymId,
+  }) async {
+    dynamic query = sb
+        .from('v_active_member_memberships')
+        .select('*')
+        .eq('member_id', memberId);
+
+    if (gymId != null && gymId.trim().isNotEmpty) {
+      query = query.eq('gym_id', gymId.trim());
+    }
+
+    final data = await query.order('created_at', ascending: false);
+
+    return List<Map<String, dynamic>>.from(data);
+  }
+
   Future<void> createPlan({
     required String gymId,
     required String name,

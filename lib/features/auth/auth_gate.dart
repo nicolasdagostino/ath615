@@ -18,6 +18,7 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> {
   final _repo = AuthRepository();
   Future<void>? _loadFuture;
+  bool _notificationIntentScheduled = false;
 
   @override
   void initState() {
@@ -29,9 +30,20 @@ class _AuthGateState extends State<AuthGate> {
     final session = _repo.currentSession();
     if (session != null) {
       _loadFuture = UserSession().load();
+      _scheduleNotificationIntentConsumption();
     } else {
       _loadFuture = Future.value();
     }
+  }
+
+  void _scheduleNotificationIntentConsumption() {
+    if (_notificationIntentScheduled) return;
+    _notificationIntentScheduled = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      await NotificationIntentStore.consumeIfAvailable();
+    });
   }
 
   @override
@@ -58,9 +70,7 @@ class _AuthGateState extends State<AuthGate> {
               );
             }
 
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              NotificationIntentStore.consumeIfAvailable();
-            });
+            _scheduleNotificationIntentConsumption();
 
             return BottomNavShell(initialIndex: widget.initialIndex);
           },
