@@ -177,6 +177,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
         bool saving = false;
+        String selectedPaymentMethod = 'cash';
 
         String prettyType(String raw) {
           final value = raw.trim();
@@ -294,6 +295,143 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                     );
                   }),
                   const SizedBox(height: 8),
+                  Text(
+                    _txt('Método de pago', 'Payment method'),
+                    style: memberDetailSheetFont(
+                      13,
+                      weight: FontWeight.w700,
+                      color: const Color(0xFF344054),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: saving
+                              ? null
+                              : () {
+                                  setLocalState(() {
+                                    selectedPaymentMethod = 'cash';
+                                  });
+                                },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 120),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: selectedPaymentMethod == 'cash'
+                                  ? const Color(0xFFF7F3EA)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: selectedPaymentMethod == 'cash'
+                                    ? const Color(0xFFB59B6A)
+                                    : const Color(0xFFE2E8F0),
+                                width: selectedPaymentMethod == 'cash' ? 1.3 : 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.payments_outlined,
+                                  size: 16,
+                                  color: selectedPaymentMethod == 'cash'
+                                      ? const Color(0xFF8A6F3E)
+                                      : const Color(0xFF667085),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _txt('Cash', 'Cash'),
+                                  style: memberDetailSheetFont(
+                                    13,
+                                    weight: FontWeight.w700,
+                                    color: selectedPaymentMethod == 'cash'
+                                        ? const Color(0xFF8A6F3E)
+                                        : const Color(0xFF475467),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: saving
+                              ? null
+                              : () {
+                                  setLocalState(() {
+                                    selectedPaymentMethod = 'card';
+                                  });
+                                },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 120),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: selectedPaymentMethod == 'card'
+                                  ? const Color(0xFFF7F3EA)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: selectedPaymentMethod == 'card'
+                                    ? const Color(0xFFB59B6A)
+                                    : const Color(0xFFE2E8F0),
+                                width: selectedPaymentMethod == 'card' ? 1.3 : 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.credit_card_rounded,
+                                  size: 16,
+                                  color: selectedPaymentMethod == 'card'
+                                      ? const Color(0xFF8A6F3E)
+                                      : const Color(0xFF667085),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _txt('Card', 'Card'),
+                                  style: memberDetailSheetFont(
+                                    13,
+                                    weight: FontWeight.w700,
+                                    color: selectedPaymentMethod == 'card'
+                                        ? const Color(0xFF8A6F3E)
+                                        : const Color(0xFF475467),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (selectedPaymentMethod == 'card') ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      _txt(
+                        'Stripe próximamente.',
+                        'Stripe coming soon.',
+                      ),
+                      style: memberDetailSheetFont(
+                        12,
+                        weight: FontWeight.w600,
+                        color: const Color(0xFF667085),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 10),
                   AdminMemberDetailSheetTextField(
                     controller: amountCtrl,
                     label: _txt('Importe', 'Amount'),
@@ -327,6 +465,16 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                       );
                       if (amount == null || amount <= 0) {
                         _toast(_txt('Introduce un importe válido', 'Enter a valid amount'));
+                        return;
+                      }
+
+                      if (selectedPaymentMethod == 'card') {
+                        _toast(
+                          _txt(
+                            'Stripe próximamente',
+                            'Stripe coming soon',
+                          ),
+                        );
                         return;
                       }
 
@@ -511,6 +659,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
         bool saving = false;
+        String selectedPaymentMethod = 'cash';
 
         return StatefulBuilder(
           builder: (context, setLocalState) {
@@ -605,6 +754,143 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                     );
                   }),
                   const SizedBox(height: 6),
+                  Text(
+                    _txt('Método de pago', 'Payment method'),
+                    style: memberDetailSheetFont(
+                      13,
+                      weight: FontWeight.w700,
+                      color: const Color(0xFF344054),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: saving
+                              ? null
+                              : () {
+                                  setLocalState(() {
+                                    selectedPaymentMethod = 'cash';
+                                  });
+                                },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 120),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: selectedPaymentMethod == 'cash'
+                                  ? const Color(0xFFF7F3EA)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: selectedPaymentMethod == 'cash'
+                                    ? const Color(0xFFB59B6A)
+                                    : const Color(0xFFE2E8F0),
+                                width: selectedPaymentMethod == 'cash' ? 1.3 : 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.payments_outlined,
+                                  size: 16,
+                                  color: selectedPaymentMethod == 'cash'
+                                      ? const Color(0xFF8A6F3E)
+                                      : const Color(0xFF667085),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _txt('Cash', 'Cash'),
+                                  style: memberDetailSheetFont(
+                                    13,
+                                    weight: FontWeight.w700,
+                                    color: selectedPaymentMethod == 'cash'
+                                        ? const Color(0xFF8A6F3E)
+                                        : const Color(0xFF475467),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: saving
+                              ? null
+                              : () {
+                                  setLocalState(() {
+                                    selectedPaymentMethod = 'card';
+                                  });
+                                },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 120),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: selectedPaymentMethod == 'card'
+                                  ? const Color(0xFFF7F3EA)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: selectedPaymentMethod == 'card'
+                                    ? const Color(0xFFB59B6A)
+                                    : const Color(0xFFE2E8F0),
+                                width: selectedPaymentMethod == 'card' ? 1.3 : 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.credit_card_rounded,
+                                  size: 16,
+                                  color: selectedPaymentMethod == 'card'
+                                      ? const Color(0xFF8A6F3E)
+                                      : const Color(0xFF667085),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _txt('Card', 'Card'),
+                                  style: memberDetailSheetFont(
+                                    13,
+                                    weight: FontWeight.w700,
+                                    color: selectedPaymentMethod == 'card'
+                                        ? const Color(0xFF8A6F3E)
+                                        : const Color(0xFF475467),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (selectedPaymentMethod == 'card') ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      _txt(
+                        'Stripe próximamente.',
+                        'Stripe coming soon.',
+                      ),
+                      style: memberDetailSheetFont(
+                        12,
+                        weight: FontWeight.w600,
+                        color: const Color(0xFF667085),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 10),
                   AdminMemberDetailSheetTextField(
                     controller: amountCtrl,
                     label: _txt('Importe', 'Amount'),
@@ -638,6 +924,16 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                       );
                       if (amount == null || amount <= 0) {
                         _toast(_txt('Introduce un importe válido', 'Enter a valid amount'));
+                        return;
+                      }
+
+                      if (selectedPaymentMethod == 'card') {
+                        _toast(
+                          _txt(
+                            'Stripe próximamente',
+                            'Stripe coming soon',
+                          ),
+                        );
                         return;
                       }
 
@@ -699,7 +995,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                           planId: selectedPlanId.trim(),
                           amount: amount,
                           currency: 'EUR',
-                          paymentMethod: 'cash',
+                          paymentMethod: selectedPaymentMethod,
                           notes: notesCtrl.text,
                         );
                         if (!sheetContext.mounted) return;

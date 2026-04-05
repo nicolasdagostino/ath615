@@ -28,23 +28,49 @@ class MembershipPaymentsRepository {
     required num amount,
     required String currency,
     required String paymentMethod,
+    String paymentStatus = 'paid',
+    DateTime? paidAt,
     String? notes,
+    String? stripeCustomerId,
+    String? stripePaymentIntentId,
+    String? failureReason,
+    Map<String, dynamic>? metadata,
   }) async {
     final user = sb.auth.currentUser;
 
+    final normalizedStatus = paymentStatus.trim().isEmpty
+        ? 'paid'
+        : paymentStatus.trim();
+
+    final resolvedPaidAt = normalizedStatus == 'paid'
+        ? (paidAt ?? DateTime.now()).toIso8601String()
+        : null;
+
+    final payload = <String, dynamic>{
+      'member_id': memberId,
+      'plan_id': planId,
+      'amount': amount,
+      'currency': currency,
+      'payment_method': paymentMethod.trim(),
+      'payment_status': normalizedStatus,
+      'paid_at': resolvedPaidAt,
+      'created_by': user?.id,
+      'notes': notes?.trim().isEmpty ?? true ? null : notes!.trim(),
+      'stripe_customer_id': stripeCustomerId?.trim().isEmpty ?? true
+          ? null
+          : stripeCustomerId!.trim(),
+      'stripe_payment_intent_id': stripePaymentIntentId?.trim().isEmpty ?? true
+          ? null
+          : stripePaymentIntentId!.trim(),
+      'failure_reason': failureReason?.trim().isEmpty ?? true
+          ? null
+          : failureReason!.trim(),
+      'metadata': metadata ?? <String, dynamic>{},
+    };
+
     final res = await sb
         .from('membership_payments')
-        .insert({
-          'member_id': memberId,
-          'plan_id': planId,
-          'amount': amount,
-          'currency': currency,
-          'payment_method': paymentMethod,
-          'payment_status': 'paid',
-          'paid_at': DateTime.now().toIso8601String(),
-          'created_by': user?.id,
-          'notes': notes?.trim().isEmpty ?? true ? null : notes!.trim(),
-        })
+        .insert(payload)
         .select('id')
         .single();
 
