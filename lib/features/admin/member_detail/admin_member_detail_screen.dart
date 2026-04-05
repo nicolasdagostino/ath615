@@ -14,7 +14,9 @@ import 'widgets/admin_member_activity_card.dart';
 import 'widgets/admin_member_detail_header.dart';
 import 'widgets/admin_member_detail_sheet_ui.dart';
 import 'widgets/admin_member_membership_card.dart';
+import 'widgets/admin_member_payments_card.dart';
 import 'widgets/admin_member_recent_history_section.dart';
+import '../../../core/supabase/membership_payments_repository.dart';
 
 class AdminMemberDetailScreen extends StatefulWidget {
   final String gymId;
@@ -40,6 +42,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
   final _repo = AdminMemberDetailRepository();
   final _membershipRepo = MembershipRepository();
   final _notificationRepo = NotificationRepository();
+  final _paymentsRepo = MembershipPaymentsRepository();
 
   bool _loading = true;
   String? _error;
@@ -142,6 +145,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     }
 
     final todayIso = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final amountCtrl = TextEditingController();
+    final notesCtrl = TextEditingController();
 
     if (!mounted) return;
 
@@ -170,8 +175,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           builder: (context, setLocalState) {
             return AdminMemberDetailSheetScaffold(
               sheetContext: sheetContext,
-              title: _txt('Asignar plan', 'Assign plan'),
-              subtitle: _txt('Elige un plan activo para este miembro.', 'Choose an active plan for this member.'),
+              title: _txt('Vender plan', 'Sell plan'),
+              subtitle: _txt('Selecciona un plan y registra el pago para activar la membresía.', 'Select a plan and register payment to activate the membership.'),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -196,6 +201,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                             : () {
                                 setLocalState(() {
                                   selectedPlanId = planId;
+                                  amountCtrl.text =
+                                      (plan['price'] ?? '').toString().trim();
                                 });
                               },
                         child: AnimatedContainer(
@@ -266,13 +273,41 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                     );
                   }),
                   const SizedBox(height: 8),
+                  AdminMemberDetailSheetTextField(
+                    controller: amountCtrl,
+                    label: _txt('Importe', 'Amount'),
+                    hint: '49',
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    textInputAction: TextInputAction.next,
+                  ),
+                  const SizedBox(height: 10),
+                  AdminMemberDetailSheetTextField(
+                    controller: notesCtrl,
+                    label: _txt('Notas', 'Notes'),
+                    hint: _txt('Pago en efectivo', 'Cash payment'),
+                    minLines: 2,
+                    maxLines: 3,
+                    textInputAction: TextInputAction.done,
+                  ),
+                  const SizedBox(height: 8),
                   AdminMemberDetailSheetActions(
                     busy: saving,
-                    primaryText: _txt('Asignar plan', 'Assign plan'),
+                    primaryText: _txt('Vender plan', 'Sell plan'),
                     busyText: context.appText.saving,
                     onCancel: () => Navigator.of(sheetContext).pop(),
                     onPrimary: () async {
-                      if (selectedPlanId.trim().isEmpty) return;
+                      if (selectedPlanId.trim().isEmpty) {
+                        _toast(_txt('Selecciona un plan', 'Select a plan'));
+                        return;
+                      }
+
+                      final amount = num.tryParse(
+                        amountCtrl.text.trim().replaceAll(',', '.'),
+                      );
+                      if (amount == null || amount <= 0) {
+                        _toast(_txt('Introduce un importe válido', 'Enter a valid amount'));
+                        return;
+                      }
 
                       FocusManager.instance.primaryFocus?.unfocus();
 
@@ -281,17 +316,288 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                       });
 
                       try {
-                        await _membershipRepo.assignPlanToMember(
+                        final alreadyPaidToday =
+                            await _paymentsRepo.hasPaidPlanToday(
+                              memberId: memberId,
+                              planId: selectedPlanId.trim(),
+                            );
+
+                        if (alreadyPaidToday) {
+                          _toast(
+                            _txt(
+                              'Ya hay un pago registrado hoy para este plan',
+                              'A payment for this plan is already registered today',
+                            ),
+                          );
+                          return;
+                        }
+
+                        final paymentId = await _paymentsRepo.createPayment(
+                          memberId: memberId,
+                          planId: selectedPlanId.trim(),
+                          amount: amount,
+                          currency: 'EUR',
+                          paymentMethod: 'cash',
+                          notes: notesCtrl.text,
+                        );
+
+                        final membership = await _membershipRepo.assignPlanToMember(
                           memberId: memberId,
                           planId: selectedPlanId.trim(),
                           status: 'active',
                           startDate: todayIso,
-                          autoRenew: true,
+                          autoRenew: false,
                         );
+
+                        final membershipId =
+                            (membership['id'] ?? '').toString().trim();
+                        if (membershipId.isNotEmpty) {
+                          await _paymentsRepo.attachMembershipToPayment(
+                            paymentId: paymentId,
+                            membershipId: membershipId,
+                          );
+                        }
+
                         if (!sheetContext.mounted) return;
                         Navigator.of(sheetContext).pop();
                         await _load();
-                        _toast(_txt('Plan asignado', 'Plan assigned'));
+                        _toast(
+                          _txt(
+                            'Plan vendido y membresía activada',
+                            'Plan sold and membership activated',
+                          ),
+                        );
+                      } catch (e) {
+                        _toast(e.toString().replaceFirst('Exception: ', ''));
+                      } finally {
+                        if (sheetContext.mounted) {
+                          setLocalState(() {
+                            saving = false;
+                          });
+                        }
+                      }
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+
+  Future<void> _showRegisterPaymentSheet() async {
+    final data = _data;
+    if (data == null) return;
+
+    final memberId = (data.profile['id'] ?? '').toString().trim();
+    if (memberId.isEmpty) {
+      _toast(context.appText.memberNotFound);
+      return;
+    }
+
+    final gymId = (data.profile['gym_id'] ?? '').toString().trim();
+    if (gymId.isEmpty) {
+      _toast(context.appText.gymNotFound);
+      return;
+    }
+
+    List<Map<String, dynamic>> plans = const [];
+    try {
+      plans = await _membershipRepo.listPlans(gymId);
+    } catch (e) {
+      _toast(e.toString().replaceFirst('Exception: ', ''));
+      return;
+    }
+
+    if (plans.isEmpty) {
+      _toast(_txt('No hay planes activos disponibles', 'No active plans available'));
+      return;
+    }
+
+    String selectedPlanId = '';
+    final amountCtrl = TextEditingController();
+    final notesCtrl = TextEditingController();
+
+    String formatPlanSubtitle(Map<String, dynamic> plan) {
+      final type = ((plan['plan_type'] ?? '').toString().trim()).replaceAll('_', ' ');
+      final billing = ((plan['billing_period'] ?? '').toString().trim()).replaceAll('_', ' ');
+      final price = (plan['price'] ?? '').toString().trim();
+
+      final pieces = <String>[];
+      if (type.isNotEmpty) {
+        pieces.add(type[0].toUpperCase() + type.substring(1));
+      }
+      if (billing.isNotEmpty) {
+        pieces.add(billing[0].toUpperCase() + billing.substring(1));
+      }
+      if (price.isNotEmpty && price != 'null') {
+        pieces.add('$price €');
+      }
+      return pieces.join(' · ');
+    }
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        bool saving = false;
+
+        return StatefulBuilder(
+          builder: (context, setLocalState) {
+            return AdminMemberDetailSheetScaffold(
+              sheetContext: sheetContext,
+              title: _txt('Registrar pago', 'Register payment'),
+              subtitle: _txt(
+                'Registrar un pago manual para este miembro.',
+                'Register a manual payment for this member.',
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ...plans.map((plan) {
+                    final planId = (plan['id'] ?? '').toString().trim();
+                    final selected = planId == selectedPlanId;
+                    final name = (plan['name'] ?? 'Plan').toString().trim();
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(18),
+                        onTap: saving
+                            ? null
+                            : () {
+                                setLocalState(() {
+                                  selectedPlanId = planId;
+                                  amountCtrl.text = (plan['price'] ?? '').toString().trim();
+                                });
+                              },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 120),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: selected
+                                  ? const Color(0xFFB59B6A)
+                                  : const Color(0xFFE2E8F0),
+                              width: selected ? 1.4 : 1,
+                            ),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x080D1210),
+                                blurRadius: 8,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      name,
+                                      style: memberDetailSheetFont(
+                                        17,
+                                        weight: FontWeight.w800,
+                                        color: const Color(0xFF111318),
+                                        letterSpacing: -0.15,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      formatPlanSubtitle(plan),
+                                      style: memberDetailSheetFont(
+                                        13,
+                                        weight: FontWeight.w500,
+                                        color: const Color(0xFF667085),
+                                        height: 1.25,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Icon(
+                                selected
+                                    ? Icons.radio_button_checked
+                                    : Icons.radio_button_off,
+                                color: selected
+                                    ? const Color(0xFFB59B6A)
+                                    : const Color(0xFF98A2B3),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 6),
+                  AdminMemberDetailSheetTextField(
+                    controller: amountCtrl,
+                    label: _txt('Importe', 'Amount'),
+                    hint: '49',
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    textInputAction: TextInputAction.next,
+                  ),
+                  const SizedBox(height: 10),
+                  AdminMemberDetailSheetTextField(
+                    controller: notesCtrl,
+                    label: _txt('Notas', 'Notes'),
+                    hint: _txt('Pago en efectivo en recepción', 'Cash payment at front desk'),
+                    minLines: 2,
+                    maxLines: 3,
+                    textInputAction: TextInputAction.done,
+                  ),
+                  const SizedBox(height: 8),
+                  AdminMemberDetailSheetActions(
+                    busy: saving,
+                    primaryText: _txt('Guardar pago', 'Save payment'),
+                    busyText: context.appText.saving,
+                    onCancel: () => Navigator.of(sheetContext).pop(),
+                    onPrimary: () async {
+                      if (selectedPlanId.trim().isEmpty) {
+                        _toast(_txt('Selecciona un plan', 'Select a plan'));
+                        return;
+                      }
+
+                      final amount = num.tryParse(
+                        amountCtrl.text.trim().replaceAll(',', '.'),
+                      );
+                      if (amount == null || amount <= 0) {
+                        _toast(_txt('Introduce un importe válido', 'Enter a valid amount'));
+                        return;
+                      }
+
+                      FocusManager.instance.primaryFocus?.unfocus();
+
+                      setLocalState(() {
+                        saving = true;
+                      });
+
+                      try {
+                        await _paymentsRepo.createPayment(
+                          memberId: memberId,
+                          planId: selectedPlanId.trim(),
+                          amount: amount,
+                          currency: 'EUR',
+                          paymentMethod: 'cash',
+                          notes: notesCtrl.text,
+                        );
+                        if (!sheetContext.mounted) return;
+                        Navigator.of(sheetContext).pop();
+                        _toast(
+                          _txt(
+                            'Pago registrado correctamente',
+                            'Payment registered successfully',
+                          ),
+                        );
                       } catch (e) {
                         _toast(e.toString().replaceFirst('Exception: ', ''));
                       } finally {
@@ -799,9 +1105,14 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           childAspectRatio: 1.18,
           children: [
             action(
-              title: _txt('Asignar plan', 'Assign plan'),
+              title: _txt('Vender plan', 'Sell plan'),
               icon: Icons.credit_card_outlined,
               onTap: _showAssignPlanSheet,
+            ),
+            action(
+              title: _txt('Registrar pago', 'Register payment'),
+              icon: Icons.payments_outlined,
+              onTap: _showRegisterPaymentSheet,
             ),
             action(
               title: _txt('Asistencia', 'Attendance'),
@@ -926,6 +1237,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                     AdminMemberMembershipCard(item: data.activeMembership),
                     const SizedBox(height: 14),
                     AdminMemberActivityCard(activity: data.activity),
+                    const SizedBox(height: 14),
+                    AdminMemberPaymentsCard(payments: data.payments),
                     const SizedBox(height: 14),
                     AdminMemberRecentHistorySection(items: data.recentHistory),
                   ],

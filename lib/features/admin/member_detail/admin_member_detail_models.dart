@@ -32,6 +32,31 @@ class AdminMemberHistoryItem {
 }
 
 @immutable
+class AdminMemberPaymentItem {
+  final String id;
+  final String planName;
+  final String paymentMethod;
+  final String paymentStatus;
+  final String amountText;
+  final String currency;
+  final DateTime? paidAt;
+  final DateTime? createdAt;
+  final String notes;
+
+  const AdminMemberPaymentItem({
+    required this.id,
+    required this.planName,
+    required this.paymentMethod,
+    required this.paymentStatus,
+    required this.amountText,
+    required this.currency,
+    required this.paidAt,
+    required this.createdAt,
+    required this.notes,
+  });
+}
+
+@immutable
 class AdminMemberActivitySummary {
   final DateTime? lastActivityAt;
   final int attendedCount;
@@ -55,6 +80,7 @@ class AdminMemberDetailData {
   final List<Map<String, dynamic>> membershipHistory;
   final AdminMemberActivitySummary activity;
   final List<AdminMemberHistoryItem> recentHistory;
+  final List<AdminMemberPaymentItem> payments;
 
   const AdminMemberDetailData({
     required this.profile,
@@ -62,5 +88,6 @@ class AdminMemberDetailData {
     required this.membershipHistory,
     required this.activity,
     required this.recentHistory,
+    required this.payments,
   });
 }

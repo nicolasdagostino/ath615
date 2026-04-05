@@ -2000,9 +2000,6 @@ class _AdminScreenState extends State<AdminScreen> {
     final parsedPrice = price.trim().isEmpty
         ? null
         : num.tryParse(price.trim());
-    final parsedClasses = classesPerPeriod.trim().isEmpty
-        ? null
-        : int.tryParse(classesPerPeriod.trim());
     final parsedCredits = creditsTotal.trim().isEmpty
         ? null
         : int.tryParse(creditsTotal.trim());
@@ -2016,9 +2013,6 @@ class _AdminScreenState extends State<AdminScreen> {
     if (price.trim().isNotEmpty && parsedPrice == null) {
       throw Exception(t.invalidPriceError);
     }
-    if (classesPerPeriod.trim().isNotEmpty && parsedClasses == null) {
-      throw Exception(t.invalidClassesPerPeriodError);
-    }
     if (creditsTotal.trim().isNotEmpty && parsedCredits == null) {
       throw Exception(t.invalidCreditsTotalError);
     }
@@ -2028,9 +2022,9 @@ class _AdminScreenState extends State<AdminScreen> {
       gymId: gymId,
       name: name.trim(),
       planType: type.trim(),
-      billingPeriod: billing.trim(),
+      billingPeriod: type.trim() == 'class_pack' ? 'monthly' : billing.trim(),
       price: parsedPrice,
-      classesPerPeriod: parsedClasses,
+      classesPerPeriod: null,
       creditsTotal: parsedCredits,
       bookingWindowDays: parsedWindow,
       description: description.trim().isEmpty ? null : description.trim(),
@@ -2051,9 +2045,6 @@ class _AdminScreenState extends State<AdminScreen> {
     final parsedPrice = price.trim().isEmpty
         ? null
         : num.tryParse(price.trim());
-    final parsedClasses = classesPerPeriod.trim().isEmpty
-        ? null
-        : int.tryParse(classesPerPeriod.trim());
     final parsedCredits = creditsTotal.trim().isEmpty
         ? null
         : int.tryParse(creditsTotal.trim());
@@ -2067,9 +2058,6 @@ class _AdminScreenState extends State<AdminScreen> {
     if (price.trim().isNotEmpty && parsedPrice == null) {
       throw Exception(t.invalidPriceError);
     }
-    if (classesPerPeriod.trim().isNotEmpty && parsedClasses == null) {
-      throw Exception(t.invalidClassesPerPeriodError);
-    }
     if (creditsTotal.trim().isNotEmpty && parsedCredits == null) {
       throw Exception(t.invalidCreditsTotalError);
     }
@@ -2080,9 +2068,9 @@ class _AdminScreenState extends State<AdminScreen> {
       id: id,
       name: name.trim(),
       planType: type.trim(),
-      billingPeriod: billing.trim(),
+      billingPeriod: type.trim() == 'class_pack' ? 'monthly' : billing.trim(),
       price: parsedPrice,
-      classesPerPeriod: parsedClasses,
+      classesPerPeriod: null,
       creditsTotal: parsedCredits,
       bookingWindowDays: parsedWindow,
       description: description.trim().isEmpty ? null : description.trim(),
@@ -2811,16 +2799,11 @@ class _AdminScreenState extends State<AdminScreen> {
 
             final planSummary = activeMembership == null
                 ? t.cannotBookFutureClasses
-                : (rawPlanType == 'class_pack'
+                : (rawPlanType == 'class_pack' || rawPlanType == 'drop_in'
                       ? t.creditsRemainingText(
                           activeMembership['credits_remaining'] ?? 0,
                         )
-                      : (rawPlanType == 'weekly_limit'
-                            ? t.classesUsedThisPeriodText(
-                                activeMembership['classes_used_current_period'] ??
-                                    0,
-                              )
-                            : t.unlimitedAccess));
+                      : t.unlimitedAccess);
 
             final endDate = (activeMembership?['end_date'] ?? '').toString();
             final autoRenew = activeMembership?['auto_renew'] == true;

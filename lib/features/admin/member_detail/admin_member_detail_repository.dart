@@ -63,6 +63,23 @@ class AdminMemberDetailRepository {
       gymId: resolvedGymId,
     );
 
+    final paymentRowsRaw = await sb
+        .from('membership_payments')
+        .select('''
+          id,
+          payment_method,
+          payment_status,
+          amount,
+          currency,
+          paid_at,
+          created_at,
+          notes,
+          membership_plans:membership_plans(name)
+        ''')
+        .eq('member_id', id)
+        .order('created_at', ascending: false)
+        .limit(20);
+
     final rows = await sb
         .from('class_bookings')
         .select('''
@@ -105,6 +122,9 @@ class AdminMemberDetailRepository {
       }
     }
 
+    final paymentRows = List<Map<String, dynamic>>.from(paymentRowsRaw);
+    final payments = <AdminMemberPaymentItem>[];
+
     var attendedCount = 0;
     var bookedCount = 0;
     var cancelledCount = 0;
@@ -112,6 +132,27 @@ class AdminMemberDetailRepository {
     DateTime? lastActivityAt;
 
     final history = <AdminMemberHistoryItem>[];
+
+    for (final row in paymentRows) {
+      final planData = row['membership_plans'];
+      final planMap = planData is Map
+          ? Map<String, dynamic>.from(planData)
+          : const <String, dynamic>{};
+
+      payments.add(
+        AdminMemberPaymentItem(
+          id: (row['id'] ?? '').toString().trim(),
+          planName: (planMap['name'] ?? 'Plan').toString().trim(),
+          paymentMethod: (row['payment_method'] ?? '').toString().trim(),
+          paymentStatus: (row['payment_status'] ?? '').toString().trim(),
+          amountText: (row['amount'] ?? '').toString().trim(),
+          currency: (row['currency'] ?? '').toString().trim(),
+          paidAt: _parseDateTime(row['paid_at']),
+          createdAt: _parseDateTime(row['created_at']),
+          notes: (row['notes'] ?? '').toString().trim(),
+        ),
+      );
+    }
 
     for (final row in bookingRows) {
       final status = (row['status'] ?? '').toString().toLowerCase().trim();
@@ -176,6 +217,7 @@ class AdminMemberDetailRepository {
         noShowCount: noShowCount,
       ),
       recentHistory: history,
+      payments: payments,
     );
   }
 

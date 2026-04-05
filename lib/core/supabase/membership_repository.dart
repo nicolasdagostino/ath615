@@ -6,6 +6,7 @@ class MembershipRepository {
         .from('membership_plans')
         .select('*')
         .eq('gym_id', gymId)
+        .eq('is_active', true)
         .order('created_at', ascending: false);
     return List<Map<String, dynamic>>.from(data);
   }
@@ -129,17 +130,17 @@ class MembershipRepository {
     await sb.from('member_memberships').update(payload).eq('id', membershipId);
   }
 
-  Future<void> assignPlanToMember({
+  Future<Map<String, dynamic>> assignPlanToMember({
     required String memberId,
     required String planId,
     required String status,
     required String startDate,
     String? endDate,
-    bool autoRenew = true,
+    bool autoRenew = false,
     int? creditsRemaining,
     int classesUsedCurrentPeriod = 0,
   }) async {
-    await sb.rpc(
+    final res = await sb.rpc(
       'assign_membership_plan',
       params: {
         'p_member_id': memberId,
@@ -152,5 +153,7 @@ class MembershipRepository {
         'p_classes_used_current_period': classesUsedCurrentPeriod,
       },
     );
+
+    return Map<String, dynamic>.from(res as Map);
   }
 }

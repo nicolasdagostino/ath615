@@ -10,7 +10,7 @@ extension _AdminScreenPlanModal on _AdminScreenState {
       text: plan?['price']?.toString() ?? '',
     );
     final classesCtrl = TextEditingController(
-      text: plan?['classes_per_period']?.toString() ?? '',
+      text: '',
     );
     final creditsCtrl = TextEditingController(
       text: plan?['credits_total']?.toString() ?? '',
@@ -39,11 +39,6 @@ extension _AdminScreenPlanModal on _AdminScreenState {
           return 'Drop-in';
         case 'unlimited':
           return 'Unlimited';
-        case 'weekly_limit':
-          final classes = classesCtrl.text.trim();
-          if (classes == '2') return '2x / week';
-          if (classes == '3' || classes.isEmpty) return '3x / week';
-          return '${classes}x / week';
         case 'class_pack':
           final credits = creditsCtrl.text.trim();
           if (credits == '1') return '1-class pack';
@@ -59,9 +54,6 @@ extension _AdminScreenPlanModal on _AdminScreenState {
       return normalized.isEmpty ||
           normalized == 'drop-in' ||
           normalized == 'unlimited' ||
-          normalized == '2x / week' ||
-          normalized == '3x / week' ||
-          normalized.endsWith('x / week') ||
           normalized == '1-class pack' ||
           normalized == '10-class pack' ||
           normalized.endsWith('-class pack');
@@ -190,11 +182,7 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                 padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
                 child: StatefulBuilder(
                   builder: (context, setLocalState) {
-                    final showsClassesPerPeriod =
-                        selectedType == 'weekly_limit';
-                    final showsCreditsTotal =
-                        selectedType == 'class_pack' ||
-                        selectedType == 'drop_in';
+                    const showsCreditsTotal = true;
 
                     return SingleChildScrollView(
                       controller: scrollCtrl,
@@ -324,10 +312,6 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                           child: Text('Unlimited'),
                                         ),
                                         DropdownMenuItem(
-                                          value: 'weekly_limit',
-                                          child: Text('Weekly Limit'),
-                                        ),
-                                        DropdownMenuItem(
                                           value: 'class_pack',
                                           child: Text('Class Pack'),
                                         ),
@@ -362,17 +346,11 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                           selectedBilling = 'monthly';
                                           classesCtrl.clear();
                                           creditsCtrl.clear();
-                                        } else if (value == 'weekly_limit') {
-                                          selectedBilling = 'monthly';
-                                          creditsCtrl.clear();
-                                          if (classesCtrl.text.trim().isEmpty) {
-                                            classesCtrl.text = '3';
-                                          }
                                         } else if (value == 'class_pack') {
-                                          selectedBilling = 'one_time';
+                                          selectedBilling = 'monthly';
                                           classesCtrl.clear();
                                           if (creditsCtrl.text.trim().isEmpty) {
-                                            creditsCtrl.text = '10';
+                                            creditsCtrl.text = '8';
                                           }
                                         }
 
@@ -469,12 +447,10 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                   ),
                                   child: Text(
                                     selectedType == 'drop_in'
-                                        ? 'One-time single class.'
+                                        ? 'Single class credit for one visit.'
                                         : selectedType == 'unlimited'
                                         ? 'Recurring membership with unlimited access.'
-                                        : selectedType == 'weekly_limit'
-                                        ? 'Recurring membership with a weekly class limit.'
-                                        : 'One-time pack with a fixed number of credits.',
+                                        : 'Monthly pack with a fixed number of class credits.',
                                     style: _font(
                                       12,
                                       weight: FontWeight.w500,
@@ -490,16 +466,6 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                   keyboardType: TextInputType.number,
                                   textInputAction: TextInputAction.next,
                                 ),
-                                if (showsClassesPerPeriod) ...[
-                                  const SizedBox(height: 12),
-                                  styledField(
-                                    label: 'Classes Per Period',
-                                    controller: classesCtrl,
-                                    hint: '3',
-                                    keyboardType: TextInputType.number,
-                                    textInputAction: TextInputAction.next,
-                                  ),
-                                ],
                                 if (showsCreditsTotal) ...[
                                   const SizedBox(height: 12),
                                   styledField(
@@ -507,7 +473,7 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                     controller: creditsCtrl,
                                     hint: selectedType == 'drop_in'
                                         ? '1'
-                                        : '10',
+                                        : '8',
                                     keyboardType: TextInputType.number,
                                     textInputAction: TextInputAction.next,
                                   ),
@@ -528,9 +494,7 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                       ? 'Single visit for one class.'
                                       : selectedType == 'unlimited'
                                       ? 'Unlimited monthly access.'
-                                      : selectedType == 'weekly_limit'
-                                      ? 'Attend up to 2 or 3 classes per week.'
-                                      : 'Pack of classes to use flexibly.',
+                                      : 'Monthly class pack with fixed credits.',
                                   maxLines: 4,
                                   textInputAction: TextInputAction.done,
                                   focusNode: descriptionFocusNode,

@@ -63,7 +63,8 @@ class AdminMemberMembershipCard extends StatelessWidget {
     final planType = _value(item!['plan_type'], '—');
     final billing = _value(item!['billing_period'], '—');
     final bookingWindow = _value(item!['booking_window_days'], '—');
-    final classesPerPeriod = _value(item!['classes_per_period'], '—');
+    final startDate = _value(item!['start_date'], '—');
+    final endDate = _value(item!['end_date'], '—');
     final creditsRemaining = _value(item!['credits_remaining'], '—');
 
     return AppCard(
@@ -154,7 +155,16 @@ class AdminMemberMembershipCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '${_text(context, 'Clases/período', 'Classes/period')}: $classesPerPeriod',
+                        '${_text(context, 'Inicio', 'Start')}: $startDate',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF475467),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${_text(context, 'Vence', 'Ends')}: $endDate',
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,

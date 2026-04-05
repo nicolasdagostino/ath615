@@ -11,11 +11,7 @@ class ClassAttendanceScreen extends StatefulWidget {
   final Map<String, dynamic> classItem;
   final String? gymId;
 
-  const ClassAttendanceScreen({
-    super.key,
-    required this.classItem,
-    this.gymId,
-  });
+  const ClassAttendanceScreen({super.key, required this.classItem, this.gymId});
 
   @override
   State<ClassAttendanceScreen> createState() => _ClassAttendanceScreenState();
@@ -233,6 +229,7 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
               ),
             ),
           ),
+
           Expanded(
             child: RefreshIndicator(
               onRefresh: _load,
@@ -294,6 +291,35 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                                     ),
                                   ],
                                 ],
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Add member modal comes next',
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF7F3EA),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: const Color(0xFFE8DDC8),
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.person_add_alt_1_rounded,
+                                  size: 20,
+                                  color: Color(0xFFB59B6A),
+                                ),
                               ),
                             ),
                           ],
