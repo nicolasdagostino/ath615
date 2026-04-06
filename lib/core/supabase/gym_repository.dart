@@ -59,6 +59,27 @@ class GymRepository {
     return null;
   }
 
+  Future<String?> myGymName() async {
+    final gymId = await myGymId();
+    if (gymId == null || gymId.isEmpty) return null;
+
+    try {
+      final data = await sb
+          .from('gyms')
+          .select('name')
+          .eq('id', gymId)
+          .limit(1)
+          .maybeSingle();
+
+      final name = data?['name']?.toString().trim();
+      if (name != null && name.isNotEmpty) {
+        return name;
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
   Future<String?> resolveGymId() async {
     final mine = await myGymId();
     if (mine != null && mine.isNotEmpty) return mine;

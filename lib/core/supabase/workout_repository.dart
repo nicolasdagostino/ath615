@@ -1,6 +1,8 @@
 import 'supabase_bootstrap.dart';
+import 'gym_repository.dart';
 
 class WorkoutRepository {
+  final _gymRepository = GymRepository();
   Future<List<Map<String, dynamic>>> listWorkoutsAdmin(String gymId) async {
     final data = await sb
         .from('v_workouts_detailed')
@@ -13,9 +15,13 @@ class WorkoutRepository {
   }
 
   Future<List<Map<String, dynamic>>> listWorkoutsByDate(String dateIso) async {
+    final gymId = (await _gymRepository.resolveGymId() ?? '').trim();
+    if (gymId.isEmpty) return const [];
+
     final data = await sb
         .from('v_workouts_detailed')
         .select('*')
+        .eq('gym_id', gymId)
         .eq('workout_date', dateIso)
         .order('created_at', ascending: false);
 
@@ -23,9 +29,13 @@ class WorkoutRepository {
   }
 
   Future<List<Map<String, dynamic>>> listRecentWorkouts() async {
+    final gymId = (await _gymRepository.resolveGymId() ?? '').trim();
+    if (gymId.isEmpty) return const [];
+
     final data = await sb
         .from('v_workouts_detailed')
         .select('*')
+        .eq('gym_id', gymId)
         .order('workout_date', ascending: false)
         .order('created_at', ascending: false)
         .limit(50);
@@ -37,10 +47,14 @@ class WorkoutRepository {
     final workoutId = id.trim();
     if (workoutId.isEmpty) return null;
 
+    final gymId = (await _gymRepository.resolveGymId() ?? '').trim();
+    if (gymId.isEmpty) return null;
+
     final data = await sb
         .from('v_workouts_detailed')
         .select('*')
         .eq('id', workoutId)
+        .eq('gym_id', gymId)
         .maybeSingle();
 
     if (data == null) return null;
@@ -48,9 +62,13 @@ class WorkoutRepository {
   }
 
   Future<List<Map<String, dynamic>>> listPopularWorkouts() async {
+    final gymId = (await _gymRepository.resolveGymId() ?? '').trim();
+    if (gymId.isEmpty) return const [];
+
     final data = await sb
         .from('v_workouts_detailed')
         .select('*')
+        .eq('gym_id', gymId)
         .order('popularity_score', ascending: false)
         .order('likes_count', ascending: false)
         .order('comments_count', ascending: false)
@@ -61,9 +79,13 @@ class WorkoutRepository {
   }
 
   Future<List<Map<String, dynamic>>> listBenchmarkWorkouts() async {
+    final gymId = (await _gymRepository.resolveGymId() ?? '').trim();
+    if (gymId.isEmpty) return const [];
+
     final data = await sb
         .from('v_workouts_detailed')
         .select('*')
+        .eq('gym_id', gymId)
         .eq('is_benchmark', true)
         .order('workout_date', ascending: false)
         .limit(50);
@@ -75,6 +97,9 @@ class WorkoutRepository {
     required String mode,
     String? query,
   }) async {
+    final gymId = (await _gymRepository.resolveGymId() ?? '').trim();
+    if (gymId.isEmpty) return const [];
+
     final today = DateTime.now();
     final todayIso =
         '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
@@ -82,6 +107,7 @@ class WorkoutRepository {
     var builder = sb
         .from('v_workouts_detailed')
         .select('*')
+        .eq('gym_id', gymId)
         .lte('workout_date', todayIso);
 
     final q = (query ?? '').trim();

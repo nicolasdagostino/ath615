@@ -7,6 +7,7 @@ import '../../l10n/app_text.dart';
 import '../../core/supabase/booking_repository.dart';
 import '../../core/supabase/class_attendance_repository.dart';
 import '../../core/supabase/class_repository.dart';
+import '../../core/supabase/gym_repository.dart';
 import '../../core/supabase/membership_repository.dart';
 import '../../core/supabase/supabase_bootstrap.dart';
 import '../admin/class_attendance_screen.dart';
@@ -25,6 +26,7 @@ class _BookingScreenState extends State<BookingScreen> {
   static const int _adminFutureDays = 14;
 
   final _classRepo = ClassRepository();
+  final _gymRepo = GymRepository();
   final _bookingRepo = BookingRepository();
   final _attendanceRepo = ClassAttendanceRepository();
   final _membershipRepo = MembershipRepository();
@@ -39,6 +41,7 @@ class _BookingScreenState extends State<BookingScreen> {
   Map<String, dynamic>? _activeMembership;
   String? _busyClassId;
   bool _canManageAttendance = false;
+  String _gymName = '';
 
   @override
   void initState() {
@@ -162,6 +165,7 @@ class _BookingScreenState extends State<BookingScreen> {
       );
       final bookings = await _bookingRepo.listMyBookings();
       final activeMembership = await _membershipRepo.myActiveMembership();
+      final gymName = (await _gymRepo.myGymName() ?? '').trim();
 
       if (!mounted) return;
       setState(() {
@@ -169,6 +173,7 @@ class _BookingScreenState extends State<BookingScreen> {
         _myBookings = bookings;
         _activeMembership = activeMembership;
         _canManageAttendance = canManageAttendance;
+        _gymName = gymName;
       });
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -639,17 +644,40 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Widget _brandLogo() {
+    final gymName = _gymName.trim().isEmpty ? 'ATHLETE LAB' : _gymName.trim();
+
     return SizedBox(
       width: 132,
-      child: Text(
-        'ATHLETE LAB',
-        style: _font(
-          18,
-          weight: FontWeight.w800,
-          color: const Color(0xFF0E0E11),
-          letterSpacing: -0.3,
-          height: 1.0,
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            gymName.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: _font(
+              16,
+              weight: FontWeight.w800,
+              color: const Color(0xFF0E0E11),
+              letterSpacing: -0.2,
+              height: 1.0,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'ATHLETE LAB',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: _font(
+              10,
+              weight: FontWeight.w700,
+              color: const Color(0xFF8F96A3),
+              letterSpacing: 0.7,
+              height: 1.0,
+            ),
+          ),
+        ],
       ),
     );
   }

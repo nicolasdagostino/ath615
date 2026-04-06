@@ -17,6 +17,7 @@ class UserSession {
     role = parseRole(profile['role']);
   }
 
+  bool get isOwner => role == UserRole.owner;
   bool get isAdmin => role == UserRole.admin;
 
   void clear() {

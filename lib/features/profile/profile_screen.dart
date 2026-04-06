@@ -8,12 +8,15 @@ import '../../core/auth/user_session.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/supabase/achievement_repository.dart';
 import '../../core/supabase/auth_repository.dart';
+import '../../core/supabase/membership_repository.dart';
 import '../../core/supabase/profile_repository.dart';
+import '../../core/supabase/stripe_payments_repository.dart';
 import '../../shared/widgets/app_card.dart';
 import 'achievements_screen.dart';
 import 'athlete_history/athlete_history_screen.dart';
 import 'edit_profile_screen.dart';
 import 'notifications_screen.dart';
+import 'membership/membership_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -34,7 +37,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<Map<String, dynamic>> _loadData() async {
     final profile = await ProfileRepository().getMyProfile();
     final stats = await AchievementRepository().myStats();
-    return {'profile': profile, 'stats': stats};
+
+    Map<String, dynamic>? activeMembership;
+    List<Map<String, dynamic>> plans = const [];
+
+    final gymId = (profile?['gym_id'] ?? '').toString().trim();
+    if (gymId.isNotEmpty) {
+      final membershipRepo = MembershipRepository();
+      activeMembership = await membershipRepo.myActiveMembership();
+      plans = await membershipRepo.listPlans(gymId);
+    }
+
+    return {
+      'profile': profile,
+      'stats': stats,
+      'activeMembership': activeMembership,
+      'plans': plans,
+    };
   }
 
   Future<void> _refreshProfile() async {
@@ -315,6 +334,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  String _pretty(String raw) {
+    final value = raw.trim();
+    if (value.isEmpty) return '—';
+    final clean = value.replaceAll('_', ' ');
+    return clean[0].toUpperCase() + clean.substring(1);
+  }
+
+  String _membershipSummaryText(
+    BuildContext context,
+    Map<String, dynamic>? activeMembership,
+  ) {
+    final activePlanName = ((activeMembership?['plan_name'] ??
+                activeMembership?['name'] ??
+                '')
+            .toString())
+        .trim();
+
+    if (activePlanName.isNotEmpty) {
+      return activePlanName;
+    }
+
+    return Localizations.localeOf(context).languageCode
+            .toLowerCase()
+            .startsWith('es')
+        ? 'Sin membresía activa'
+        : 'No active membership';
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.appText;
@@ -329,6 +376,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               (data['profile'] as Map<String, dynamic>?) ?? <String, dynamic>{};
           final stats =
               (data['stats'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+          final activeMembership =
+              data['activeMembership'] as Map<String, dynamic>?;
+          final plans =
+              (data['plans'] as List?)?.cast<Map<String, dynamic>>() ??
+              const <Map<String, dynamic>>[];
 
           final fullName =
               (profile['full_name'] ?? '').toString().trim().isEmpty
@@ -543,6 +595,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                       const SizedBox(height: 22),
+                      _sectionLabel('Membership'),
+                      const SizedBox(height: 6),
+                      _ProfilePrimaryCard(
+                        children: [
+                          _PrimaryActionRow(
+                            icon: Icons.card_membership_rounded,
+                            title: Localizations.localeOf(context)
+                                    .languageCode
+                                    .toLowerCase()
+                                    .startsWith('es')
+                                ? 'Membresía'
+                                : 'Membership',
+                            subtitle: _membershipSummaryText(
+                              context,
+                              activeMembership,
+                            ),
+                            onTap: () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const MembershipScreen(),
+                                ),
+                              );
+                              if (!mounted) return;
+                              await _refreshProfile();
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 22),
                       _sectionLabel(t.yourStats),
                       const SizedBox(height: 6),
                       Row(
@@ -722,6 +803,7 @@ class _ProfilePrimaryCard extends StatelessWidget {
 class _PrimaryActionRow extends StatelessWidget {
   final IconData? icon;
   final String title;
+  final String? subtitle;
   final VoidCallback? onTap;
   final bool danger;
   final bool compact;
@@ -730,6 +812,7 @@ class _PrimaryActionRow extends StatelessWidget {
   const _PrimaryActionRow({
     this.icon,
     required this.title,
+    this.subtitle,
     this.onTap,
     this.danger = false,
     this.compact = false,
@@ -791,15 +874,34 @@ class _PrimaryActionRow extends StatelessWidget {
               const SizedBox(width: 12),
             ],
             Expanded(
-              child: Text(
-                title,
-                style: _font(
-                  15,
-                  weight: FontWeight.w800,
-                  color: titleColor,
-                  letterSpacing: -0.05,
-                  height: 0.98,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: _font(
+                      15,
+                      weight: FontWeight.w800,
+                      color: titleColor,
+                      letterSpacing: -0.05,
+                      height: 0.98,
+                    ),
+                  ),
+                  if (subtitle != null && subtitle!.trim().isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: _font(
+                        12,
+                        weight: FontWeight.w600,
+                        color: const Color(0xFF667085),
+                        letterSpacing: -0.05,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
             if (showChevron) ...[

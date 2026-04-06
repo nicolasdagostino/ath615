@@ -44,3 +44,13 @@ enabled = true
 verify_jwt = false
 entrypoint = "./functions/create-my-membership-payment-intent/index.ts"
 
+[functions.create-gym]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/create-gym/index.ts"
+
+[functions.owner-invite-gym-admin]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/owner-invite-gym-admin/index.ts"
+

@@ -89,4 +89,31 @@ class MembershipPaymentsRepository {
         })
         .eq('id', paymentId);
   }
+
+  Future<List<Map<String, dynamic>>> listMyPayments({
+    required String memberId,
+  }) async {
+    if (memberId.trim().isEmpty) return const [];
+
+    final rows = await sb
+        .from('membership_payments')
+        .select('''
+          id,
+          payment_method,
+          payment_status,
+          amount,
+          currency,
+          paid_at,
+          created_at,
+          notes,
+          membership_plans (
+            name
+          )
+        ''')
+        .eq('member_id', memberId.trim())
+        .order('paid_at', ascending: false)
+        .order('created_at', ascending: false);
+
+    return List<Map<String, dynamic>>.from(rows);
+  }
 }

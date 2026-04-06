@@ -1,6 +1,8 @@
 import 'supabase_bootstrap.dart';
+import 'gym_repository.dart';
 
 class ClassRepository {
+  final _gymRepository = GymRepository();
   Future<List<Map<String, dynamic>>> listClassesAdmin(String gymId) async {
     final now = DateTime.now();
     final startIso = now
@@ -25,6 +27,9 @@ class ClassRepository {
     String dateIso, {
     bool includePast = false,
   }) async {
+    final gymId = (await _gymRepository.resolveGymId() ?? '').trim();
+    if (gymId.isEmpty) return [];
+
     final now = DateTime.now();
     final todayIso =
         '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
@@ -42,6 +47,7 @@ class ClassRepository {
     final data = await sb
         .from('v_classes_with_spots')
         .select('*')
+        .eq('gym_id', gymId)
         .eq('status', 'scheduled')
         .gte('starts_at', rangeStart.toIso8601String())
         .lte('starts_at', rangeEnd.toIso8601String())

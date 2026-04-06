@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -17,6 +18,7 @@ import 'widgets/admin_member_membership_card.dart';
 import 'widgets/admin_member_payments_card.dart';
 import 'widgets/admin_member_recent_history_section.dart';
 import '../../../core/supabase/membership_payments_repository.dart';
+import '../../../core/supabase/stripe_payments_repository.dart';
 
 class AdminMemberDetailScreen extends StatefulWidget {
   final String gymId;
@@ -43,6 +45,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
   final _membershipRepo = MembershipRepository();
   final _notificationRepo = NotificationRepository();
   final _paymentsRepo = MembershipPaymentsRepository();
+  final _stripePaymentsRepo = StripePaymentsRepository();
 
   bool _loading = true;
   String? _error;
@@ -469,12 +472,70 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                       }
 
                       if (selectedPaymentMethod == 'card') {
-                        _toast(
-                          _txt(
-                            'Stripe próximamente',
-                            'Stripe coming soon',
-                          ),
-                        );
+                        FocusManager.instance.primaryFocus?.unfocus();
+
+                        setLocalState(() {
+                          saving = true;
+                        });
+
+                        try {
+                          final cardPayload =
+                              await _stripePaymentsRepo
+                                  .createMembershipPaymentIntent(
+                                    memberId: memberId,
+                                    planId: selectedPlanId.trim(),
+                                    amount: amount,
+                                    currency: 'EUR',
+                                    notes: notesCtrl.text,
+                                  );
+
+                          final clientSecret =
+                              (cardPayload['clientSecret'] ?? '')
+                                  .toString()
+                                  .trim();
+                          final paymentId =
+                              (cardPayload['paymentId'] ?? '')
+                                  .toString()
+                                  .trim();
+
+                          await _stripePaymentsRepo.presentMembershipPaymentSheet(
+                            clientSecret: clientSecret,
+                            merchantDisplayName: 'Athlete Lab',
+                          );
+
+                          if (!sheetContext.mounted) return;
+
+                          Navigator.of(sheetContext).pop();
+                          await _load();
+
+                          _toast(
+                            _txt(
+                              paymentId.isEmpty
+                                  ? 'Pago con tarjeta enviado. Confirmando…'
+                                  : 'Pago con tarjeta enviado. Confirmando… · $paymentId',
+                              paymentId.isEmpty
+                                  ? 'Card payment submitted. Confirming…'
+                                  : 'Card payment submitted. Confirming… · $paymentId',
+                            ),
+                          );
+                        } on StripeException catch (e) {
+                          final errorMessage =
+                              e.error.localizedMessage?.trim().isNotEmpty == true
+                                  ? e.error.localizedMessage!.trim()
+                                  : _txt(
+                                      'Pago con tarjeta cancelado',
+                                      'Card payment cancelled',
+                                    );
+                          _toast(errorMessage);
+                        } catch (e) {
+                          _toast(e.toString().replaceFirst('Exception: ', ''));
+                        } finally {
+                          if (sheetContext.mounted) {
+                            setLocalState(() {
+                              saving = false;
+                            });
+                          }
+                        }
                         return;
                       }
 

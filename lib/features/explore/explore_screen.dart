@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/supabase/gym_repository.dart';
 import '../../core/supabase/workout_repository.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../l10n/app_text.dart';
@@ -16,12 +17,14 @@ class ExploreScreen extends StatefulWidget {
 
 class _ExploreScreenState extends State<ExploreScreen> {
   final _repo = WorkoutRepository();
+  final _gymRepo = GymRepository();
   final _searchCtrl = TextEditingController();
 
   bool _loading = true;
   String? _error;
   List<Map<String, dynamic>> _items = [];
   String _mode = 'recent';
+  String _gymName = '';
 
   @override
   void initState() {
@@ -62,11 +65,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
         mode: _mode,
         query: _searchCtrl.text,
       );
+      final gymName = (await _gymRepo.myGymName() ?? '').trim();
       if (!mounted) return;
       if (mounted) {}
 
       setState(() {
         _items = items;
+        _gymName = gymName;
       });
     } catch (_) {
       if (!mounted) return;
@@ -110,17 +115,40 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   Widget _brandLogo() {
+    final gymName = _gymName.trim().isEmpty ? 'ATHLETE LAB' : _gymName.trim();
+
     return SizedBox(
       width: 132,
-      child: Text(
-        'ATHLETE LAB',
-        style: _font(
-          18,
-          weight: FontWeight.w800,
-          color: const Color(0xFF0E0E11),
-          letterSpacing: -0.3,
-          height: 1.0,
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            gymName.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: _font(
+              16,
+              weight: FontWeight.w800,
+              color: const Color(0xFF0E0E11),
+              letterSpacing: -0.2,
+              height: 1.0,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'ATHLETE LAB',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: _font(
+              10,
+              weight: FontWeight.w700,
+              color: const Color(0xFF8F96A3),
+              letterSpacing: 0.7,
+              height: 1.0,
+            ),
+          ),
+        ],
       ),
     );
   }

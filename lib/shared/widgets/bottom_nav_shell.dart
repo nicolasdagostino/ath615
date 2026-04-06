@@ -8,6 +8,7 @@ import '../../features/dashboard/dashboard_screen.dart';
 import '../../features/explore/explore_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/workouts/workouts_screen.dart';
+import '../../features/owner/owner_home_screen.dart';
 import '../../l10n/app_text.dart';
 
 class BottomNavShell extends StatefulWidget {
@@ -328,6 +329,9 @@ class _BottomNavShellState extends State<BottomNavShell> {
         }
 
         final role = snapshot.data ?? _resolvedRole ?? 'athlete';
+        if (role == 'owner') {
+          return const OwnerHomeScreen();
+        }
         _ensureCache(role);
 
         final currentScreens = _cachedScreens!;
