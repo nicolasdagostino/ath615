@@ -33,3 +33,14 @@ entrypoint = "./functions/send-post-class-reminders/index.ts"
 [functions.cleanup-old-notifications]
 verify_jwt = false
 entrypoint = "./functions/cleanup-old-notifications/index.ts"
+
+[functions.create-membership-payment-intent]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/create-membership-payment-intent/index.ts"
+
+[functions.create-my-membership-payment-intent]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/create-my-membership-payment-intent/index.ts"
+

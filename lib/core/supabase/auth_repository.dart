@@ -37,6 +37,28 @@ class AuthRepository {
     return sb.auth.currentSession;
   }
 
+  Future<Session> requireFreshSession() async {
+    final current = sb.auth.currentSession;
+    if (current == null) {
+      throw Exception('User not authenticated');
+    }
+
+    try {
+      final response = await sb.auth.refreshSession();
+      final session = response.session ?? sb.auth.currentSession;
+      if (session == null) {
+        throw Exception('User not authenticated');
+      }
+      return session;
+    } catch (_) {
+      final fallback = sb.auth.currentSession;
+      if (fallback == null) {
+        throw Exception('User not authenticated');
+      }
+      return fallback;
+    }
+  }
+
   Stream<AuthState> authStateChanges() {
     return sb.auth.onAuthStateChange;
   }
