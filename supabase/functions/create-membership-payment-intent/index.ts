@@ -175,30 +175,32 @@ Deno.serve(async (req) => {
       return json({ error: `Already active: ${blockingName}` }, 409)
     }
 
-    const now = new Date()
-    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const dayEnd = new Date(dayStart)
-    dayEnd.setDate(dayEnd.getDate() + 1)
+    if (planType !== 'class_pack') {
+      const now = new Date()
+      const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      const dayEnd = new Date(dayStart)
+      dayEnd.setDate(dayEnd.getDate() + 1)
 
-    const { data: sameDayPaid, error: sameDayPaidError } = await adminClient
-      .from('membership_payments')
-      .select('id')
-      .eq('member_id', memberId)
-      .eq('plan_id', planId)
-      .eq('payment_status', 'paid')
-      .gte('created_at', dayStart.toISOString())
-      .lt('created_at', dayEnd.toISOString())
-      .limit(1)
+      const { data: sameDayPaid, error: sameDayPaidError } = await adminClient
+        .from('membership_payments')
+        .select('id')
+        .eq('member_id', memberId)
+        .eq('plan_id', planId)
+        .eq('payment_status', 'paid')
+        .gte('created_at', dayStart.toISOString())
+        .lt('created_at', dayEnd.toISOString())
+        .limit(1)
 
-    if (sameDayPaidError) {
-      return json({ error: sameDayPaidError.message }, 400)
-    }
+      if (sameDayPaidError) {
+        return json({ error: sameDayPaidError.message }, 400)
+      }
 
-    if ((sameDayPaid ?? []).length > 0) {
-      return json(
-        { error: 'A payment for this plan is already registered today' },
-        409,
-      )
+      if ((sameDayPaid ?? []).length > 0) {
+        return json(
+          { error: 'A payment for this plan is already registered today' },
+          409,
+        )
+      }
     }
 
     let stripeCustomerId = ''

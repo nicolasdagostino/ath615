@@ -291,8 +291,8 @@ class _MembershipScreenState extends State<MembershipScreen> {
       'This plan does not have a valid price',
     );
     final activatedMessage = _txt(
-      'Plan activado',
-      'Membership activated',
+      'Procesando pago...',
+      'Processing payment...',
     );
     final cancelledMessage = _txt(
       'Pago con tarjeta cancelado',
@@ -326,6 +326,10 @@ class _MembershipScreenState extends State<MembershipScreen> {
 
       if (!mounted) return;
       _showToast(activatedMessage);
+
+      await Future<void>.delayed(const Duration(seconds: 2));
+      if (!mounted) return;
+      await _refresh();
 
       await Future<void>.delayed(const Duration(milliseconds: 1200));
       if (!mounted) return;
