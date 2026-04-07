@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'dashboard_models.dart';
@@ -50,6 +51,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   String _dashboardFilter = 'today';
   late Future<DashboardData> _future;
+  String _gymName = '';
   int _pendingAttendanceClasses = 0;
 
   bool _didLoadInitial = false;
@@ -60,6 +62,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (_didLoadInitial) return;
     _didLoadInitial = true;
     _future = _repo.loadDashboard(t: context.appText);
+    _gymRepository.myGymName().then((value) {
+      if (!mounted) return;
+      setState(() {
+        _gymName = (value ?? '').trim();
+      });
+    });
   }
 
   @override
@@ -70,8 +78,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _refresh() async {
     final next = _repo.loadDashboard(t: context.appText);
+    final gymName = (await _gymRepository.myGymName() ?? '').trim();
     setState(() {
       _future = next;
+      _gymName = gymName;
     });
     await next;
   }
@@ -205,6 +215,130 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _brandLogo() {
+    final gymName = _gymName.trim().isEmpty ? 'ATHLETE LAB' : _gymName.trim();
+
+    return SizedBox(
+      width: 132,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            gymName.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.barlowCondensed(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF0E0E11),
+              letterSpacing: -0.2,
+              height: 1.0,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'ATHLETE LAB',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.barlowCondensed(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF8F96A3),
+              letterSpacing: 0.7,
+              height: 1.0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _topHeader() {
+    final t = context.appText;
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    final rawToday = DateFormat('EEEE, MMMM d', localeTag).format(DateTime.now());
+    final words = rawToday.split(' ');
+    final todayText = words
+        .map((part) => part.isEmpty ? part : part[0].toUpperCase() + part.substring(1))
+        .join(' ');
+
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
+      child: SafeArea(
+        bottom: false,
+        child: SizedBox(
+          height: 56,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: _brandLogo(),
+                ),
+              ),
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      context.appText.dashboardTitle.toUpperCase(),
+                      style: GoogleFonts.barlowCondensed(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF0E0E11),
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      todayText,
+                      style: GoogleFonts.barlowCondensed(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF8F96A3),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                child: SizedBox(
+                  width: 132,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7F3EA),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.space_dashboard_rounded,
+                        size: 19,
+                        color: Color(0xFFB59B6A),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -788,15 +922,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
             }
 
             if (snapshot.hasError) {
-              return _errorState(snapshot.error!);
+              return Column(
+                children: [
+                  _topHeader(),
+                  Expanded(child: _errorState(snapshot.error!)),
+                ],
+              );
             }
 
             final data = snapshot.data;
             if (data == null) {
-              return _errorState(context.appText.noDashboardDataAvailable);
+              return Column(
+                children: [
+                  _topHeader(),
+                  Expanded(
+                    child: _errorState(context.appText.noDashboardDataAvailable),
+                  ),
+                ],
+              );
             }
 
-            return _content(data);
+            return Column(
+              children: [
+                _topHeader(),
+                Expanded(
+                  child: _content(data),
+                ),
+              ],
+            );
           },
         ),
       ),

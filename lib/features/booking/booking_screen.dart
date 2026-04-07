@@ -643,6 +643,17 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  String _capitalizeDateLabel(String raw) {
+    final parts = raw.split(' ');
+    final normalized = parts.map((part) {
+      if (part.isEmpty) return part;
+      return part[0].toUpperCase() + part.substring(1);
+    }).join(' ');
+    return normalized.replaceAllMapped(RegExp(r'(^|\s)([a-záéíóúñ])'), (m) {
+      return '${m.group(1)}${m.group(2)!.toUpperCase()}';
+    });
+  }
+
   Widget _brandLogo() {
     final gymName = _gymName.trim().isEmpty ? 'ATHLETE LAB' : _gymName.trim();
 
@@ -683,9 +694,10 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Widget _topHeader() {
-    final monthText = DateFormat(
-      'MMMM yyyy',
-    ).format(_selectedDay).toUpperCase();
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    final monthText = _capitalizeDateLabel(
+      DateFormat('MMMM yyyy', localeTag).format(_selectedDay),
+    ).toUpperCase();
 
     return Container(
       color: Colors.white,
@@ -714,7 +726,9 @@ class _BookingScreenState extends State<BookingScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          DateFormat('EEEE, MMM d').format(_selectedDay),
+                          _capitalizeDateLabel(
+                            DateFormat('EEEE, MMMM d', localeTag).format(_selectedDay),
+                          ),
                           style: _font(
                             12,
                             weight: FontWeight.w500,

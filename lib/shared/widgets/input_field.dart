@@ -24,6 +24,7 @@ class InputField extends StatelessWidget {
   final VoidCallback? onEditingComplete;
   final ValueChanged<String>? onSubmitted;
   final FocusNode? focusNode;
+  final ValueChanged<String>? onChanged;
 
   const InputField({
     super.key,
@@ -49,6 +50,7 @@ class InputField extends StatelessWidget {
     this.onEditingComplete,
     this.onSubmitted,
     this.focusNode,
+    this.onChanged,
   });
 
   InputDecoration _decoration() {
@@ -95,6 +97,7 @@ class InputField extends StatelessWidget {
         onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
         onEditingComplete: onEditingComplete,
         onSubmitted: onSubmitted,
+        onChanged: onChanged,
         inputFormatters: inputFormatters,
         textInputAction:
             textInputAction ??
@@ -117,6 +120,7 @@ class InputField extends StatelessWidget {
       onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
       onEditingComplete: onEditingComplete,
       onFieldSubmitted: onSubmitted,
+      onChanged: onChanged,
       inputFormatters: inputFormatters,
       textInputAction:
           textInputAction ??

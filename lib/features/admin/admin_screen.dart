@@ -272,7 +272,6 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Widget _topHeader() {
-    final subtitle = _adminTabLabel(tabs[tabIndex]);
 
     return Container(
       color: Colors.white,
@@ -280,49 +279,64 @@ class _AdminScreenState extends State<AdminScreen> {
       child: SafeArea(
         bottom: false,
         child: SizedBox(
-          height: 64,
-          child: Row(
+          height: 56,
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF7F3EA),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  Icons.admin_panel_settings_outlined,
-                  size: 20,
-                  color: Color(0xFFB59B6A),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                child: SizedBox(
+                  width: 132,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
                       'ATHLETE LAB',
                       style: _font(
-                        18,
+                        17,
                         weight: FontWeight.w800,
                         color: const Color(0xFF0E0E11),
-                        letterSpacing: -0.3,
-                        height: 1,
+                        letterSpacing: -0.2,
+                        height: 1.0,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'ADMIN · ${subtitle.toUpperCase()}',
-                      style: _font(
-                        12,
-                        weight: FontWeight.w600,
-                        color: const Color(0xFF8F96A3),
-                        letterSpacing: 0.25,
+                  ),
+                ),
+              ),
+              Center(
+                child: Text(
+                  'ADMIN',
+                  style: _font(
+                    17,
+                    weight: FontWeight.w800,
+                    color: const Color(0xFF0E0E11),
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                child: SizedBox(
+                  width: 132,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7F3EA),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.admin_panel_settings_outlined,
+                        size: 19,
+                        color: Color(0xFFB59B6A),
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ],

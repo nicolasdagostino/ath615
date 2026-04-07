@@ -157,9 +157,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
     final title = _mode == 'popular'
         ? context.appText.popularWorkoutsUpper
         : context.appText.exploreWorkoutsUpper;
-    final subtitle = _mode == 'popular'
-        ? context.appText.browseMostLikedWorkouts
-        : context.appText.searchRecentAndBenchmarkWorkouts;
 
     return Container(
       color: Colors.white,
@@ -174,29 +171,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 alignment: Alignment.center,
                 children: [
                   Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          title,
-                          style: _font(
-                            18,
-                            weight: FontWeight.w800,
-                            color: const Color(0xFF0E0E11),
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          subtitle,
-                          style: _font(
-                            12,
-                            weight: FontWeight.w500,
-                            color: const Color(0xFF8F96A3),
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      title,
+                      style: _font(
+                        18,
+                        weight: FontWeight.w800,
+                        color: const Color(0xFF0E0E11),
+                        letterSpacing: -0.3,
+                      ),
                     ),
                   ),
                   Positioned(

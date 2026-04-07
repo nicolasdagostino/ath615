@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/supabase/owner_repository.dart';
+import '../../core/supabase/auth_repository.dart';
+import '../../core/auth/user_session.dart';
 
 class OwnerHomeScreen extends StatefulWidget {
   const OwnerHomeScreen({super.key});
@@ -426,6 +428,18 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
             color: const Color(0xFF111318),
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await AuthRepository().signOut();
+              UserSession().clear();
+              if (!mounted) return;
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil('/login', (_) => false);
+            },
+          ),
+        ],
       ),
       body: RefreshIndicator(
         color: AppColors.primary,

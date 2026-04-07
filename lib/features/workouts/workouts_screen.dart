@@ -8,6 +8,7 @@ import '../../core/supabase/workout_comment_repository.dart';
 import '../../core/supabase/workout_like_repository.dart';
 import '../../core/supabase/workout_repository.dart';
 import '../../core/supabase/profile_repository.dart';
+import '../../core/supabase/gym_repository.dart';
 import '../../l10n/app_text.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/role_guard.dart';
@@ -22,6 +23,7 @@ class WorkoutsScreen extends StatefulWidget {
 class _WorkoutsScreenState extends State<WorkoutsScreen> {
   final _repo = WorkoutRepository();
   final _profileRepo = ProfileRepository();
+  final _gymRepo = GymRepository();
   final _commentRepo = WorkoutCommentRepository();
   final _likeRepo = WorkoutLikeRepository();
 
@@ -30,6 +32,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
   bool _loading = true;
   String? _error;
   String _currentUserAvatarUrl = '';
+  String _gymName = '';
   List<Map<String, dynamic>> _workouts = [];
   final Map<String, List<Map<String, dynamic>>> _commentsByWorkout = {};
   final Map<String, bool> _likedByWorkout = {};
@@ -132,6 +135,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
 
     try {
       final items = await _repo.listWorkoutsByDate(_todayIso());
+      final gymName = (await _gymRepo.myGymName() ?? '').trim();
 
       final commentsMap = <String, List<Map<String, dynamic>>>{};
       final likedMap = <String, bool>{};
@@ -151,6 +155,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
 
       setState(() {
         _workouts = items;
+        _gymName = gymName;
         _commentsByWorkout
           ..clear()
           ..addAll(commentsMap);
@@ -394,7 +399,8 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     if (diff.inHours < 1) return t.minutesAgoShort(diff.inMinutes);
     if (diff.inDays < 1) return t.hoursAgoShort(diff.inHours);
     if (diff.inDays < 7) return t.daysAgoShort(diff.inDays);
-    return DateFormat('MMM d').format(dt);
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    return DateFormat('MMM d', localeTag).format(dt);
   }
 
   Widget _commentComposer(String workoutId) {
@@ -493,24 +499,60 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     );
   }
 
+  String _capitalizeDateLabel(String raw) {
+    final parts = raw.split(' ');
+    final normalized = parts.map((part) {
+      if (part.isEmpty) return part;
+      return part[0].toUpperCase() + part.substring(1);
+    }).join(' ');
+    return normalized.replaceAllMapped(RegExp(r'(^|\s)([a-záéíóúñ])'), (m) {
+      return '${m.group(1)}${m.group(2)!.toUpperCase()}';
+    });
+  }
+
   Widget _brandLogo() {
+    final gymName = _gymName.trim().isEmpty ? 'ATHLETE LAB' : _gymName.trim();
+
     return SizedBox(
       width: 132,
-      child: Text(
-        'ATHLETE LAB',
-        style: _font(
-          18,
-          weight: FontWeight.w800,
-          color: const Color(0xFF0E0E11),
-          letterSpacing: -0.3,
-          height: 1.0,
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            gymName.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: _font(
+              16,
+              weight: FontWeight.w800,
+              color: const Color(0xFF0E0E11),
+              letterSpacing: -0.2,
+              height: 1.0,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'ATHLETE LAB',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: _font(
+              10,
+              weight: FontWeight.w700,
+              color: const Color(0xFF8F96A3),
+              letterSpacing: 0.7,
+              height: 1.0,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _topHeader() {
-    final todayText = DateFormat('EEEE, MMMM d').format(DateTime.now());
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    final rawToday = DateFormat('EEEE, MMMM d', localeTag).format(DateTime.now());
+    final todayText = _capitalizeDateLabel(rawToday);
 
     return Container(
       color: Colors.white,
@@ -808,7 +850,8 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     String formattedDate = dateIso;
     try {
       final d = DateTime.parse(dateIso);
-      formattedDate = DateFormat('MMMM d, yyyy').format(d);
+      final localeTag = Localizations.localeOf(context).toLanguageTag();
+      formattedDate = DateFormat('MMMM d, yyyy', localeTag).format(d);
     } catch (_) {}
 
     final description = (item['description'] ?? '').toString().trim();

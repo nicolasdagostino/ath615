@@ -168,6 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
     bool obscure = false,
     Widget? suffixIcon,
     TextInputType? keyboardType,
+    ValueChanged<String>? onChanged,
   }) {
     return InputField(
       label: label,
@@ -177,6 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
       keyboardType: keyboardType,
       textInputAction: TextInputAction.next,
       suffixIcon: suffixIcon,
+      onChanged: onChanged,
       fillColor: Colors.white,
       borderColor: AppColors.authBorder,
       focusedBorderColor: AppColors.authAccent,
@@ -259,6 +261,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   hint: context.appText.enterEmail,
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
+                  onChanged: (_) {
+                    if (!mounted) return;
+                    setState(() {
+                      if (_error != null) _error = null;
+                    });
+                  },
                 ),
                 const SizedBox(height: 18),
                 _authInput(
@@ -266,6 +274,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   hint: context.appText.enterPassword,
                   controller: _passwordCtrl,
                   obscure: _obscurePassword,
+                  onChanged: (_) {
+                    if (!mounted) return;
+                    setState(() {
+                      if (_error != null) _error = null;
+                    });
+                  },
                   suffixIcon: IconButton(
                     splashRadius: 18,
                     onPressed: () {

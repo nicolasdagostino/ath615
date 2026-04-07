@@ -509,9 +509,7 @@ class AppStrings {
   String get navAdmin => isSpanish ? 'Admin' : 'Admin';
   String get navProfile => isSpanish ? 'Perfil' : 'Profile';
 
-  String get authTagline => isSpanish
-      ? 'Levanta. Sentadilla. Tracciona. Empuja.'
-      : 'Lift. Squat. Pull. Push.';
+  String get authTagline => 'Lift. Squat. Pull. Push.';
   String get athleteLoginTitle => isSpanish ? 'ACCESO ATLETA' : 'ATHLETE LOGIN';
   String get forgotPasswordTitle =>
       isSpanish ? '¿OLVIDASTE TU CONTRASEÑA?' : 'FORGOT YOUR PASSWORD?';

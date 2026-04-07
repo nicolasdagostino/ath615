@@ -268,29 +268,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      t.profileUpper,
-                      style: _font(
-                        17,
-                        weight: FontWeight.w800,
-                        color: const Color(0xFF0E0E11),
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      t.accountUpper,
-                      style: _font(
-                        11,
-                        weight: FontWeight.w500,
-                        color: const Color(0xFF8F96A3),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  t.profileUpper,
+                  style: _font(
+                    17,
+                    weight: FontWeight.w800,
+                    color: const Color(0xFF0E0E11),
+                    letterSpacing: -0.2,
+                  ),
                 ),
               ),
               Positioned(
