@@ -26,6 +26,7 @@ import '../../shared/widgets/primary_button.dart';
 import '../../shared/widgets/search_field.dart';
 import '../../shared/widgets/secondary_button.dart';
 import 'class_attendance_screen.dart';
+import '../../shared/widgets/app_toast.dart';
 part 'admin_program_modal.dart';
 part 'admin_class_modal.dart';
 part 'admin_workout_modal.dart';
@@ -354,19 +355,16 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
-  void _toast(String message) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        backgroundColor: const Color(0xFF111318),
-        behavior: SnackBarBehavior.floating,
-        content: Text(
-          message,
-          style: _font(14, weight: FontWeight.w600, color: Colors.white),
-        ),
-      ),
+  void _toast(
+    String message, {
+    bool isError = false,
+    IconData? icon,
+  }) {
+    AppToast.show(
+      context,
+      message,
+      isError: isError,
+      icon: icon,
     );
   }
 

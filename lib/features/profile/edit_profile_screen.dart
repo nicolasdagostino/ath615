@@ -9,6 +9,7 @@ import '../../l10n/app_text.dart';
 import '../../core/supabase/avatar_repository.dart';
 import '../../core/supabase/profile_repository.dart';
 import '../../shared/widgets/app_card.dart';
+import '../../shared/widgets/app_toast.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -175,21 +176,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     await sb.from('profiles').update(payload).eq('id', user.id);
   }
 
-  void _toast(String message, {bool isError = false}) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        backgroundColor: isError
-            ? const Color(0xFFB42318)
-            : const Color(0xFF111318),
-        behavior: SnackBarBehavior.floating,
-        content: Text(
-          message,
-          style: _font(14, weight: FontWeight.w600, color: Colors.white),
-        ),
-      ),
+  void _toast(
+    String message, {
+    bool isError = false,
+    IconData? icon,
+  }) {
+    AppToast.show(
+      context,
+      message,
+      isError: isError,
+      icon: icon,
     );
   }
 
@@ -816,7 +812,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               final profile = snapshot.data ?? <String, dynamic>{};
 
               final initials = _initials(profile);
-              final email = waiting ? '' : _displayOrDash(profile['email']);
               final fullName = waiting ? '' : _fullName(profile);
               final phone = waiting ? '' : _displayOrDash(profile['phone']);
               final gymName = waiting ? '' : _gymName(profile);

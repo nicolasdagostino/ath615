@@ -9,6 +9,7 @@ import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/primary_button.dart';
 import '../../shared/widgets/secondary_button.dart';
 import 'widgets/admin_notification_date_sheet.dart';
+import '../../shared/widgets/app_toast.dart';
 
 class AdminNotificationsTab extends StatefulWidget {
   const AdminNotificationsTab({super.key});
@@ -74,35 +75,19 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
     }
   }
 
-  void _toast(String text, {bool isError = false}) {
+  void _toast(
+    String text, {
+    bool isError = false,
+    IconData? icon,
+  }) {
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            text,
-            style: _font(
-              14,
-              weight: FontWeight.w700,
-              color: Colors.white,
-              letterSpacing: -0.08,
-            ),
-          ),
-          behavior: SnackBarBehavior.floating,
-          elevation: 0,
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          backgroundColor: isError
-              ? const Color(0xFF111318)
-              : const Color(0xFF111318),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+    AppToast.show(
+      context,
+      text,
+      isError: isError,
+      icon: icon,
+    );
   }
 
   Future<void> _openNotificationModal({Map<String, dynamic>? item}) async {

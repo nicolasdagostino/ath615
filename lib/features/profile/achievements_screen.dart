@@ -11,6 +11,7 @@ import '../../shared/widgets/input_field.dart';
 import '../../shared/widgets/primary_button.dart';
 import '../../shared/widgets/search_field.dart';
 import '../../shared/widgets/secondary_button.dart';
+import '../../../shared/widgets/app_toast.dart';
 
 class AchievementsScreen extends StatefulWidget {
   const AchievementsScreen({super.key});
@@ -149,21 +150,16 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     return DateFormat('MMMM d, yyyy').format(parsed);
   }
 
-  void _toast(String message, {bool isError = false}) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        backgroundColor: isError
-            ? const Color(0xFFB42318)
-            : const Color(0xFF111318),
-        behavior: SnackBarBehavior.floating,
-        content: Text(
-          message,
-          style: _font(14, weight: FontWeight.w600, color: Colors.white),
-        ),
-      ),
+  void _toast(
+    String message, {
+    bool isError = false,
+    IconData? icon,
+  }) {
+    AppToast.show(
+      context,
+      message,
+      isError: isError,
+      icon: icon,
     );
   }
 

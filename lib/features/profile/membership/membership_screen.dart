@@ -9,6 +9,7 @@ import '../../../core/supabase/membership_repository.dart';
 import '../../../core/supabase/profile_repository.dart';
 import '../../../core/supabase/stripe_payments_repository.dart';
 import '../../../shared/widgets/app_card.dart';
+import '../../../shared/widgets/app_toast.dart';
 
 class MembershipScreen extends StatefulWidget {
   const MembershipScreen({super.key});
@@ -178,9 +179,18 @@ class _MembershipScreenState extends State<MembershipScreen> {
     }
   }
 
-  void _showToast(String message) {
+  void _showToast(
+    String message, {
+    bool isError = false,
+    IconData? icon,
+  }) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    AppToast.show(
+      context,
+      message,
+      isError: isError,
+      icon: icon,
+    );
   }
 
   Future<bool> _confirmPlanPurchaseIfNeeded({
