@@ -472,6 +472,29 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   String _dayName(DateTime d) {
+    final isSpanish = Localizations.localeOf(
+      context,
+    ).languageCode.toLowerCase().startsWith('es');
+
+    if (isSpanish) {
+      switch (d.weekday) {
+        case DateTime.monday:
+          return 'L';
+        case DateTime.tuesday:
+          return 'M';
+        case DateTime.wednesday:
+          return 'M';
+        case DateTime.thursday:
+          return 'J';
+        case DateTime.friday:
+          return 'V';
+        case DateTime.saturday:
+          return 'S';
+        case DateTime.sunday:
+          return 'D';
+      }
+    }
+
     return DateFormat('E').format(d).substring(0, 1).toUpperCase();
   }
 

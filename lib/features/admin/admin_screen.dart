@@ -87,12 +87,12 @@ class _AdminScreenState extends State<AdminScreen> {
   String? _lastClassDuration;
 
   final tabs = const [
-    'Programs',
+    'Members',
     'Classes',
     'Workouts',
-    'Members',
     'Plans',
     'Notifications',
+    'Programs',
   ];
   late final List<GlobalKey> _tabChipKeys;
 
@@ -5119,7 +5119,7 @@ class _AdminScreenState extends State<AdminScreen> {
                               right: i == tabs.length - 1 ? 0 : 8,
                             ),
                             child: _adminTabChip(
-                              label: tabs[i],
+                              label: _adminTabLabel(tabs[i]),
                               selected: i == tabIndex,
                               onTap: () {
                                 setState(() => tabIndex = i);
@@ -5147,12 +5147,13 @@ class _AdminScreenState extends State<AdminScreen> {
                       ),
                       const SizedBox(height: 12),
                     ],
-                    if (tabIndex == 0) _programsTab(),
-                    if (tabIndex == 1) _classesTab(),
-                    if (tabIndex == 2) _workoutsTab(),
-                    if (tabIndex == 3) _membersTab(),
-                    if (tabIndex == 4) _plansTab(),
-                    if (tabIndex == 5) const AdminNotificationsTab(),
+                    if (tabs[tabIndex] == 'Members') _membersTab(),
+                    if (tabs[tabIndex] == 'Classes') _classesTab(),
+                    if (tabs[tabIndex] == 'Workouts') _workoutsTab(),
+                    if (tabs[tabIndex] == 'Plans') _plansTab(),
+                    if (tabs[tabIndex] == 'Notifications')
+                      const AdminNotificationsTab(),
+                    if (tabs[tabIndex] == 'Programs') _programsTab(),
                   ],
                 ),
               ),

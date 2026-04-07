@@ -851,7 +851,10 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     try {
       final d = DateTime.parse(dateIso);
       final localeTag = Localizations.localeOf(context).toLanguageTag();
-      formattedDate = DateFormat('MMMM d, yyyy', localeTag).format(d);
+      final rawDate = DateFormat('MMMM d, yyyy', localeTag).format(d);
+      formattedDate = rawDate.isNotEmpty
+          ? rawDate[0].toUpperCase() + rawDate.substring(1)
+          : rawDate;
     } catch (_) {}
 
     final description = (item['description'] ?? '').toString().trim();

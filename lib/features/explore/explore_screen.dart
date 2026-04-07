@@ -450,9 +450,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
     String date = '';
     try {
-      date = DateFormat(
+      final localeTag = Localizations.localeOf(context).toLanguageTag();
+      final rawDate = DateFormat(
         'MMMM d, yyyy',
+        localeTag,
       ).format(DateTime.parse(item['workout_date'].toString()));
+      date = rawDate.isNotEmpty
+          ? rawDate[0].toUpperCase() + rawDate.substring(1)
+          : rawDate;
     } catch (_) {
       date = (item['workout_date'] ?? '').toString();
     }
