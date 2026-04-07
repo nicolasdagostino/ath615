@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../shared/widgets/app_card.dart';
 
@@ -40,6 +41,14 @@ class AdminMemberMembershipCard extends StatelessWidget {
     if (value.isEmpty || value == '—') return '—';
     final clean = value.replaceAll('_', ' ');
     return clean[0].toUpperCase() + clean.substring(1);
+  }
+
+  String _formatShortDate(BuildContext context, String raw) {
+    final value = raw.trim();
+    if (value.isEmpty || value == '—' || value == 'null') return '—';
+    final parsed = DateTime.tryParse(value)?.toLocal();
+    if (parsed == null) return value;
+    return DateFormat('dd-MM-yyyy').format(parsed);
   }
 
   @override
@@ -86,8 +95,14 @@ class AdminMemberMembershipCard extends StatelessWidget {
     final planType = _pretty(_value(item!['plan_type'], '—'));
     final billing = _pretty(_value(item!['billing_period'], '—'));
     final bookingWindow = _value(item!['booking_window_days'], '—');
-    final startDate = _value(item!['start_date'], '—');
-    final endDate = _value(item!['end_date'], '—');
+    final startDate = _formatShortDate(
+      context,
+      _value(item!['start_date'], '—'),
+    );
+    final endDate = _formatShortDate(
+      context,
+      _value(item!['end_date'], '—'),
+    );
     final creditsRemaining = _value(item!['credits_remaining'], '—');
 
     return AppCard(
@@ -142,7 +157,7 @@ class AdminMemberMembershipCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
-                        'ACTIVE',
+                        _text(context, 'ACTIVA', 'ACTIVE'),
                         style: _font(
                           11,
                           weight: FontWeight.w800,

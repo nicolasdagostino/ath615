@@ -102,6 +102,14 @@ class _AdminScreenState extends State<AdminScreen> {
     context,
   ).languageCode.toLowerCase().startsWith('es');
 
+  String _formatShortDate(dynamic value) {
+    final raw = (value ?? '').toString().trim();
+    if (raw.isEmpty || raw == 'null') return '';
+    final parsed = DateTime.tryParse(raw)?.toLocal();
+    if (parsed == null) return raw;
+    return DateFormat('dd-MM-yyyy').format(parsed);
+  }
+
   String _uiText(String es, String en) => _isSpanish ? es : en;
 
   String _adminTabLabel(String raw) {
@@ -622,6 +630,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                 Text(
                                   DateFormat(
                                     'd MMMM yyyy',
+                                    Localizations.localeOf(context).toLanguageTag(),
                                   ).format(selectedDate),
                                   style: _font(
                                     13,
@@ -1470,7 +1479,10 @@ class _AdminScreenState extends State<AdminScreen> {
       (item['starts_at'] ?? '').toString(),
     )?.toLocal();
     final dateLabel = startsAt != null
-        ? DateFormat('EEE, MMM d · HH:mm').format(startsAt)
+        ? DateFormat(
+            'EEE, MMM d · HH:mm',
+            Localizations.localeOf(context).toLanguageTag(),
+          ).format(startsAt)
         : '';
 
     Widget actionTile({
@@ -2819,7 +2831,9 @@ class _AdminScreenState extends State<AdminScreen> {
                         )
                       : t.unlimitedAccess);
 
-            final endDate = (activeMembership?['end_date'] ?? '').toString();
+            final endDate = _formatShortDate(
+              activeMembership?['end_date'],
+            );
             final autoRenew = activeMembership?['auto_renew'] == true;
             final membershipMeta = activeMembership == null
                 ? t.noActiveMembershipShort
@@ -4373,7 +4387,10 @@ class _AdminScreenState extends State<AdminScreen> {
               item['starts_at'].toString(),
             )?.toLocal();
             final dateLabel = dt != null
-                ? DateFormat('EEE, MMM d · HH:mm').format(dt)
+                ? DateFormat(
+                    'EEE, MMM d · HH:mm',
+                    Localizations.localeOf(context).toLanguageTag(),
+                  ).format(dt)
                 : '-';
             final program = (item['program_name'] ?? context.appText.classLabel)
                 .toString();
@@ -4707,7 +4724,10 @@ class _AdminScreenState extends State<AdminScreen> {
 
             final parsedDate = DateTime.tryParse(rawDate)?.toLocal();
             final dateLabel = parsedDate != null
-                ? DateFormat('EEE, MMM d').format(parsedDate)
+                ? DateFormat(
+                    'EEE, MMM d',
+                    Localizations.localeOf(context).toLanguageTag(),
+                  ).format(parsedDate)
                 : '';
             final headline = title.isEmpty
                 ? _uiText('Workout', 'Workout')

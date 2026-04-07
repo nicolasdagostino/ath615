@@ -171,7 +171,10 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
       final dt = DateTime.parse(
         widget.classItem['starts_at'].toString(),
       ).toLocal();
-      subtitle = DateFormat('EEEE, MMM d · HH:mm').format(dt);
+      subtitle = DateFormat(
+        'EEEE, MMM d · HH:mm',
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(dt);
     } catch (_) {}
 
     return Scaffold(

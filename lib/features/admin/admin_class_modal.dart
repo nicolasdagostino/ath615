@@ -355,6 +355,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                 Text(
                                   DateFormat(
                                     'd MMMM yyyy',
+                                    Localizations.localeOf(context).toLanguageTag(),
                                   ).format(selectedDate),
                                   style: _font(
                                     13,

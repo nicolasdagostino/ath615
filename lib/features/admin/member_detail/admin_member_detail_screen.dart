@@ -73,11 +73,52 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     );
   }
 
-  void _toast(String message) {
+  void _toast(
+    String message, {
+    IconData icon = Icons.info_outline_rounded,
+  }) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+
+    messenger.showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        elevation: 0,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        backgroundColor: const Color(0xFF111318),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: Colors.white, size: 17),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: GoogleFonts.barlowCondensed(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  height: 1.1,
+                  letterSpacing: 0.1,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   String _normalizedPlanType(Map<String, dynamic> plan) {
@@ -1141,7 +1182,13 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
   Future<void> _openAttendanceAction() async {
     final item = _preferredAttendanceHistoryItem();
     if (item == null) {
-      _toast(_txt('No hay clases pasadas disponibles para asistencia', 'No past classes available for attendance'));
+      _toast(
+        _txt(
+          'Todavía no hay asistencia para registrar',
+          'No past classes available yet',
+        ),
+        icon: Icons.event_busy_outlined,
+      );
       return;
     }
 

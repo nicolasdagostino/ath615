@@ -50,16 +50,11 @@ class MembershipRepository {
     String memberId, {
     String? gymId,
   }) async {
-    dynamic query = sb
+    final data = await sb
         .from('v_active_member_memberships')
         .select('*')
-        .eq('member_id', memberId);
-
-    if (gymId != null && gymId.trim().isNotEmpty) {
-      query = query.eq('gym_id', gymId.trim());
-    }
-
-    final data = await query.order('created_at', ascending: false);
+        .eq('member_id', memberId)
+        .order('created_at', ascending: false);
 
     return List<Map<String, dynamic>>.from(data);
   }

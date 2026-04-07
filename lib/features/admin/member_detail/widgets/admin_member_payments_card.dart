@@ -32,9 +32,10 @@ class AdminMemberPaymentsCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime? value) {
+  String _formatDate(BuildContext context, DateTime? value) {
     if (value == null) return '—';
-    return DateFormat('MMM d, yyyy · HH:mm').format(value);
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    return DateFormat('d MMM yyyy · HH:mm', localeTag).format(value);
   }
 
   String _pretty(String raw) {
@@ -188,7 +189,7 @@ class AdminMemberPaymentsCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _formatDate(paidAt),
+                      _formatDate(context, paidAt),
                       style: _font(
                         13,
                         weight: FontWeight.w600,

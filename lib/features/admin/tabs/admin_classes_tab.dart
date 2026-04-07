@@ -98,7 +98,7 @@ class AdminClassesTab extends StatelessWidget {
         else if (classes.isEmpty)
           _emptyState()
         else
-          ...classes.map((e) => _card(Map<String, dynamic>.from(e as Map))),
+          ...classes.map((e) => _card(context, Map<String, dynamic>.from(e as Map))),
       ],
     );
   }
@@ -138,10 +138,13 @@ class AdminClassesTab extends StatelessWidget {
     );
   }
 
-  Widget _card(Map<String, dynamic> item) {
+  Widget _card(BuildContext context, Map<String, dynamic> item) {
     final dt = DateTime.tryParse(item['starts_at'].toString())?.toLocal();
     final dateLabel = dt != null
-        ? DateFormat('EEE, MMM d · HH:mm').format(dt)
+        ? DateFormat(
+            'EEE, MMM d · HH:mm',
+            Localizations.localeOf(context).toLanguageTag(),
+          ).format(dt)
         : '-';
 
     final title = (item['title'] ?? 'Class').toString();

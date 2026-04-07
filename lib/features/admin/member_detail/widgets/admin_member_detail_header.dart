@@ -20,11 +20,12 @@ class AdminMemberDetailHeader extends StatelessWidget {
     return text.isEmpty ? fallback : text;
   }
 
-  String _memberSinceLabel() {
+  String _memberSinceLabel(BuildContext context) {
     final raw = (profile['member_since'] ?? '').toString().trim();
     final parsed = DateTime.tryParse(raw)?.toLocal();
     if (parsed == null) return '—';
-    return DateFormat('MMM d, yyyy').format(parsed);
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    return DateFormat('d MMM yyyy', localeTag).format(parsed);
   }
 
   @override
@@ -112,11 +113,16 @@ class AdminMemberDetailHeader extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: [
-              _infoChip(Icons.mail_outline_rounded, email),
+              _infoChip(
+                Icons.mail_outline_rounded,
+                email,
+                emphasized: true,
+              ),
               if (phone != '—') _infoChip(Icons.call_outlined, phone),
               _infoChip(
                 Icons.calendar_today_outlined,
-                '${_text(context, 'Miembro desde', 'Member since')} ${_memberSinceLabel()}',
+                '${_text(context, 'Miembro desde', 'Member since')} · ${_memberSinceLabel(context)}',
+                subdued: true,
               ),
             ],
           ),
@@ -125,25 +131,38 @@ class AdminMemberDetailHeader extends StatelessWidget {
     );
   }
 
-  Widget _infoChip(IconData icon, String text) {
+  Widget _infoChip(
+    IconData icon,
+    String text, {
+    bool emphasized = false,
+    bool subdued = false,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: subdued ? const Color(0xFFF8FAFC) : const Color(0xFFF7F3EA),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFE7EBF0)),
+        border: Border.all(
+          color: subdued ? const Color(0xFFE7EBF0) : const Color(0xFFE8DEC8),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 15, color: const Color(0xFF667085)),
+          Icon(
+            icon,
+            size: 15,
+            color: subdued ? const Color(0xFF667085) : const Color(0xFF8A6F3E),
+          ),
           const SizedBox(width: 7),
           Text(
             text,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF475467),
+            style: GoogleFonts.barlowCondensed(
+              fontSize: emphasized ? 14 : 13,
+              fontWeight: emphasized ? FontWeight.w700 : FontWeight.w600,
+              color: subdued ? const Color(0xFF667085) : const Color(0xFF344054),
+              height: 1.0,
+              letterSpacing: emphasized ? 0 : 0.1,
             ),
           ),
         ],

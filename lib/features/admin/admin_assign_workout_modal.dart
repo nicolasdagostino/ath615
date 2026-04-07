@@ -22,7 +22,10 @@ extension _AdminScreenAssignWorkoutModal on _AdminScreenState {
     String classDateLabel = '';
     try {
       final dt = DateTime.parse(classItem['starts_at'].toString()).toLocal();
-      classDateLabel = DateFormat('EEE, MMM d · HH:mm').format(dt);
+      classDateLabel = DateFormat(
+        'EEE, MMM d · HH:mm',
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(dt);
     } catch (_) {}
 
     InputDecoration dropdownDecoration(String label) {
