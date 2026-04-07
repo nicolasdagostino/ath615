@@ -12,6 +12,7 @@ import '../../core/supabase/gym_repository.dart';
 import '../../l10n/app_text.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/role_guard.dart';
+import '../../shared/widgets/app_toast.dart';
 
 class WorkoutsScreen extends StatefulWidget {
   const WorkoutsScreen({super.key});
@@ -201,8 +202,10 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      AppToast.show(
+        context,
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
       );
     } finally {
       if (mounted) {

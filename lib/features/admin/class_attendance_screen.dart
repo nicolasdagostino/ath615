@@ -6,6 +6,7 @@ import '../../l10n/app_text.dart';
 
 import '../../core/supabase/class_attendance_repository.dart';
 import '../../shared/widgets/app_card.dart';
+import '../../shared/widgets/app_toast.dart';
 
 class ClassAttendanceScreen extends StatefulWidget {
   final Map<String, dynamic> classItem;
@@ -83,8 +84,10 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
       await _load();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      AppToast.show(
+        context,
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
       );
     }
   }
@@ -300,12 +303,10 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                             InkWell(
                               borderRadius: BorderRadius.circular(12),
                               onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Add member modal comes next',
-                                    ),
-                                  ),
+                                AppToast.show(
+                                  context,
+                                  'Add member modal comes next',
+                                  icon: Icons.person_add_alt_1_rounded,
                                 );
                               },
                               child: Container(

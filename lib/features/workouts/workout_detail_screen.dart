@@ -11,6 +11,7 @@ import '../../core/supabase/profile_repository.dart';
 import '../../l10n/app_text.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/role_guard.dart';
+import '../../shared/widgets/app_toast.dart';
 
 class WorkoutDetailScreen extends StatefulWidget {
   final Map<String, dynamic>? initialWorkout;
@@ -211,8 +212,10 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       await _load();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      AppToast.show(
+        context,
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
       );
     }
   }
@@ -234,8 +237,10 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
       await _load();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      AppToast.show(
+        context,
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
       );
     } finally {
       if (mounted) {

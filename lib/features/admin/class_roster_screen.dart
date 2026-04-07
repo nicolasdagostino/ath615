@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/supabase/class_attendance_repository.dart';
 import '../../core/supabase/supabase_bootstrap.dart';
+import '../../shared/widgets/app_toast.dart';
 
 class ClassRosterScreen extends StatefulWidget {
   final String classId;
@@ -132,13 +133,17 @@ class _ClassRosterScreenState extends State<ClassRosterScreen> {
       await _load();
 
       if (!mounted) return;
-      ScaffoldMessenger.of(
+      AppToast.show(
         context,
-      ).showSnackBar(SnackBar(content: Text('Booking marked as $status')));
+        'Booking marked as $status',
+        icon: Icons.check_circle_outline_rounded,
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      AppToast.show(
+        context,
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
       );
     }
   }

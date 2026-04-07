@@ -20,6 +20,7 @@ import 'pending_attendance/pending_attendance_screen.dart';
 import 'pending_attendance/pending_attendance_repository.dart';
 import '../../l10n/app_text.dart';
 import '../../shared/widgets/app_card.dart';
+import '../../shared/widgets/app_toast.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenAdmin;
@@ -98,7 +99,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _showActionMessage(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+    AppToast.show(
+      context,
+      text,
+      icon: Icons.info_outline_rounded,
+    );
   }
 
   void _showTomorrowRiskSheet(DashboardTomorrowStats tomorrow) {
@@ -258,7 +263,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _topHeader() {
-    final t = context.appText;
     final localeTag = Localizations.localeOf(context).toLanguageTag();
     final rawToday = DateFormat('EEEE, MMMM d', localeTag).format(DateTime.now());
     final words = rawToday.split(' ');

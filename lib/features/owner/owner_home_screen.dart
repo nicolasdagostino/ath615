@@ -5,6 +5,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/supabase/owner_repository.dart';
 import '../../core/supabase/auth_repository.dart';
 import '../../core/auth/user_session.dart';
+import '../../shared/widgets/app_toast.dart';
 
 class OwnerHomeScreen extends StatefulWidget {
   const OwnerHomeScreen({super.key});
@@ -54,9 +55,9 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
     );
   }
 
-  void _toast(String msg) {
+  void _toast(String msg, {bool isError = false, IconData? icon}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    AppToast.show(context, msg, isError: isError, icon: icon);
   }
 
   Future<void> _refresh() async {
@@ -432,11 +433,11 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
+              final navigator = Navigator.of(context);
               await AuthRepository().signOut();
               UserSession().clear();
               if (!mounted) return;
-              Navigator.of(context)
-                  .pushNamedAndRemoveUntil('/login', (_) => false);
+              navigator.pushNamedAndRemoveUntil('/login', (_) => false);
             },
           ),
         ],
