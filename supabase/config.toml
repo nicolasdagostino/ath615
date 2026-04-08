@@ -54,3 +54,18 @@ enabled = true
 verify_jwt = false
 entrypoint = "./functions/owner-invite-gym-admin/index.ts"
 
+[functions.owner-update-gym-status]
+verify_jwt = false
+entrypoint = "./functions/owner-update-gym-status/index.ts"
+
+[functions.owner-list-gym-metrics]
+verify_jwt = false
+entrypoint = "./functions/owner-list-gym-metrics/index.ts"
+
+[functions.admin-offboard-member]
+verify_jwt = true
+entrypoint = "./functions/admin-offboard-member/index.ts"
+
+[functions.owner-seed-test-athletes]
+verify_jwt = false
+entrypoint = "./functions/owner-seed-test-athletes/index.ts"

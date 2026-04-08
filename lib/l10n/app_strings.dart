@@ -1362,6 +1362,17 @@ class AppStrings {
   String get memberActivated =>
       isSpanish ? 'Miembro activado' : 'Member activated';
 
+  String get offboardMemberTitle =>
+      isSpanish ? 'Dar de baja miembro' : 'Offboard member';
+
+  String get offboardMemberSubtitle => isSpanish
+      ? 'Desactivar acceso, cerrar membresías activas y cancelar reservas futuras'
+      : 'Disable access, end active memberships, and cancel future bookings';
+
+  String get memberOffboarded => isSpanish
+      ? 'Miembro dado de baja'
+      : 'Member offboarded';
+
   String get makeAthleteTitle => isSpanish ? 'Hacer atleta' : 'Make athlete';
 
   String get makeAthleteSubtitle => isSpanish

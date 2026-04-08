@@ -46,12 +46,20 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
   final _notificationRepo = NotificationRepository();
   final _paymentsRepo = MembershipPaymentsRepository();
   final _stripePaymentsRepo = StripePaymentsRepository();
+  final _offboardReasonCtrl = TextEditingController();
 
   bool _loading = true;
   String? _error;
   AdminMemberDetailData? _data;
 
+  
   @override
+  void dispose() {
+    _offboardReasonCtrl.dispose();
+    super.dispose();
+  }
+
+@override
   void initState() {
     super.initState();
     _load();
@@ -754,6 +762,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       }
       return pieces.join(' · ');
     }
+
+    if (!mounted) return;
 
     await showModalBottomSheet(
       context: context,
@@ -1549,6 +1559,83 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     );
   }
 
+
+
+  Future<void> _showOffboardMemberSheet() async {
+    final data = _data;
+    if (data == null) return;
+
+    final memberId = (data.profile['id'] ?? '').toString().trim();
+    if (memberId.isEmpty) {
+      _toast(context.appText.memberNotFound);
+      return;
+    }
+
+    _offboardReasonCtrl.clear();
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        bool saving = false;
+
+        return StatefulBuilder(
+          builder: (context, setLocalState) {
+            return AdminMemberDetailSheetScaffold(
+              sheetContext: sheetContext,
+              title: context.appText.offboardMemberTitle,
+              subtitle: context.appText.offboardMemberSubtitle,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AdminMemberDetailSheetTextField(
+                    controller: _offboardReasonCtrl,
+                    label: _txt('Motivo', 'Reason'),
+                    hint: _txt(
+                      'Opcional: impago, baja, solicitud del cliente...',
+                      'Optional: unpaid, churn, client request...',
+                    ),
+                    minLines: 3,
+                    maxLines: 4,
+                  ),
+                  const SizedBox(height: 18),
+                  AdminMemberDetailSheetActions(
+                    busy: saving,
+                    primaryText: context.appText.offboardMemberTitle,
+                    busyText: context.appText.saving,
+                    onCancel: () => Navigator.of(sheetContext).pop(),
+                    onPrimary: () async {
+                      final successMessage = context.appText.memberOffboarded;
+                      setLocalState(() => saving = true);
+                      try {
+                        await _repo.offboardMember(
+                          memberId: memberId,
+                          reason: _offboardReasonCtrl.text.trim().isEmpty
+                              ? null
+                              : _offboardReasonCtrl.text.trim(),
+                        );
+                        if (!sheetContext.mounted) return;
+                        Navigator.of(sheetContext).pop();
+                        await _load();
+                        if (!mounted) return;
+                        _toast(successMessage);
+                      } finally {
+                        if (sheetContext.mounted) {
+                          setLocalState(() => saving = false);
+                        }
+                      }
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _quickActions() {
     Widget action({
       required String title,
@@ -1649,6 +1736,11 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
               title: _txt('Membresía', 'Membership'),
               icon: Icons.workspace_premium_outlined,
               onTap: _showEditActiveMembershipSheet,
+            ),
+            action(
+              title: _txt('Baja lógica', 'Offboard'),
+              icon: Icons.person_off_outlined,
+              onTap: _showOffboardMemberSheet,
             ),
           ],
         ),

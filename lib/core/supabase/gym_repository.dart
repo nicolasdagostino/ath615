@@ -80,6 +80,28 @@ class GymRepository {
     return null;
   }
 
+
+
+  Future<Map<String, dynamic>?> myGymStatus() async {
+    final gymId = await myGymId();
+    if (gymId == null || gymId.isEmpty) return null;
+
+    try {
+      final data = await sb
+          .from('gyms')
+          .select(
+            'id, name, slug, is_active, is_blocked, blocked_reason, blocked_at, deleted_at',
+          )
+          .eq('id', gymId)
+          .limit(1)
+          .maybeSingle();
+
+      return data == null ? null : Map<String, dynamic>.from(data);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<String?> resolveGymId() async {
     final mine = await myGymId();
     if (mine != null && mine.isNotEmpty) return mine;

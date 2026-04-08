@@ -14,6 +14,43 @@ class ProfileRepository {
     return data == null ? null : Map<String, dynamic>.from(data);
   }
 
+
+
+  Future<Map<String, dynamic>?> getMyAccessSnapshot() async {
+    final user = sb.auth.currentUser;
+    if (user == null) return null;
+
+    final profile = await sb
+        .from('profiles')
+        .select('id, gym_id, role, is_active, full_name, email')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    if (profile == null) return null;
+
+    final gymId = (profile['gym_id'] ?? '').toString().trim();
+    Map<String, dynamic>? gym;
+
+    if (gymId.isNotEmpty) {
+      final gymData = await sb
+          .from('gyms')
+          .select(
+            'id, name, slug, is_active, is_blocked, blocked_reason, blocked_at, deleted_at',
+          )
+          .eq('id', gymId)
+          .maybeSingle();
+
+      if (gymData != null) {
+        gym = Map<String, dynamic>.from(gymData);
+      }
+    }
+
+    return {
+      'profile': Map<String, dynamic>.from(profile),
+      'gym': gym,
+    };
+  }
+
   Future<List<Map<String, dynamic>>> listMembers(String gymId) async {
     final data = await sb
         .from('profiles')

@@ -29,6 +29,32 @@ class AdminMemberDetailRepository {
         .eq('gym_id', gymId);
   }
 
+
+
+  Future<Map<String, dynamic>> offboardMember({
+    required String memberId,
+    String? reason,
+  }) async {
+    final res = await sb.functions.invoke(
+      'admin-offboard-member',
+      body: {
+        'memberId': memberId,
+        'reason': reason,
+      },
+    );
+
+    final payload = res.data;
+
+    if (res.status != 200) {
+      if (payload is Map && payload['error'] != null) {
+        throw Exception(payload['error'].toString());
+      }
+      throw Exception('Could not offboard member');
+    }
+
+    return Map<String, dynamic>.from(payload as Map);
+  }
+
   Future<AdminMemberDetailData> loadMemberDetail({
     required String gymId,
     required String memberId,

@@ -19,14 +19,13 @@ Future<void> main() async {
 
   const stripePublishableKey = String.fromEnvironment(
     'STRIPE_PUBLISHABLE_KEY',
+    defaultValue: 'pk_test_51TIyMxQ8f14O2FcujEzVS8SVUi3WiOq38ZDTrkgD6MDHP0vmGO2hrFUl3FYdm5R96pLVfwwa0gcqeu4yi3NzHCbB00x5b9ak73',
   );
 
-  if (stripePublishableKey.isEmpty) {
-    throw Exception('Missing STRIPE_PUBLISHABLE_KEY');
+  if (stripePublishableKey.isNotEmpty) {
+    Stripe.publishableKey = stripePublishableKey;
+    await Stripe.instance.applySettings();
   }
-
-  Stripe.publishableKey = stripePublishableKey;
-  await Stripe.instance.applySettings();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
