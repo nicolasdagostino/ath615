@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../l10n/app_text.dart';
 import '../athlete_history_models.dart';
 
 class AthleteHistoryFilterChips extends StatelessWidget {
@@ -33,11 +34,12 @@ class AthleteHistoryFilterChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.appText;
     final items = <(AthleteHistoryFilter, String, int)>[
       (AthleteHistoryFilter.all, 'All', counts.total),
-      (AthleteHistoryFilter.attended, 'Attended', counts.attended),
-      (AthleteHistoryFilter.missed, 'Missed', counts.missed),
-      (AthleteHistoryFilter.cancelled, 'Cancelled', counts.cancelled),
+      (AthleteHistoryFilter.attended, t.attended, counts.attended),
+      (AthleteHistoryFilter.missed, t.missed, counts.missed),
+      (AthleteHistoryFilter.cancelled, t.cancelled, counts.cancelled),
     ];
 
     return Wrap(

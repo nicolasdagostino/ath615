@@ -9,30 +9,36 @@ class AthleteHistoryEmptyState extends StatelessWidget {
 
   const AthleteHistoryEmptyState({super.key, required this.filter});
 
-  String get _title {
+  String _title(BuildContext context) {
     switch (filter) {
       case AthleteHistoryFilter.all:
-        return 'No class history yet';
+        return _txt(context, 'Todavía no tienes historial de clases.', 'No class history yet');
       case AthleteHistoryFilter.attended:
-        return 'No attended classes yet';
+        return _txt(context, 'Todavía no tienes clases asistidas.', 'No attended classes yet');
       case AthleteHistoryFilter.missed:
-        return 'No missed classes';
+        return _txt(context, 'No tienes clases perdidas.', 'No missed classes');
       case AthleteHistoryFilter.cancelled:
-        return 'No cancelled classes';
+        return _txt(context, 'No tienes reservas canceladas.', 'No cancelled classes');
     }
   }
 
-  String get _subtitle {
+  String _subtitle(BuildContext context) {
     switch (filter) {
       case AthleteHistoryFilter.all:
-        return 'Your past bookings and attendance will appear here.';
+        return _txt(context, 'Aquí aparecerán tus reservas y asistencias pasadas.', 'Your past bookings and attendance will appear here.');
       case AthleteHistoryFilter.attended:
-        return 'Completed classes will appear here.';
+        return _txt(context, 'Aquí aparecerán tus clases completadas.', 'Completed classes will appear here.');
       case AthleteHistoryFilter.missed:
-        return 'No-shows or past booked classes will appear here.';
+        return _txt(context, 'Aquí aparecerán tus no asistencias o reservas ya finalizadas.', 'No-shows or past booked classes will appear here.');
       case AthleteHistoryFilter.cancelled:
-        return 'Cancelled bookings will appear here.';
+        return _txt(context, 'Aquí aparecerán tus reservas canceladas.', 'Cancelled bookings will appear here.');
     }
+  }
+
+  String _txt(BuildContext context, String es, String en) {
+    return Localizations.localeOf(context).languageCode.toLowerCase().startsWith('es')
+        ? es
+        : en;
   }
 
   TextStyle _font(
@@ -64,7 +70,7 @@ class AthleteHistoryEmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            _title,
+            _title(context),
             textAlign: TextAlign.center,
             style: _font(
               20,
@@ -74,7 +80,7 @@ class AthleteHistoryEmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            _subtitle,
+            _subtitle(context),
             textAlign: TextAlign.center,
             style: _font(
               14,

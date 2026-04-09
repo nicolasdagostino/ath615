@@ -1051,6 +1051,8 @@ class _BookingScreenState extends State<BookingScreen> {
               _actionButton(text: t.classFinished, onPressed: null)
             else if (_isBookingClosed(item))
               _actionButton(text: t.bookingClosed, onPressed: null)
+            else if (_loading)
+              _actionButton(text: '...', onPressed: null)
             else if (_activeMembership == null)
               _actionButton(text: t.membershipRequired, onPressed: null)
             else if (_asInt(item['remaining_spots'], 0) <= 0)
@@ -1163,36 +1165,62 @@ class _BookingScreenState extends State<BookingScreen> {
                 children: [
                   AppCard(
                     padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF7F3EA),
-                            borderRadius: BorderRadius.circular(16),
+                    child: _loading
+                        ? Row(
+                            children: [
+                              Container(
+                                width: 50,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF4F5F7),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _skeletonLine(width: 170, height: 16, radius: 8),
+                                    const SizedBox(height: 8),
+                                    _skeletonLine(width: 110, height: 12, radius: 8),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                        : Row(
+                            children: [
+                              Container(
+                                width: 50,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF7F3EA),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Icon(
+                                  Icons.card_membership_outlined,
+                                  color: Color(0xFFB59B6A),
+                                  size: 26,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Text(
+                                  membershipText,
+                                  style: _font(
+                                    16,
+                                    weight: FontWeight.w600,
+                                    color: hasActiveMembership
+                                        ? const Color(0xFF1F8A4C)
+                                        : const Color(0xFF667085),
+                                    height: 1.2,
+                                    letterSpacing: -0.1,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          child: const Icon(
-                            Icons.card_membership_outlined,
-                            color: Color(0xFFB59B6A),
-                            size: 26,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Text(
-                            membershipText,
-                            style: _font(
-                              16,
-                              weight: FontWeight.w600,
-                              color: const Color(0xFF1F8A4C),
-                              height: 1.2,
-                              letterSpacing: -0.1,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                   const SizedBox(height: 18),
                   if (_loading) ...[

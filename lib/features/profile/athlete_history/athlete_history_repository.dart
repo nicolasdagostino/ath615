@@ -89,7 +89,9 @@ class AthleteHistoryRepository {
         continue;
       }
 
-      if (!startsAt.isBefore(now)) continue;
+      final durationMinutes = _asInt(classData['duration_minutes'], 60);
+      final classEndsAt = startsAt.add(Duration(minutes: durationMinutes));
+      if (!classEndsAt.isBefore(now)) continue;
 
       final classId = (raw['class_id'] ?? classData['id'] ?? '').toString().trim();
       if (classId.isEmpty) continue;

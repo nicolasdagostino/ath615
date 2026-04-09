@@ -196,7 +196,7 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                   children: [
                     Center(
                       child: Text(
-                        'ATTENDANCE',
+                        t.attendanceTitle.toUpperCase(),
                         style: _font(
                           18,
                           weight: FontWeight.w800,
@@ -343,11 +343,11 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                             ),
                             _summaryChip(
                               icon: Icons.event_available_rounded,
-                              label: 'Booked: $bookedCount',
+                              label: t.bookedCountLabel(bookedCount),
                             ),
                             _summaryChip(
                               icon: Icons.check_circle_outline_rounded,
-                              label: 'Attended: $attendedCount',
+                              label: t.attendedCountLabel(attendedCount),
                             ),
                           ],
                         ),
@@ -394,6 +394,19 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                     ..._items.map((item) {
                       final bookingId = item['booking_id'].toString();
                       final status = (item['status'] ?? '').toString();
+
+String statusLabel(String s) {
+  switch (s) {
+    case 'attended':
+      return t.attended;
+    case 'booked':
+      return t.setBooked;
+    case 'cancelled':
+      return t.cancelled;
+    default:
+      return s;
+  }
+}
                       final name = (item['member_name'] ?? 'Athlete')
                           .toString();
                       final email = (item['member_email'] ?? '').toString();
@@ -465,7 +478,7 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                                     ),
                                     alignment: Alignment.center,
                                     child: Text(
-                                      status.toUpperCase(),
+                                      statusLabel(status).toUpperCase(),
                                       style: _font(
                                         10,
                                         weight: FontWeight.w700,

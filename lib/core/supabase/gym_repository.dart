@@ -1,11 +1,25 @@
 import 'supabase_bootstrap.dart';
 
 class GymRepository {
+  static String? _cachedGymId;
+  static Map<String, dynamic>? _cachedGymInfo;
+
+  void invalidateCache() {
+    _cachedGymId = null;
+    _cachedGymInfo = null;
+  }
+
   Future<String?> myGymId() async {
+    final cached = _cachedGymId?.trim();
+    if (cached != null && cached.isNotEmpty) return cached;
     try {
       final data = await sb.rpc('my_gym_id');
       if (data != null && data.toString().isNotEmpty) {
-        return data.toString();
+        final resolved = data.toString().trim();
+        if (resolved.isNotEmpty) {
+          _cachedGymId = resolved;
+          return resolved;
+        }
       }
     } catch (_) {}
 
@@ -18,8 +32,9 @@ class GymRepository {
             .eq('id', user.id)
             .maybeSingle();
 
-        final gymId = profile?['gym_id']?.toString();
+        final gymId = profile?['gym_id']?.toString().trim();
         if (gymId != null && gymId.isNotEmpty) {
+          _cachedGymId = gymId;
           return gymId;
         }
       }
@@ -59,25 +74,70 @@ class GymRepository {
     return null;
   }
 
-  Future<String?> myGymName() async {
+  Future<Map<String, dynamic>?> myGymInfo() async {
+    if (_cachedGymInfo != null) {
+      return Map<String, dynamic>.from(_cachedGymInfo!);
+    }
+
     final gymId = await myGymId();
     if (gymId == null || gymId.isEmpty) return null;
 
     try {
       final data = await sb
           .from('gyms')
-          .select('name')
+          .select('id, name, logo_url')
           .eq('id', gymId)
           .limit(1)
           .maybeSingle();
 
-      final name = data?['name']?.toString().trim();
-      if (name != null && name.isNotEmpty) {
-        return name;
-      }
-    } catch (_) {}
+      if (data == null) return null;
 
-    return null;
+      final mapped = Map<String, dynamic>.from(data);
+      _cachedGymInfo = mapped;
+      final resolvedId = (mapped['id'] ?? '').toString().trim();
+      if (resolvedId.isNotEmpty) {
+        _cachedGymId = resolvedId;
+      }
+      return Map<String, dynamic>.from(mapped);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<String?> myGymName() async {
+    final gym = await myGymInfo();
+    final name = (gym?['name'] ?? '').toString().trim();
+    return name.isEmpty ? null : name;
+  }
+
+  Future<void> updateGym({
+    required String gymId,
+    String? name,
+    String? logoUrl,
+  }) async {
+    final payload = <String, dynamic>{};
+
+    if (name != null) {
+      payload['name'] = name.trim();
+    }
+    if (logoUrl != null) {
+      payload['logo_url'] = logoUrl.trim().isEmpty ? null : logoUrl.trim();
+    }
+    if (payload.isEmpty) return;
+
+    final rows = await sb
+        .from('gyms')
+        .update(payload)
+        .eq('id', gymId)
+        .select('id, name, logo_url');
+
+    if (rows.isEmpty) {
+      throw Exception('Could not update gym');
+    }
+
+    final updated = Map<String, dynamic>.from(rows.first);
+    _cachedGymId = (updated['id'] ?? gymId).toString().trim();
+    _cachedGymInfo = updated;
   }
 
 

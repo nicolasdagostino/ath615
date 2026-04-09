@@ -134,7 +134,7 @@ class AppStrings {
 
   String get checkedIn => isSpanish ? 'Registrado' : 'Checked in';
 
-  String get imHere => isSpanish ? 'Ya llegué' : 'I’m here';
+  String get imHere => isSpanish ? 'Check-in' : 'Check-in';
 
   String get membershipActive =>
       isSpanish ? 'Membresía activa' : 'Membership active';

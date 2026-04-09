@@ -8,6 +8,7 @@ import '../../core/supabase/workout_comment_repository.dart';
 import '../../core/supabase/workout_like_repository.dart';
 import '../../core/supabase/workout_repository.dart';
 import '../../core/supabase/profile_repository.dart';
+import '../../core/supabase/gym_repository.dart';
 import '../../l10n/app_text.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/role_guard.dart';
@@ -26,6 +27,7 @@ class WorkoutDetailScreen extends StatefulWidget {
 class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
   final _repo = WorkoutRepository();
   final _profileRepo = ProfileRepository();
+  final _gymRepo = GymRepository();
   final _commentRepo = WorkoutCommentRepository();
   final _likeRepo = WorkoutLikeRepository();
 
@@ -35,6 +37,8 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
   bool _posting = false;
   String? _error;
   String _currentUserAvatarUrl = '';
+  String _gymLogoUrl = '';
+  String _gymName = '';
 
   Map<String, dynamic>? _workout;
   List<Map<String, dynamic>> _comments = [];
@@ -185,12 +189,17 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
 
       final comments = await _commentRepo.listCommentsForWorkout(targetId);
       final liked = await _likeRepo.hasLiked(targetId);
+      final gym = await _gymRepo.myGymInfo();
+      final gymLogo = (gym?['logo_url'] ?? '').toString().trim();
+      final gymName = (gym?['name'] ?? '').toString().trim();
 
       if (!mounted) return;
       setState(() {
         _workout = workout;
         _comments = comments;
         _isLiked = liked;
+        _gymLogoUrl = gymLogo;
+        _gymName = gymName;
         _error = null;
         _loading = false;
       });
@@ -824,7 +833,9 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
 
     final program = (workout['program_name'] ?? context.appText.workout)
         .toString();
-    final author = (workout['created_by_name'] ?? context.appText.athlete615)
+    final author = _gymName.trim().isNotEmpty
+        ? _gymName.trim()
+        : context.appText.athlete615
         .toString();
     final dateIso = (workout['workout_date'] ?? '').toString();
     final description = (workout['description'] ?? '').toString().trim();
@@ -901,11 +912,16 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
                             CircleAvatar(
                               radius: 18,
                               backgroundColor: const Color(0xFFE9EEF5),
-                              child: const Icon(
-                                Icons.person,
-                                size: 18,
-                                color: Color(0xFF8A90A0),
-                              ),
+                              backgroundImage: _gymLogoUrl.isNotEmpty
+                                  ? NetworkImage(_gymLogoUrl)
+                                  : null,
+                              child: _gymLogoUrl.isEmpty
+                                  ? const Icon(
+                                      Icons.fitness_center,
+                                      size: 18,
+                                      color: Color(0xFF8A90A0),
+                                    )
+                                  : null,
                             ),
                             const SizedBox(width: 10),
                             Expanded(

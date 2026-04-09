@@ -41,7 +41,7 @@ class _MembershipScreenState extends State<MembershipScreen> {
     if (gymId.isNotEmpty) {
       final membershipRepo = MembershipRepository();
       activeMembership = await membershipRepo.myActiveMembership();
-      plans = await membershipRepo.listPlans(gymId);
+      plans = await membershipRepo.listPublicPlansForAthlete(gymId);
     }
 
     payments = await _membershipPaymentsRepo.listMyPayments(

@@ -33,6 +33,7 @@ part 'admin_workout_modal.dart';
 part 'admin_assign_workout_modal.dart';
 part 'admin_plan_actions.dart';
 part 'admin_plan_modal.dart';
+part 'admin_gym_modal.dart';
 
 class AdminScreen extends StatefulWidget {
   final int initialTabIndex;
@@ -74,6 +75,7 @@ class _AdminScreenState extends State<AdminScreen> {
   String? _error;
   String? _adminGymId;
   String _adminGymName = '';
+  String _adminGymLogoUrl = '';
   String _classesFilter = 'today';
 
   List<Map<String, dynamic>> _plans = [];
@@ -356,17 +358,21 @@ class _AdminScreenState extends State<AdminScreen> {
                   width: 132,
                   child: Align(
                     alignment: Alignment.centerRight,
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF7F3EA),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.admin_panel_settings_outlined,
-                        size: 19,
-                        color: Color(0xFFB59B6A),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: _adminActionBusy ? null : _showGymModal,
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF7F3EA),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.admin_panel_settings_outlined,
+                          size: 19,
+                          color: Color(0xFFB59B6A),
+                        ),
                       ),
                     ),
                   ),
@@ -1161,7 +1167,9 @@ class _AdminScreenState extends State<AdminScreen> {
         throw Exception(t.adminGymNotFound);
       }
       _adminGymId = resolvedGymId;
-      _adminGymName = (await _gymRepo.myGymName() ?? '').trim();
+      final gymInfo = await _gymRepo.myGymInfo();
+      _adminGymName = (gymInfo?['name'] ?? '').toString().trim();
+      _adminGymLogoUrl = (gymInfo?['logo_url'] ?? '').toString().trim();
 
       try {
         _plans = await _membershipRepo.listPlans(_adminGymId!);

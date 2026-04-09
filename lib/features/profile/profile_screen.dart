@@ -46,7 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (gymId.isNotEmpty) {
       final membershipRepo = MembershipRepository();
       activeMembership = await membershipRepo.myActiveMembership();
-      plans = await membershipRepo.listPlans(gymId);
+      plans = await membershipRepo.listPublicPlansForAthlete(gymId);
     }
 
     return {

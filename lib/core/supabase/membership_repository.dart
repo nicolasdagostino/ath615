@@ -11,6 +11,30 @@ class MembershipRepository {
     return List<Map<String, dynamic>>.from(data);
   }
 
+  Future<List<Map<String, dynamic>>> listPublicPlansForAthlete(String gymId) async {
+    const allowedPlanTypes = {
+      'unlimited',
+      'weekly_limit',
+      'class_pack',
+      'drop_in',
+      'open_gym',
+      'pt_pack',
+    };
+
+    final plans = await listPlans(gymId);
+
+    return plans.where((plan) {
+      final type = (plan['plan_type'] ?? '').toString().trim().toLowerCase();
+      final name = (plan['name'] ?? '').toString().trim().toLowerCase();
+
+      if (!allowedPlanTypes.contains(type)) return false;
+      if (name.contains('trial')) return false;
+      if (name.contains('staff')) return false;
+
+      return true;
+    }).toList();
+  }
+
   Future<Map<String, dynamic>?> myActiveMembership() async {
     final user = sb.auth.currentUser;
     if (user == null) return null;

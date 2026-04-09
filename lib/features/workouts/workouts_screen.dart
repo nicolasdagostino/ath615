@@ -34,6 +34,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
   String? _error;
   String _currentUserAvatarUrl = '';
   String _gymName = '';
+  String _gymLogoUrl = '';
   List<Map<String, dynamic>> _workouts = [];
   final Map<String, List<Map<String, dynamic>>> _commentsByWorkout = {};
   final Map<String, bool> _likedByWorkout = {};
@@ -136,7 +137,9 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
 
     try {
       final items = await _repo.listWorkoutsByDate(_todayIso());
-      final gymName = (await _gymRepo.myGymName() ?? '').trim();
+      final gym = await _gymRepo.myGymInfo();
+      final gymName = (gym?['name'] ?? '').toString().trim();
+      final gymLogo = (gym?['logo_url'] ?? '').toString().trim();
 
       final commentsMap = <String, List<Map<String, dynamic>>>{};
       final likedMap = <String, bool>{};
@@ -157,6 +160,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
       setState(() {
         _workouts = items;
         _gymName = gymName;
+        _gymLogoUrl = gymLogo;
         _commentsByWorkout
           ..clear()
           ..addAll(commentsMap);
@@ -845,9 +849,9 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     final program = (item['program_name'] ?? context.appText.workout)
         .toString()
         .trim();
-    final author = (item['created_by_name'] ?? context.appText.athlete615)
-        .toString()
-        .trim();
+    final author = _gymName.trim().isNotEmpty
+        ? _gymName.trim()
+        : context.appText.athlete615;
     final dateIso = (item['workout_date'] ?? '').toString();
 
     String formattedDate = dateIso;
@@ -880,11 +884,16 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: const Color(0xFFE9EEF5),
-                  child: const Icon(
-                    Icons.person,
-                    size: 20,
-                    color: Color(0xFF8A90A0),
-                  ),
+                  backgroundImage: _gymLogoUrl.isNotEmpty
+                      ? NetworkImage(_gymLogoUrl)
+                      : null,
+                  child: _gymLogoUrl.isEmpty
+                      ? const Icon(
+                          Icons.fitness_center,
+                          size: 20,
+                          color: Color(0xFF8A90A0),
+                        )
+                      : null,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
