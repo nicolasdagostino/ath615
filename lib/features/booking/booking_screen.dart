@@ -817,6 +817,42 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+
+  Widget _restDayState() {
+    final t = context.appText;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 56, 24, 24),
+        child: Column(
+          children: [
+            Text(
+              t.restDayUpper,
+              textAlign: TextAlign.center,
+              style: _font(
+                28,
+                weight: FontWeight.w800,
+                color: const Color(0xFF111318),
+                letterSpacing: -0.4,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              t.restDayMessage,
+              textAlign: TextAlign.center,
+              style: _font(
+                13,
+                weight: FontWeight.w500,
+                color: const Color(0xFF667085),
+                height: 1.45,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _classTimeStatus(Map<String, dynamic> item) {
     final t = context.appText;
     try {
@@ -1168,19 +1204,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       ),
                     )
                   else if (_classes.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 60),
-                      child: Center(
-                        child: Text(
-                          t.noClassesForThisDay,
-                          style: _font(
-                            16,
-                            weight: FontWeight.w500,
-                            color: const Color(0xFF667085),
-                          ),
-                        ),
-                      ),
-                    )
+                    _restDayState()
                   else
                     ..._classes.map(_classCard),
                 ],

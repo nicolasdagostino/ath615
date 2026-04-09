@@ -24,25 +24,38 @@ extension _AdminScreenPlanModal on _AdminScreenState {
     final scrollCtrl = ScrollController();
     final descriptionFocusNode = FocusNode();
 
-    String selectedType = (plan?['plan_type']?.toString().isNotEmpty ?? false)
-        ? plan!['plan_type'].toString()
-        : 'unlimited';
+    final planNameRaw = plan?['name']?.toString().trim() ?? '';
+
+    String selectedType;
+    if (plan != null &&
+        ((plan['plan_type']?.toString().isNotEmpty) ?? false) &&
+        planNameRaw.toLowerCase().contains('trial')) {
+      selectedType = 'trial_class';
+    } else {
+      selectedType = ((plan?['plan_type']?.toString().isNotEmpty) ?? false)
+          ? plan!['plan_type'].toString()
+          : 'unlimited';
+    }
 
     String selectedBilling =
         (plan?['billing_period']?.toString().isNotEmpty ?? false)
         ? plan!['billing_period'].toString()
-        : 'monthly';
+        : ((selectedType == 'drop_in' || selectedType == 'trial_class')
+              ? 'one_time'
+              : 'monthly');
 
     String suggestedPlanName(String type) {
       switch (type) {
+        case 'trial_class':
+          return 'Trial Class';
         case 'drop_in':
-          return 'Drop-in';
+          return 'Drop-In';
         case 'unlimited':
           return 'Unlimited';
         case 'class_pack':
           final credits = creditsCtrl.text.trim();
+          if (credits.isEmpty) return 'Class Pack';
           if (credits == '1') return '1-class pack';
-          if (credits == '10' || credits.isEmpty) return '10-class pack';
           return '$credits-class pack';
         default:
           return '';
@@ -52,12 +65,40 @@ extension _AdminScreenPlanModal on _AdminScreenState {
     bool shouldAutoReplacePlanName(String currentName) {
       final normalized = currentName.trim().toLowerCase();
       return normalized.isEmpty ||
+          normalized == 'trial class' ||
           normalized == 'drop-in' ||
           normalized == 'unlimited' ||
+          normalized == 'class pack' ||
           normalized == '1-class pack' ||
           normalized == '10-class pack' ||
           normalized.endsWith('-class pack');
     }
+
+    String billingLabel(String billing) {
+      switch (billing) {
+        case 'weekly':
+          return 'Weekly';
+        case 'monthly':
+          return 'Monthly';
+        case 'one_time':
+          return 'One Time';
+        default:
+          return billing;
+      }
+    }
+
+
+    if (!isEdit && nameCtrl.text.trim().isEmpty) {
+      nameCtrl.text = suggestedPlanName(selectedType);
+    }
+
+    if (!isEdit && selectedType == 'trial_class') {
+      priceCtrl.text = '0';
+      creditsCtrl.text = '1';
+    } else if (!isEdit && selectedType == 'class_pack' && creditsCtrl.text.trim().isEmpty) {
+      nameCtrl.text = suggestedPlanName(selectedType);
+    }
+
 
     InputDecoration dropdownDecoration(String label) {
       return InputDecoration(
@@ -113,6 +154,8 @@ extension _AdminScreenPlanModal on _AdminScreenState {
       int maxLines = 1,
       TextInputAction? textInputAction,
       FocusNode? focusNode,
+      bool readOnly = false,
+      ValueChanged<String>? onChanged,
     }) {
       return InputField(
         label: label,
@@ -122,6 +165,8 @@ extension _AdminScreenPlanModal on _AdminScreenState {
         maxLines: maxLines,
         textInputAction: textInputAction,
         focusNode: focusNode,
+        readOnly: readOnly,
+        onChanged: onChanged,
         fillColor: const Color(0xFFF8FAFC),
         borderColor: const Color(0xFFE2E8F0),
         focusedBorderColor: const Color(0xFFB59B6A),
@@ -182,7 +227,10 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                 padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
                 child: StatefulBuilder(
                   builder: (context, setLocalState) {
-                    const showsCreditsTotal = true;
+                    final showsCreditsTotal =
+                        selectedType == 'trial_class' ||
+                        selectedType == 'drop_in' ||
+                        selectedType == 'class_pack';
 
                     return SingleChildScrollView(
                       controller: scrollCtrl,
@@ -304,6 +352,10 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                   items:
                                       const [
                                         DropdownMenuItem(
+                                          value: 'trial_class',
+                                          child: Text('Trial Class'),
+                                        ),
+                                        DropdownMenuItem(
                                           value: 'drop_in',
                                           child: Text('Drop-In'),
                                         ),
@@ -338,8 +390,18 @@ extension _AdminScreenPlanModal on _AdminScreenState {
 
                                         selectedType = value;
 
-                                        if (value == 'drop_in') {
+                                        if (value == 'trial_class') {
                                           selectedBilling = 'one_time';
+                                          priceCtrl.text = '0';
+                                          creditsCtrl.text = '1';
+                                          classesCtrl.clear();
+                                        } else if (value == 'drop_in') {
+                                          selectedBilling = 'one_time';
+                                          if (priceCtrl.text.trim() == '0' &&
+                                              nameCtrl.text.trim().toLowerCase() ==
+                                                  'trial class') {
+                                            priceCtrl.clear();
+                                          }
                                           creditsCtrl.text = '1';
                                           classesCtrl.clear();
                                         } else if (value == 'unlimited') {
@@ -349,9 +411,6 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                         } else if (value == 'class_pack') {
                                           selectedBilling = 'monthly';
                                           classesCtrl.clear();
-                                          if (creditsCtrl.text.trim().isEmpty) {
-                                            creditsCtrl.text = '8';
-                                          }
                                         }
 
                                         if (canReplaceName) {
@@ -364,53 +423,38 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                   },
                                 ),
                                 const SizedBox(height: 12),
-                                DropdownButtonFormField<String>(
-                                  initialValue: selectedBilling,
-                                  decoration: dropdownDecoration(
-                                    'Billing Period',
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: const Color(0xFFE2E8F0),
+                                    ),
                                   ),
-                                  borderRadius: BorderRadius.circular(16),
-                                  dropdownColor: Colors.white,
-                                  iconEnabledColor: const Color(0xFF667085),
-                                  style: _font(
-                                    13,
-                                    weight: FontWeight.w500,
-                                    color: const Color(0xFF111318),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Billing Period',
+                                        style: _font(
+                                          12,
+                                          weight: FontWeight.w500,
+                                          color: const Color(0xFF667085),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        billingLabel(selectedBilling),
+                                        style: _font(
+                                          13,
+                                          weight: FontWeight.w500,
+                                          color: const Color(0xFF111318),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  items:
-                                      const [
-                                        DropdownMenuItem(
-                                          value: 'weekly',
-                                          child: Text('Weekly'),
-                                        ),
-                                        DropdownMenuItem(
-                                          value: 'monthly',
-                                          child: Text('Monthly'),
-                                        ),
-                                        DropdownMenuItem(
-                                          value: 'one_time',
-                                          child: Text('One Time'),
-                                        ),
-                                      ].map((item) {
-                                        return DropdownMenuItem<String>(
-                                          value: item.value,
-                                          child: Text(
-                                            (item.child as Text).data ?? '',
-                                            style: _font(
-                                              13,
-                                              weight: FontWeight.w500,
-                                              color: const Color(0xFF111318),
-                                            ),
-                                          ),
-                                        );
-                                      }).toList(),
-                                  onChanged: (value) {
-                                    if (value != null) {
-                                      setLocalState(() {
-                                        selectedBilling = value;
-                                      });
-                                    }
-                                  },
                                 ),
                               ],
                             ),
@@ -450,7 +494,9 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                         ? 'Single class credit for one visit.'
                                         : selectedType == 'unlimited'
                                         ? 'Recurring membership with unlimited access.'
-                                        : 'Monthly pack with a fixed number of class credits.',
+                                        : selectedType == 'trial_class'
+                                        ? 'Free one-time trial class for new members.'
+                                        : 'Monthly class pack with a fixed number of class credits.',
                                     style: _font(
                                       12,
                                       weight: FontWeight.w500,
@@ -462,39 +508,42 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                 styledField(
                                   label: 'Price',
                                   controller: priceCtrl,
-                                  hint: '129',
+                                  hint: selectedType == 'trial_class' ? '0' : '129',
                                   keyboardType: TextInputType.number,
                                   textInputAction: TextInputAction.next,
+                                  readOnly: selectedType == 'trial_class',
                                 ),
                                 if (showsCreditsTotal) ...[
                                   const SizedBox(height: 12),
                                   styledField(
                                     label: 'Credits Total',
                                     controller: creditsCtrl,
-                                    hint: selectedType == 'drop_in'
+                                    hint: (selectedType == 'drop_in' ||
+                                            selectedType == 'trial_class')
                                         ? '1'
                                         : '8',
                                     keyboardType: TextInputType.number,
                                     textInputAction: TextInputAction.next,
+                                    onChanged: (value) {
+                                      if (selectedType != 'class_pack') return;
+                                      if (!shouldAutoReplacePlanName(nameCtrl.text)) return;
+                                      setLocalState(() {
+                                        nameCtrl.text = suggestedPlanName('class_pack');
+                                      });
+                                    },
                                   ),
                                 ],
                                 const SizedBox(height: 12),
                                 styledField(
-                                  label: 'Booking Window Days',
-                                  controller: bookingWindowCtrl,
-                                  hint: '7',
-                                  keyboardType: TextInputType.number,
-                                  textInputAction: TextInputAction.next,
-                                ),
-                                const SizedBox(height: 12),
-                                styledField(
                                   label: 'Description',
                                   controller: descriptionCtrl,
-                                  hint: selectedType == 'drop_in'
+                                  hint: selectedType == 'trial_class'
+                                      ? 'Free one-time trial class.'
+                                      : selectedType == 'drop_in'
                                       ? 'Single visit for one class.'
                                       : selectedType == 'unlimited'
                                       ? 'Unlimited monthly access.'
-                                      : 'Monthly class pack with fixed credits.',
+                                      : 'One-time class pack with fixed credits.',
                                   maxLines: 4,
                                   textInputAction: TextInputAction.done,
                                   focusNode: descriptionFocusNode,
@@ -544,7 +593,9 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                         () => _updatePlan(
                                           id: plan['id'].toString(),
                                           name: nameCtrl.text,
-                                          type: selectedType,
+                                          type: selectedType == 'trial_class'
+                                              ? 'drop_in'
+                                              : selectedType,
                                           billing: selectedBilling,
                                           price: priceCtrl.text,
                                           classesPerPeriod: classesCtrl.text,
@@ -559,7 +610,9 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                       await _runAdminAction(
                                         () => _createPlan(
                                           name: nameCtrl.text,
-                                          type: selectedType,
+                                          type: selectedType == 'trial_class'
+                                              ? 'drop_in'
+                                              : selectedType,
                                           billing: selectedBilling,
                                           price: priceCtrl.text,
                                           classesPerPeriod: classesCtrl.text,

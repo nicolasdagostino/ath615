@@ -48,6 +48,7 @@ extension _AdminScreenClassModal on _AdminScreenState {
     );
 
     bool recurrenceEnabled = false;
+    bool recurrenceSaving = false;
     final selectedWeekdays = <int>{};
     final recurrenceTimes = <String>[];
 
@@ -165,6 +166,12 @@ extension _AdminScreenClassModal on _AdminScreenState {
           times.map((e) => e.trim()).where((e) => e.isNotEmpty).toSet().toList()
             ..sort();
 
+      if (dayLabels.isEmpty || compactTimes.isEmpty) {
+        return t.isSpanish
+            ? 'Selecciona al menos un día y un horario.'
+            : 'Select at least one day and one time.';
+      }
+
       if (count <= 0) {
         return t.isSpanish
             ? 'No se crearán clases con la configuración actual.'
@@ -183,13 +190,53 @@ extension _AdminScreenClassModal on _AdminScreenState {
           : '$countLabel · ${suffixParts.join(' · ')}';
     }
 
+    Future<void> showModalError(BuildContext dialogContext, String message) async {
+      await showDialog<void>(
+        context: dialogContext,
+        builder: (alertContext) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Text(
+              t.isSpanish ? 'Revisa esto' : 'Please review this',
+              style: _font(
+                20,
+                weight: FontWeight.w800,
+                color: const Color(0xFF111318),
+                letterSpacing: -0.2,
+              ),
+            ),
+            content: Text(
+              message,
+              style: _font(
+                14,
+                weight: FontWeight.w500,
+                color: const Color(0xFF475467),
+                height: 1.35,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(alertContext),
+                child: Text(
+                  t.isSpanish ? 'Entendido' : 'OK',
+                  style: _font(
+                    14,
+                    weight: FontWeight.w700,
+                    color: const Color(0xFFB59B6A),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    }
+
     if (!isEdit) {
-      final parsedDate = DateTime.tryParse(dateCtrl.text.trim());
-      selectedWeekdays.add((parsedDate ?? DateTime.now()).weekday);
-      final initialTime = timeCtrl.text.trim().isEmpty
-          ? '18:00'
-          : timeCtrl.text.trim();
-      recurrenceTimes.add(initialTime);
+      // Recurrent schedule starts empty on purpose.
     }
 
     Future<void> pickDate(
@@ -1246,30 +1293,13 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                           activeThumbColor: const Color(
                                             0xFFB59B6A,
                                           ),
-                                          onChanged: (value) {
-                                            setLocalState(() {
-                                              recurrenceEnabled = value;
-                                              if (recurrenceEnabled) {
-                                                if (recurrenceTimes.isEmpty) {
-                                                  recurrenceTimes.add(
-                                                    timeCtrl.text.trim().isEmpty
-                                                        ? '18:00'
-                                                        : timeCtrl.text.trim(),
-                                                  );
-                                                }
-                                                if (selectedWeekdays.isEmpty) {
-                                                  final parsed =
-                                                      DateTime.tryParse(
-                                                        dateCtrl.text.trim(),
-                                                      );
-                                                  selectedWeekdays.add(
-                                                    (parsed ?? DateTime.now())
-                                                        .weekday,
-                                                  );
-                                                }
-                                              }
-                                            });
-                                          },
+                                          onChanged: recurrenceSaving
+                                              ? null
+                                              : (value) {
+                                                  setLocalState(() {
+                                                    recurrenceEnabled = value;
+                                                  });
+                                                },
                                         ),
                                       ],
                                     ),
@@ -1486,28 +1516,33 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                             ),
                                           ),
                                           TextButton.icon(
-                                            onPressed: () async {
-                                              await pickTime(
-                                                context,
-                                                (value) {
-                                                  setLocalState(() {
-                                                    if (!recurrenceTimes
-                                                        .contains(value)) {
-                                                      recurrenceTimes.add(
-                                                        value,
-                                                      );
-                                                      recurrenceTimes.sort();
-                                                    }
-                                                    if (recurrenceTimes
-                                                        .isNotEmpty) {
-                                                      timeCtrl.text =
-                                                          recurrenceTimes.first;
-                                                    }
-                                                  });
-                                                },
-                                                initialValue: timeCtrl.text,
-                                              );
-                                            },
+                                            onPressed: recurrenceSaving
+                                                ? null
+                                                : () async {
+                                                    await pickTime(
+                                                      context,
+                                                      (value) {
+                                                        setLocalState(() {
+                                                          if (!recurrenceTimes
+                                                              .contains(value)) {
+                                                            recurrenceTimes.add(
+                                                              value,
+                                                            );
+                                                            recurrenceTimes.sort();
+                                                          }
+                                                          if (recurrenceTimes
+                                                              .isNotEmpty) {
+                                                            timeCtrl.text =
+                                                                recurrenceTimes.first;
+                                                          }
+                                                        });
+                                                      },
+                                                      initialValue:
+                                                          recurrenceTimes.isNotEmpty
+                                                          ? recurrenceTimes.first
+                                                          : timeCtrl.text,
+                                                    );
+                                                  },
                                             icon: const Icon(
                                               Icons.add_rounded,
                                               size: 18,
@@ -1557,21 +1592,21 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                                 ),
                                                 const SizedBox(width: 8),
                                                 InkWell(
-                                                  onTap:
-                                                      recurrenceTimes.length ==
-                                                          1
+                                                  onTap: recurrenceSaving
                                                       ? null
                                                       : () {
                                                           setLocalState(() {
                                                             recurrenceTimes
                                                                 .remove(time);
+                                                            recurrenceTimes
+                                                                .sort();
                                                             if (recurrenceTimes
                                                                 .isNotEmpty) {
-                                                              recurrenceTimes
-                                                                  .sort();
                                                               timeCtrl.text =
                                                                   recurrenceTimes
                                                                       .first;
+                                                            } else {
+                                                              timeCtrl.clear();
                                                             }
                                                           });
                                                         },
@@ -1606,19 +1641,40 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                             color: const Color(0xFFE2E8F0),
                                           ),
                                         ),
-                                        child: Text(
-                                          recurrencePreviewLabel(
-                                            startDate: dateCtrl.text,
-                                            endDate: recurrenceEndDateCtrl.text,
-                                            weekdays: selectedWeekdays.toList(),
-                                            times: recurrenceTimes,
-                                          ),
-                                          style: _font(
-                                            13,
-                                            weight: FontWeight.w600,
-                                            color: const Color(0xFF475467),
-                                            height: 1.35,
-                                          ),
+                                        child: Row(
+                                          children: [
+                                            if (recurrenceSaving) ...[
+                                              const SizedBox(
+                                                width: 16,
+                                                height: 16,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2.2,
+                                                  color: Color(0xFFB59B6A),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                            ],
+                                            Expanded(
+                                              child: Text(
+                                                recurrenceSaving
+                                                    ? (t.isSpanish
+                                                          ? 'Generando clases... por favor espera.'
+                                                          : 'Generating classes... please wait.')
+                                                    : recurrencePreviewLabel(
+                                                        startDate: dateCtrl.text,
+                                                        endDate: recurrenceEndDateCtrl.text,
+                                                        weekdays: selectedWeekdays.toList(),
+                                                        times: recurrenceTimes,
+                                                      ),
+                                                style: _font(
+                                                  13,
+                                                  weight: FontWeight.w600,
+                                                  color: const Color(0xFF475467),
+                                                  height: 1.35,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
@@ -1640,13 +1696,19 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                       color: const Color(0xFF344054),
                                       letterSpacing: -0.15,
                                     ),
-                                    onPressed: () => Navigator.pop(context),
+                                    onPressed: recurrenceSaving
+                                        ? null
+                                        : () => Navigator.pop(context),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: PrimaryButton(
-                                    text: isEdit
+                                    text: recurrenceSaving
+                                        ? (t.isSpanish
+                                              ? 'Generando clases...'
+                                              : 'Generating classes...')
+                                        : isEdit
                                         ? t.saveChanges
                                         : recurrenceEnabled
                                         ? context.appText.createScheduleCta
@@ -1666,110 +1728,140 @@ extension _AdminScreenClassModal on _AdminScreenState {
                                       letterSpacing: -0.15,
                                     ),
                                     boxShadow: const [],
-                                    onPressed: () async {
-                                      FocusScope.of(context).unfocus();
+                                    onPressed: recurrenceSaving
+                                        ? null
+                                        : () async {
+                                            FocusScope.of(context).unfocus();
 
-                                      final validationError = validateClassForm(
-                                        programId: selectedProgramId,
-                                        date: dateCtrl.text,
-                                        time: timeCtrl.text,
-                                        duration: durationCtrl.text,
-                                        maxSpots: maxSpotsCtrl.text,
-                                      );
-                                      if (validationError != null) {
-                                        if (!context.mounted) return;
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text(validationError)),
-                                        );
-                                        return;
-                                      }
+                                            final recurrenceReady =
+                                                !isEdit &&
+                                                recurrenceEnabled &&
+                                                selectedProgramId.trim().isNotEmpty &&
+                                                dateCtrl.text.trim().isNotEmpty &&
+                                                recurrenceEndDateCtrl.text.trim().isNotEmpty &&
+                                                selectedWeekdays.isNotEmpty &&
+                                                recurrenceTimes.isNotEmpty &&
+                                                int.tryParse(durationCtrl.text.trim()) != null &&
+                                                int.tryParse(durationCtrl.text.trim())! > 0 &&
+                                                int.tryParse(maxSpotsCtrl.text.trim()) != null &&
+                                                int.tryParse(maxSpotsCtrl.text.trim())! > 0;
 
-                                      if (!isEdit && recurrenceEnabled) {
-                                        if (selectedWeekdays.isEmpty) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text(t.selectAtLeastOneWeekdayError),
-                                            ),
-                                          );
-                                          return;
-                                        }
-                                        if (recurrenceTimes.isEmpty) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text(t.addAtLeastOneTimeError),
-                                            ),
-                                          );
-                                          return;
-                                        }
-                                      }
+                                            final validationError = validateClassForm(
+                                              programId: selectedProgramId,
+                                              date: dateCtrl.text,
+                                              time: recurrenceEnabled
+                                                  ? (recurrenceTimes.isNotEmpty
+                                                        ? recurrenceTimes.first
+                                                        : '')
+                                                  : timeCtrl.text,
+                                              duration: durationCtrl.text,
+                                              maxSpots: maxSpotsCtrl.text,
+                                              allowPast: !isEdit && recurrenceEnabled,
+                                            );
+                                            if (validationError != null) {
+                                              if (!context.mounted) return;
+                                              await showModalError(context, validationError);
+                                              return;
+                                            }
 
-                                      _lastClassProgramId = selectedProgramId.trim().isEmpty
-                                          ? null
-                                          : selectedProgramId.trim();
-                                      _lastClassCoachId = selectedCoachId.trim().isEmpty
-                                          ? null
-                                          : selectedCoachId.trim();
-                                      _lastClassDuration = durationCtrl.text.trim().isEmpty
-                                          ? null
-                                          : durationCtrl.text.trim();
+                                            if (!isEdit && recurrenceEnabled) {
+                                              if (selectedWeekdays.isEmpty) {
+                                                await showModalError(
+                                                  context,
+                                                  t.selectAtLeastOneWeekdayError,
+                                                );
+                                                return;
+                                              }
+                                              if (recurrenceTimes.isEmpty) {
+                                                await showModalError(
+                                                  context,
+                                                  t.addAtLeastOneTimeError,
+                                                );
+                                                return;
+                                              }
+                                            }
 
-                                      if (isEdit) {
-                                        await _runAdminAction(
-                                          () => _updateClass(
-                                            id: item['id'].toString(),
-                                            programId: selectedProgramId,
-                                            coachId: selectedCoachId,
-                                            title: '',
-                                            description: '',
-                                            date: dateCtrl.text,
-                                            time: timeCtrl.text,
-                                            duration: durationCtrl.text,
-                                            maxSpots: maxSpotsCtrl.text,
-                                            location: '',
-                                            status: selectedStatus,
-                                          ),
-                                          successMessage:
-                                              context.appText.classUpdated,
-                                        );
-                                      } else if (recurrenceEnabled) {
-                                        await _runAdminAction(
-                                          () => _createRecurringClasses(
-                                            programId: selectedProgramId,
-                                            coachId: selectedCoachId,
-                                            title: '',
-                                            description: '',
-                                            startDate: dateCtrl.text,
-                                            endDate: recurrenceEndDateCtrl.text,
-                                            weekdays: selectedWeekdays.toList(),
-                                            times: recurrenceTimes,
-                                            duration: durationCtrl.text,
-                                            maxSpots: maxSpotsCtrl.text,
-                                            location: '',
-                                          ),
-                                          successMessage:
-                                              t.recurringScheduleCreated,
-                                        );
-                                      } else {
-                                        await _runAdminAction(
-                                          () => _createClass(
-                                            programId: selectedProgramId,
-                                            coachId: selectedCoachId,
-                                            title: '',
-                                            description: '',
-                                            date: dateCtrl.text,
-                                            time: timeCtrl.text,
-                                            duration: durationCtrl.text,
-                                            maxSpots: maxSpotsCtrl.text,
-                                            location: '',
-                                          ),
-                                          successMessage:
-                                              context.appText.classCreated,
-                                        );
-                                      }
+                                            _lastClassProgramId = selectedProgramId.trim().isEmpty
+                                                ? null
+                                                : selectedProgramId.trim();
+                                            _lastClassCoachId = selectedCoachId.trim().isEmpty
+                                                ? null
+                                                : selectedCoachId.trim();
+                                            _lastClassDuration = durationCtrl.text.trim().isEmpty
+                                                ? null
+                                                : durationCtrl.text.trim();
 
-                                      if (!context.mounted) return;
-                                      Navigator.pop(context);
-                                    },
+                                            if (isEdit) {
+                                              await _runAdminAction(
+                                                () => _updateClass(
+                                                  id: item['id'].toString(),
+                                                  programId: selectedProgramId,
+                                                  coachId: selectedCoachId,
+                                                  title: '',
+                                                  description: '',
+                                                  date: dateCtrl.text,
+                                                  time: timeCtrl.text,
+                                                  duration: durationCtrl.text,
+                                                  maxSpots: maxSpotsCtrl.text,
+                                                  location: '',
+                                                  status: selectedStatus,
+                                                ),
+                                                successMessage:
+                                                    context.appText.classUpdated,
+                                              );
+                                            } else if (recurrenceEnabled) {
+                                              if (!recurrenceReady) return;
+
+                                              setLocalState(() {
+                                                recurrenceSaving = true;
+                                              });
+
+                                              try {
+                                                await _runAdminAction(
+                                                  () => _createRecurringClasses(
+                                                    programId: selectedProgramId,
+                                                    coachId: selectedCoachId,
+                                                    title: '',
+                                                    description: '',
+                                                    startDate: dateCtrl.text,
+                                                    endDate: recurrenceEndDateCtrl.text,
+                                                    weekdays: selectedWeekdays.toList(),
+                                                    times: recurrenceTimes,
+                                                    duration: durationCtrl.text,
+                                                    maxSpots: maxSpotsCtrl.text,
+                                                    location: '',
+                                                  ),
+                                                  successMessage:
+                                                      t.recurringScheduleCreated,
+                                                );
+                                              } finally {
+                                                if (context.mounted) {
+                                                  setLocalState(() {
+                                                    recurrenceSaving = false;
+                                                  });
+                                                }
+                                              }
+                                            } else {
+                                              await _runAdminAction(
+                                                () => _createClass(
+                                                  programId: selectedProgramId,
+                                                  coachId: selectedCoachId,
+                                                  title: '',
+                                                  description: '',
+                                                  date: dateCtrl.text,
+                                                  time: timeCtrl.text,
+                                                  duration: durationCtrl.text,
+                                                  maxSpots: maxSpotsCtrl.text,
+                                                  location: '',
+                                                ),
+                                                successMessage:
+                                                    context.appText.classCreated,
+                                              );
+                                            }
+
+                                            if (!context.mounted) return;
+                                            Navigator.pop(context);
+                                          },
                                   ),
                                 ),
                               ],

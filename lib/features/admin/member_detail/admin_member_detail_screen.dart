@@ -129,6 +129,53 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     );
   }
 
+  void _toastInSheet(
+    BuildContext ctx,
+    String message, {
+    IconData icon = Icons.info_outline_rounded,
+  }) {
+    final messenger = ScaffoldMessenger.of(ctx);
+    messenger.hideCurrentSnackBar();
+
+    messenger.showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        elevation: 0,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        backgroundColor: const Color(0xFF111318),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: Colors.white, size: 17),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: GoogleFonts.barlowCondensed(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  height: 1.1,
+                  letterSpacing: 0.1,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _normalizedPlanType(Map<String, dynamic> plan) {
     return (plan['plan_type'] ?? '').toString().trim().toLowerCase();
   }
@@ -515,8 +562,11 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                       final amount = num.tryParse(
                         amountCtrl.text.trim().replaceAll(',', '.'),
                       );
-                      if (amount == null || amount <= 0) {
-                        _toast(_txt('Introduce un importe válido', 'Enter a valid amount'));
+                      if (amount == null || amount < 0) {
+                        _toastInSheet(
+                          sheetContext,
+                          _txt('Introduce un importe válido', 'Enter a valid amount'),
+                        );
                         return;
                       }
 
@@ -631,7 +681,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                                   .toString()
                                   .trim();
 
-                          _toast(
+                          _toastInSheet(
+                            sheetContext,
                             _txt(
                               'Ya tiene activo: $planName',
                               'Already active: $planName',
@@ -647,7 +698,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                             );
 
                         if (alreadyPaidToday) {
-                          _toast(
+                          _toastInSheet(
+                            sheetContext,
                             _txt(
                               'Ya hay un pago registrado hoy para este plan',
                               'A payment for this plan is already registered today',
@@ -692,7 +744,10 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                           ),
                         );
                       } catch (e) {
-                        _toast(e.toString().replaceFirst('Exception: ', ''));
+                        _toastInSheet(
+                          sheetContext,
+                          e.toString().replaceFirst('Exception: ', ''),
+                        );
                       } finally {
                         if (sheetContext.mounted) {
                           setLocalState(() {
@@ -777,10 +832,10 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
           builder: (context, setLocalState) {
             return AdminMemberDetailSheetScaffold(
               sheetContext: sheetContext,
-              title: _txt('Registrar pago', 'Register payment'),
+              title: _txt('Anotar pago', 'Log payment'),
               subtitle: _txt(
-                'Registrar un pago manual para este miembro.',
-                'Register a manual payment for this member.',
+                'Este registro solo anota un cobro manual. No activa una membresía.',
+                'This only records a manual payment. It does not activate a membership.',
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -866,6 +921,41 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                     );
                   }),
                   const SizedBox(height: 6),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF8E7),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFE7D7B0)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.info_outline_rounded,
+                          size: 18,
+                          color: Color(0xFF8A6F3E),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _txt(
+                              'Esto solo registra el pago en el historial. Para activar una membresía usa “Vender plan”.',
+                              'This only records the payment in history. To activate a membership use “Sell plan”.',
+                            ),
+                            style: memberDetailSheetFont(
+                              12,
+                              weight: FontWeight.w600,
+                              color: const Color(0xFF8A6F3E),
+                              height: 1.3,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                   Text(
                     _txt('Método de pago', 'Payment method'),
                     style: memberDetailSheetFont(
@@ -1022,7 +1112,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   const SizedBox(height: 8),
                   AdminMemberDetailSheetActions(
                     busy: saving,
-                    primaryText: _txt('Guardar pago', 'Save payment'),
+                    primaryText: _txt('Anotar pago', 'Log payment'),
                     busyText: context.appText.saving,
                     onCancel: () => Navigator.of(sheetContext).pop(),
                     onPrimary: () async {
@@ -1713,8 +1803,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
               onTap: _showAssignPlanSheet,
             ),
             action(
-              title: _txt('Registrar pago', 'Register payment'),
-              icon: Icons.payments_outlined,
+              title: _txt('Anotar pago', 'Log payment'),
+              icon: Icons.receipt_long_outlined,
               onTap: _showRegisterPaymentSheet,
             ),
             action(

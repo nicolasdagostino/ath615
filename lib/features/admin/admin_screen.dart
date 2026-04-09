@@ -2046,7 +2046,11 @@ class _AdminScreenState extends State<AdminScreen> {
       gymId: gymId,
       name: name.trim(),
       planType: type.trim(),
-      billingPeriod: type.trim() == 'class_pack' ? 'monthly' : billing.trim(),
+      billingPeriod: type.trim() == 'drop_in'
+          ? 'one_time'
+          : type.trim() == 'class_pack'
+          ? 'monthly'
+          : 'monthly',
       price: parsedPrice,
       classesPerPeriod: null,
       creditsTotal: parsedCredits,
@@ -2092,7 +2096,11 @@ class _AdminScreenState extends State<AdminScreen> {
       id: id,
       name: name.trim(),
       planType: type.trim(),
-      billingPeriod: type.trim() == 'class_pack' ? 'monthly' : billing.trim(),
+      billingPeriod: type.trim() == 'drop_in'
+          ? 'one_time'
+          : type.trim() == 'class_pack'
+          ? 'monthly'
+          : 'monthly',
       price: parsedPrice,
       classesPerPeriod: null,
       creditsTotal: parsedCredits,
@@ -4697,11 +4705,11 @@ class _AdminScreenState extends State<AdminScreen> {
                 Text(
                   t.noWorkoutsYetSubtitle,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: _font(
+                    13,
+                    weight: FontWeight.w500,
+                    color: const Color(0xFF8F96A3),
                     height: 1.45,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF8F96A3),
                   ),
                 ),
               ],
@@ -4991,11 +4999,36 @@ class _AdminScreenState extends State<AdminScreen> {
                 .toString();
             final creditsTotal = (plan['credits_total'] ?? '').toString();
 
-            String accessLine = t.bookingWindowDaysText(bookingWindow);
-            if (classesPerPeriod.isNotEmpty && classesPerPeriod != 'null') {
-              accessLine = t.classesPerPeriodText(classesPerPeriod, accessLine);
+            final isTrialPlan = planType == 'drop_in' &&
+                name.toLowerCase().contains('trial');
+
+            String accessLine = '';
+            if (isTrialPlan) {
+              accessLine = t.creditsLabelText(
+                creditsTotal.isNotEmpty && creditsTotal != 'null' ? creditsTotal : '1',
+              );
+            } else if (planType == 'class_pack' &&
+                creditsTotal.isNotEmpty &&
+                creditsTotal != 'null') {
+              accessLine = t.validOneMonthText(creditsTotal);
+            } else if (planType == 'drop_in' &&
+                creditsTotal.isNotEmpty &&
+                creditsTotal != 'null') {
+              accessLine = t.creditsLabelText(creditsTotal);
+            } else if (classesPerPeriod.isNotEmpty && classesPerPeriod != 'null') {
+              accessLine = t.classesPerPeriodText(
+                classesPerPeriod,
+                t.bookingWindowDaysText(bookingWindow),
+              );
+            } else if (planType == 'unlimited') {
+              accessLine = billing.isNotEmpty && billing != 'null'
+                  ? prettyBilling(billing)
+                  : '';
             } else if (creditsTotal.isNotEmpty && creditsTotal != 'null') {
-              accessLine = t.creditsTotalText(creditsTotal, accessLine);
+              accessLine = t.creditsTotalText(
+                creditsTotal,
+                t.bookingWindowDaysText(bookingWindow),
+              );
             }
 
             return Padding(
@@ -5021,7 +5054,9 @@ class _AdminScreenState extends State<AdminScreen> {
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              prettyType(planType),
+                              planType == 'drop_in'
+                                  ? t.trialPlanTypeLabel(name)
+                                  : prettyType(planType),
                               style: _font(
                                 10,
                                 weight: FontWeight.w700,

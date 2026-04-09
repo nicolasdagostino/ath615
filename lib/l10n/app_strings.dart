@@ -1210,6 +1210,18 @@ class AppStrings {
       ? '$count créditos totales · $suffix'
       : '$count credits total · $suffix';
 
+  String creditsLabelText(String count) => isSpanish
+      ? '$count clases'
+      : '$count classes';
+
+  String validOneMonthText(String count) => isSpanish
+      ? '$count clases · válido 1 mes'
+      : '$count classes · valid 1 month';
+
+  String trialPlanTypeLabel(String name) => isSpanish
+      ? (name.toLowerCase().contains('trial') ? 'TRIAL' : 'DROP IN')
+      : (name.toLowerCase().contains('trial') ? 'TRIAL' : 'DROP IN');
+
   String get programActionsTitle =>
       isSpanish ? 'Acciones del programa' : 'Program actions';
 
