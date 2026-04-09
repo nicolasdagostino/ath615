@@ -73,6 +73,7 @@ class _AdminScreenState extends State<AdminScreen> {
   bool _adminActionBusy = false;
   String? _error;
   String? _adminGymId;
+  String _adminGymName = '';
   String _classesFilter = 'today';
 
   List<Map<String, dynamic>> _plans = [];
@@ -281,6 +282,8 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Widget _topHeader() {
+    final brandName =
+        _adminGymName.trim().isEmpty ? 'ATHLETE LAB' : _adminGymName.trim().toUpperCase();
 
     return Container(
       color: Colors.white,
@@ -296,19 +299,40 @@ class _AdminScreenState extends State<AdminScreen> {
                 left: 0,
                 top: 0,
                 bottom: 0,
-                child: SizedBox(
-                  width: 132,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'ATHLETE LAB',
-                      style: _font(
-                        17,
-                        weight: FontWeight.w800,
-                        color: const Color(0xFF0E0E11),
-                        letterSpacing: -0.2,
-                        height: 1.0,
-                      ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: SizedBox(
+                    width: 132,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          brandName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: _font(
+                            16,
+                            weight: FontWeight.w800,
+                            color: const Color(0xFF0E0E11),
+                            letterSpacing: -0.2,
+                            height: 1.0,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'ATHLETE LAB',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: _font(
+                            10,
+                            weight: FontWeight.w700,
+                            color: const Color(0xFF8F96A3),
+                            letterSpacing: 0.7,
+                            height: 1.0,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -1137,6 +1161,7 @@ class _AdminScreenState extends State<AdminScreen> {
         throw Exception(t.adminGymNotFound);
       }
       _adminGymId = resolvedGymId;
+      _adminGymName = (await _gymRepo.myGymName() ?? '').trim();
 
       try {
         _plans = await _membershipRepo.listPlans(_adminGymId!);

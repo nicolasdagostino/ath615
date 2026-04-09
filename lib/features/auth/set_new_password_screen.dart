@@ -109,6 +109,7 @@ class _SetNewPasswordScreenState extends State<SetNewPasswordScreen> {
     required bool obscure,
     required VoidCallback onToggle,
     TextInputAction textInputAction = TextInputAction.next,
+    ValueChanged<String>? onSubmitted,
   }) {
     return InputField(
       label: label,
@@ -116,6 +117,14 @@ class _SetNewPasswordScreenState extends State<SetNewPasswordScreen> {
       controller: controller,
       obscureText: obscure,
       textInputAction: textInputAction,
+      onChanged: (_) {
+        if (!mounted) return;
+        setState(() {
+          if (_error != null) _error = null;
+          if (_success != null) _success = null;
+        });
+      },
+      onSubmitted: onSubmitted,
       fillColor: Colors.white,
       borderColor: AppColors.authBorder,
       focusedBorderColor: AppColors.authAccent,
@@ -245,6 +254,13 @@ class _SetNewPasswordScreenState extends State<SetNewPasswordScreen> {
                     });
                   },
                   textInputAction: TextInputAction.done,
+                  onSubmitted: (_) {
+                    if (!_loading &&
+                        _passCtrl.text.trim().isNotEmpty &&
+                        _confirmCtrl.text.trim().isNotEmpty) {
+                      _save();
+                    }
+                  },
                 ),
                 const SizedBox(height: 14),
                 Text(

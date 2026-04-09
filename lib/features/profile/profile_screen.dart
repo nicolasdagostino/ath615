@@ -8,9 +8,9 @@ import '../../core/auth/user_session.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/supabase/achievement_repository.dart';
 import '../../core/supabase/auth_repository.dart';
+import '../../core/supabase/gym_repository.dart';
 import '../../core/supabase/membership_repository.dart';
 import '../../core/supabase/profile_repository.dart';
-import '../../core/supabase/stripe_payments_repository.dart';
 import '../../shared/widgets/app_card.dart';
 import 'achievements_screen.dart';
 import 'athlete_history/athlete_history_screen.dart';
@@ -37,6 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<Map<String, dynamic>> _loadData() async {
     final profile = await ProfileRepository().getMyProfile();
     final stats = await AchievementRepository().myStats();
+    final gymName = (await GymRepository().myGymName() ?? '').trim();
 
     Map<String, dynamic>? activeMembership;
     List<Map<String, dynamic>> plans = const [];
@@ -53,6 +54,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       'stats': stats,
       'activeMembership': activeMembership,
       'plans': plans,
+      'gymName': gymName,
     };
   }
 
@@ -234,8 +236,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _topHeader() {
+  Widget _topHeader(String gymName) {
     final t = context.appText;
+    final brandName =
+        gymName.trim().isEmpty ? 'ATHLETE LAB' : gymName.trim().toUpperCase();
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
@@ -250,19 +254,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 left: 0,
                 top: 0,
                 bottom: 0,
-                child: SizedBox(
-                  width: 132,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'ATHLETE LAB',
-                      style: _font(
-                        17,
-                        weight: FontWeight.w800,
-                        color: const Color(0xFF0E0E11),
-                        letterSpacing: -0.2,
-                        height: 1.0,
-                      ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: SizedBox(
+                    width: 132,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          brandName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: _font(
+                            16,
+                            weight: FontWeight.w800,
+                            color: const Color(0xFF0E0E11),
+                            letterSpacing: -0.2,
+                            height: 1.0,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'ATHLETE LAB',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: _font(
+                            10,
+                            weight: FontWeight.w700,
+                            color: const Color(0xFF8F96A3),
+                            letterSpacing: 0.7,
+                            height: 1.0,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -319,13 +344,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  String _pretty(String raw) {
-    final value = raw.trim();
-    if (value.isEmpty) return '—';
-    final clean = value.replaceAll('_', ' ');
-    return clean[0].toUpperCase() + clean.substring(1);
-  }
-
   String _membershipSummaryText(
     BuildContext context,
     Map<String, dynamic>? activeMembership,
@@ -363,9 +381,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               (data['stats'] as Map<String, dynamic>?) ?? <String, dynamic>{};
           final activeMembership =
               data['activeMembership'] as Map<String, dynamic>?;
-          final plans =
-              (data['plans'] as List?)?.cast<Map<String, dynamic>>() ??
-              const <Map<String, dynamic>>[];
 
           final fullName =
               (profile['full_name'] ?? '').toString().trim().isEmpty
@@ -376,7 +391,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ? '-'
               : profile['email'].toString().trim();
 
-          final gymName = (profile['gym_name'] ??
+          final gymName = (data['gymName'] ??
+                  profile['gym_name'] ??
                   profile['gym_label'] ??
                   profile['gym'] ??
                   '')
@@ -402,7 +418,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                _topHeader(),
+                _topHeader(gymName),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
                   child: Column(

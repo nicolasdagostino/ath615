@@ -678,7 +678,13 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Widget _brandLogo() {
-    final gymName = _gymName.trim().isEmpty ? 'ATHLETE LAB' : _gymName.trim();
+    final trimmedGymName = _gymName.trim();
+
+    if (trimmedGymName.isEmpty && _loading) {
+      return const SizedBox(width: 132, height: 28);
+    }
+
+    final gymName = trimmedGymName.isEmpty ? 'ATHLETE LAB' : trimmedGymName;
 
     return SizedBox(
       width: 132,

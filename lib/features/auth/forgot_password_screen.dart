@@ -80,6 +80,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       controller: _emailCtrl,
       keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.done,
+      onChanged: (_) {
+        if (!mounted) return;
+        setState(() {
+          if (_error != null) _error = null;
+          if (_success != null) _success = null;
+        });
+      },
+      onSubmitted: (_) {
+        if (!_loading && _emailCtrl.text.trim().isNotEmpty) {
+          _sendReset();
+        }
+      },
       fillColor: Colors.white,
       borderColor: AppColors.authBorder,
       focusedBorderColor: AppColors.authAccent,
