@@ -5256,31 +5256,36 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
+
+  Widget _adminBody() {
+    return Expanded(
+      child: IgnorePointer(
+        ignoring: _adminActionBusy,
+        child: RefreshIndicator(
+          color: const Color(0xFFB59B6A),
+          backgroundColor: Colors.white,
+          onRefresh: _loadAdminData,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
+            children: [
+              _adminTabsRow(),
+              const SizedBox(height: 20),
+              _adminErrorBanner(),
+              _currentAdminTab(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [
           _topHeader(),
-          Expanded(
-            child: IgnorePointer(
-              ignoring: _adminActionBusy,
-              child: RefreshIndicator(
-                color: const Color(0xFFB59B6A),
-                backgroundColor: Colors.white,
-                onRefresh: _loadAdminData,
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
-                  children: [
-                    _adminTabsRow(),
-                    const SizedBox(height: 20),
-                    _adminErrorBanner(),
-                    _currentAdminTab(),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          _adminBody(),
         ],
       ),
     );
