@@ -259,6 +259,10 @@ class _AdminScreenState extends State<AdminScreen> {
     });
   }
 
+  void _setAdminTabIndex(int value) {
+    setState(() => tabIndex = value);
+  }
+
   void _scrollToActiveTab() {
     if (tabIndex < 0 || tabIndex >= _tabChipKeys.length) return;
     final context = _tabChipKeys[tabIndex].currentContext;

@@ -26,7 +26,7 @@ extension _AdminScreenShell on _AdminScreenState {
               label: _adminTabLabel(tabs[i]),
               selected: i == tabIndex,
               onTap: () {
-                setState(() => tabIndex = i);
+                _setAdminTabIndex(i);
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (!mounted) return;
                   _scrollToActiveTab();
