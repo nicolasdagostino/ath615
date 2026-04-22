@@ -5198,6 +5198,64 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
+  Widget _currentAdminTab() {
+    if (tabs[tabIndex] == 'Members') return _membersTab();
+    if (tabs[tabIndex] == 'Classes') return _classesTab();
+    if (tabs[tabIndex] == 'Workouts') return _workoutsTab();
+    if (tabs[tabIndex] == 'Plans') return _plansTab();
+    if (tabs[tabIndex] == 'Notifications') return const AdminNotificationsTab();
+    if (tabs[tabIndex] == 'Programs') return _programsTab();
+    return const SizedBox.shrink();
+  }
+
+
+  Widget _adminTabsRow() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(tabs.length, (i) {
+          return Padding(
+            key: _tabChipKeys[i],
+            padding: EdgeInsets.only(
+              right: i == tabs.length - 1 ? 0 : 8,
+            ),
+            child: _adminTabChip(
+              label: _adminTabLabel(tabs[i]),
+              selected: i == tabIndex,
+              onTap: () {
+                setState(() => tabIndex = i);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  _scrollToActiveTab();
+                });
+              },
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+
+  Widget _adminErrorBanner() {
+    if (_error == null) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _error!,
+          style: const TextStyle(
+            color: Color(0xFFB42318),
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -5214,51 +5272,10 @@ class _AdminScreenState extends State<AdminScreen> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
                   children: [
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: List.generate(tabs.length, (i) {
-                          return Padding(
-                            key: _tabChipKeys[i],
-                            padding: EdgeInsets.only(
-                              right: i == tabs.length - 1 ? 0 : 8,
-                            ),
-                            child: _adminTabChip(
-                              label: _adminTabLabel(tabs[i]),
-                              selected: i == tabIndex,
-                              onTap: () {
-                                setState(() => tabIndex = i);
-                                WidgetsBinding.instance.addPostFrameCallback((
-                                  _,
-                                ) {
-                                  if (!mounted) return;
-                                  _scrollToActiveTab();
-                                });
-                              },
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
+                    _adminTabsRow(),
                     const SizedBox(height: 20),
-                    if (_error != null) ...[
-                      Text(
-                        _error!,
-                        style: const TextStyle(
-                          color: Color(0xFFB42318),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    if (tabs[tabIndex] == 'Members') _membersTab(),
-                    if (tabs[tabIndex] == 'Classes') _classesTab(),
-                    if (tabs[tabIndex] == 'Workouts') _workoutsTab(),
-                    if (tabs[tabIndex] == 'Plans') _plansTab(),
-                    if (tabs[tabIndex] == 'Notifications')
-                      const AdminNotificationsTab(),
-                    if (tabs[tabIndex] == 'Programs') _programsTab(),
+                    _adminErrorBanner(),
+                    _currentAdminTab(),
                   ],
                 ),
               ),
