@@ -1,3 +1,4 @@
+import 'widgets/members_tab.dart';
 import 'widgets/programs_tab.dart';
 import 'widgets/classes_tab.dart';
 import 'widgets/workouts_tab.dart';
@@ -2732,6 +2733,9 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Widget _membersTab() {
+    return MembersTab(members: _members);
+
+    // OLD CODE BELOW (temporarily unreachable)
     return Column(
       children: [
         Row(
