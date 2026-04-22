@@ -1,3 +1,6 @@
+import 'widgets/programs_tab.dart';
+import 'widgets/classes_tab.dart';
+import 'widgets/workouts_tab.dart';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -4050,6 +4053,9 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Widget _programsTab() {
+    return ProgramsTab(programs: _programs);
+
+    // OLD CODE BELOW (temporarily unreachable)
     return Column(
       children: [
         Row(
@@ -4313,6 +4319,9 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Widget _classesTab() {
+    return ClassesTab(classes: _classes);
+
+    // OLD CODE BELOW (temporarily unreachable)
     final filteredClasses = _filterClassesList(_classes);
 
     final emptyTitle = _classesFilter == 'today'
@@ -4659,6 +4668,12 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Widget _workoutsTab() {
+    return WorkoutsTab(workouts: _workouts);
+
+    // OLD CODE BELOW (temporarily unreachable)
+    return WorkoutsTab(workouts: _workouts);
+
+    // OLD CODE BELOW (temporarily unreachable)
     return Column(
       children: [
         Row(
