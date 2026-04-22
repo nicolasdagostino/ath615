@@ -1,5 +1,4 @@
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'supabase_bootstrap.dart';
 import 'auth_repository.dart';
