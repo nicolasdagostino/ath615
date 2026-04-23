@@ -9,8 +9,9 @@ class AdminMemberMembershipCard extends StatelessWidget {
 
   const AdminMemberMembershipCard({super.key, required this.item});
 
-  bool _isSpanish(BuildContext context) =>
-      Localizations.localeOf(context).languageCode.toLowerCase().startsWith('es');
+  bool _isSpanish(BuildContext context) => Localizations.localeOf(
+    context,
+  ).languageCode.toLowerCase().startsWith('es');
 
   String _text(BuildContext context, String es, String en) =>
       _isSpanish(context) ? es : en;
@@ -99,10 +100,7 @@ class AdminMemberMembershipCard extends StatelessWidget {
       context,
       _value(item!['start_date'], '—'),
     );
-    final endDate = _formatShortDate(
-      context,
-      _value(item!['end_date'], '—'),
-    );
+    final endDate = _formatShortDate(context, _value(item!['end_date'], '—'));
     final creditsRemaining = _value(item!['credits_remaining'], '—');
 
     return AppCard(
@@ -204,7 +202,11 @@ class AdminMemberMembershipCard extends StatelessWidget {
                       const SizedBox(height: 8),
                       _infoRow(
                         context,
-                        _text(context, 'Créditos restantes', 'Credits remaining'),
+                        _text(
+                          context,
+                          'Créditos restantes',
+                          'Credits remaining',
+                        ),
                         creditsRemaining,
                       ),
                       const SizedBox(height: 8),

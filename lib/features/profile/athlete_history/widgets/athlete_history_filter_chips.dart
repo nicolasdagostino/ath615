@@ -60,7 +60,9 @@ class AthleteHistoryFilterChips extends StatelessWidget {
               color: active ? const Color(0xFF111318) : const Color(0xFFF3F4F6),
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
-                color: active ? const Color(0xFF111318) : const Color(0xFFE5E7EB),
+                color: active
+                    ? const Color(0xFF111318)
+                    : const Color(0xFFE5E7EB),
               ),
             ),
             child: Text(

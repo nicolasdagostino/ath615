@@ -200,7 +200,9 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                         final next = _slugify(value);
                         _slugCtrl.value = TextEditingValue(
                           text: next,
-                          selection: TextSelection.collapsed(offset: next.length),
+                          selection: TextSelection.collapsed(
+                            offset: next.length,
+                          ),
                         );
                       }
                     },
@@ -255,7 +257,9 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                       if (next != value) {
                         _slugCtrl.value = TextEditingValue(
                           text: next,
-                          selection: TextSelection.collapsed(offset: next.length),
+                          selection: TextSelection.collapsed(
+                            offset: next.length,
+                          ),
                         );
                       }
                     },
@@ -301,7 +305,6 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
       },
     );
   }
-
 
   Future<void> _showInviteAdminModal(Map<String, dynamic> gym) async {
     _adminNameCtrl.clear();
@@ -510,10 +513,6 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
     );
   }
 
-
-
-
-
   Future<void> _runGymAction(
     Map<String, dynamic> gym,
     String action, {
@@ -528,18 +527,11 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
 
     setState(() => _loading = true);
     try {
-      await _repo.updateGymStatus(
-        gymId: gymId,
-        action: action,
-        reason: reason,
-      );
+      await _repo.updateGymStatus(gymId: gymId, action: action, reason: reason);
       _toast(successMessage ?? 'Gym updated');
       await _refresh();
     } catch (e) {
-      _toast(
-        e.toString().replaceFirst('Exception: ', ''),
-        isError: true,
-      );
+      _toast(e.toString().replaceFirst('Exception: ', ''), isError: true);
     } finally {
       if (mounted) {
         setState(() => _loading = false);
@@ -564,11 +556,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
           ),
           child: Text(
             'Manage gym',
-            style: _font(
-              14,
-              weight: FontWeight.w800,
-              color: Colors.white,
-            ),
+            style: _font(14, weight: FontWeight.w800, color: Colors.white),
           ),
         ),
       ),
@@ -623,10 +611,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
       _toast('$created test athletes created');
       await _refresh();
     } catch (e) {
-      _toast(
-        e.toString().replaceFirst('Exception: ', ''),
-        isError: true,
-      );
+      _toast(e.toString().replaceFirst('Exception: ', ''), isError: true);
     } finally {
       if (mounted) {
         setState(() => _loading = false);
@@ -813,7 +798,8 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                       actionTile(
                         icon: Icons.person_add_alt_1_outlined,
                         title: 'Invite admin',
-                        subtitle: 'Send the first admin invitation for this gym',
+                        subtitle:
+                            'Send the first admin invitation for this gym',
                         iconBg: const Color(0xFFF7F3EA),
                         iconColor: const Color(0xFFB59B6A),
                         onTap: _loading
@@ -827,7 +813,8 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                       actionTile(
                         icon: Icons.group_add_outlined,
                         title: 'Seed 10 athletes',
-                        subtitle: 'Create 10 test athletes with a fixed password',
+                        subtitle:
+                            'Create 10 test athletes with a fixed password',
                         iconBg: const Color(0xFFEFF6FF),
                         iconColor: const Color(0xFF245BEB),
                         onTap: _loading
@@ -1037,11 +1024,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: statusChips,
-          ),
+          Wrap(spacing: 8, runSpacing: 8, children: statusChips),
           if (blockedReason.isNotEmpty) ...[
             const SizedBox(height: 10),
             Text(
@@ -1062,18 +1045,9 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
             crossAxisSpacing: 8,
             childAspectRatio: 2.3,
             children: [
-              _metricTile(
-                'Active members',
-                '${gym['active_members'] ?? 0}',
-              ),
-              _metricTile(
-                'Total members',
-                '${gym['total_members'] ?? 0}',
-              ),
-              _metricTile(
-                'Admins / coaches',
-                '${gym['admins_coaches'] ?? 0}',
-              ),
+              _metricTile('Active members', '${gym['active_members'] ?? 0}'),
+              _metricTile('Total members', '${gym['total_members'] ?? 0}'),
+              _metricTile('Admins / coaches', '${gym['admins_coaches'] ?? 0}'),
               _metricTile(
                 'Classes this week',
                 '${gym['classes_this_week'] ?? 0}',

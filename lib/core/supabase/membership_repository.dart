@@ -11,7 +11,9 @@ class MembershipRepository {
     return List<Map<String, dynamic>>.from(data);
   }
 
-  Future<List<Map<String, dynamic>>> listPublicPlansForAthlete(String gymId) async {
+  Future<List<Map<String, dynamic>>> listPublicPlansForAthlete(
+    String gymId,
+  ) async {
     const allowedPlanTypes = {
       'unlimited',
       'weekly_limit',
@@ -137,10 +139,7 @@ class MembershipRepository {
         .eq('gym_id', gymId);
   }
 
-  Future<void> deletePlan({
-    required String gymId,
-    required String id,
-  }) async {
+  Future<void> deletePlan({required String gymId, required String id}) async {
     await sb.from('membership_plans').delete().eq('id', id).eq('gym_id', gymId);
   }
 
@@ -159,7 +158,8 @@ class MembershipRepository {
       payload['end_date'] = endDate.trim().isEmpty ? null : endDate.trim();
     }
     if (autoRenew != null) payload['auto_renew'] = autoRenew;
-    if (creditsRemaining != null) payload['credits_remaining'] = creditsRemaining;
+    if (creditsRemaining != null)
+      payload['credits_remaining'] = creditsRemaining;
     if (classesUsedCurrentPeriod != null) {
       payload['classes_used_current_period'] = classesUsedCurrentPeriod;
     }

@@ -132,49 +132,52 @@ class PendingAttendanceRepository {
       }
     }
 
-    final pendingClasses = grouped.values
-        .where((item) => item.bookedCount > 0)
-        .map(
-          (item) => PendingAttendanceClassItem(
-            classId: item.classId,
-            title: item.title,
-            programName: item.programName,
-            coachName: item.coachName,
-            location: item.location,
-            startsAt: item.startsAt,
-            durationMinutes: item.durationMinutes,
-            bookedCount: item.bookedCount,
-            attendedCount: item.attendedCount,
-            cancelledCount: item.cancelledCount,
-            noShowCount: item.noShowCount,
-            classItem: {
-              'id': item.classId,
-              'title': item.title,
-              'program_name': item.programName,
-              'coach_name': item.coachName,
-              'location': item.location,
-              'starts_at': item.startsAt.toIso8601String(),
-              'duration_minutes': item.durationMinutes,
-            },
-          ),
-        )
-        .toList()
-      ..sort((a, b) => b.startsAt.compareTo(a.startsAt));
+    final pendingClasses =
+        grouped.values
+            .where((item) => item.bookedCount > 0)
+            .map(
+              (item) => PendingAttendanceClassItem(
+                classId: item.classId,
+                title: item.title,
+                programName: item.programName,
+                coachName: item.coachName,
+                location: item.location,
+                startsAt: item.startsAt,
+                durationMinutes: item.durationMinutes,
+                bookedCount: item.bookedCount,
+                attendedCount: item.attendedCount,
+                cancelledCount: item.cancelledCount,
+                noShowCount: item.noShowCount,
+                classItem: {
+                  'id': item.classId,
+                  'title': item.title,
+                  'program_name': item.programName,
+                  'coach_name': item.coachName,
+                  'location': item.location,
+                  'starts_at': item.startsAt.toIso8601String(),
+                  'duration_minutes': item.durationMinutes,
+                },
+              ),
+            )
+            .toList()
+          ..sort((a, b) => b.startsAt.compareTo(a.startsAt));
 
     final byDay = <DateTime, List<PendingAttendanceClassItem>>{};
     for (final item in pendingClasses) {
       byDay.putIfAbsent(item.dayDate, () => []).add(item);
     }
 
-    final groups = byDay.entries
-        .map(
-          (entry) => PendingAttendanceDayGroup(
-            date: entry.key,
-            classes: entry.value..sort((a, b) => b.startsAt.compareTo(a.startsAt)),
-          ),
-        )
-        .toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+    final groups =
+        byDay.entries
+            .map(
+              (entry) => PendingAttendanceDayGroup(
+                date: entry.key,
+                classes: entry.value
+                  ..sort((a, b) => b.startsAt.compareTo(a.startsAt)),
+              ),
+            )
+            .toList()
+          ..sort((a, b) => b.date.compareTo(a.date));
 
     return groups;
   }

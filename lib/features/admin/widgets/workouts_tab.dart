@@ -1,13 +1,9 @@
-
 import 'package:flutter/material.dart';
 
 class WorkoutsTab extends StatelessWidget {
   final List<Map<String, dynamic>> workouts;
 
-  const WorkoutsTab({
-    super.key,
-    required this.workouts,
-  });
+  const WorkoutsTab({super.key, required this.workouts});
 
   @override
   Widget build(BuildContext context) {

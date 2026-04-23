@@ -176,17 +176,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     await sb.from('profiles').update(payload).eq('id', user.id);
   }
 
-  void _toast(
-    String message, {
-    bool isError = false,
-    IconData? icon,
-  }) {
-    AppToast.show(
-      context,
-      message,
-      isError: isError,
-      icon: icon,
-    );
+  void _toast(String message, {bool isError = false, IconData? icon}) {
+    AppToast.show(context, message, isError: isError, icon: icon);
   }
 
   Widget _sheetHandle() {
@@ -713,7 +704,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       color: const Color(0xFF111318),
                                     ),
                                     decoration: _sheetInputDecoration(
-                                      hintText: context.appText.confirmNewPassword,
+                                      hintText:
+                                          context.appText.confirmNewPassword,
                                       suffixIcon: IconButton(
                                         onPressed: () {
                                           setModalState(
@@ -976,9 +968,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     ),
                                   ),
                                 ),
-                              if (gymName.isNotEmpty) const SizedBox(height: 14),
+                              if (gymName.isNotEmpty)
+                                const SizedBox(height: 14),
                               Text(
-                                fullName == '-' ? t.athlete.toUpperCase() : fullName.toUpperCase(),
+                                fullName == '-'
+                                    ? t.athlete.toUpperCase()
+                                    : fullName.toUpperCase(),
                                 textAlign: TextAlign.center,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -996,7 +991,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 onTap: _saving ? null : _pickAndUploadAvatar,
                                 child: Container(
                                   height: 42,
-                                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 18,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFF7F3EA),
                                     borderRadius: BorderRadius.circular(999),

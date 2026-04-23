@@ -140,8 +140,6 @@ class GymRepository {
     _cachedGymInfo = updated;
   }
 
-
-
   Future<Map<String, dynamic>?> myGymStatus() async {
     final gymId = await myGymId();
     if (gymId == null || gymId.isEmpty) return null;

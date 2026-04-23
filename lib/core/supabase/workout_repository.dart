@@ -167,54 +167,6 @@ class WorkoutRepository {
     return Map<String, dynamic>.from(data);
   }
 
-  Future<int> autoAssignWorkoutToProgramClassesOnDate({
-    required String gymId,
-    required String programId,
-    required String workoutId,
-    required String workoutDate,
-  }) async {
-    if (programId.trim().isEmpty) return 0;
-
-    final classes = await sb
-        .from('v_classes_with_spots')
-        .select('id, workout_id, starts_at')
-        .eq('gym_id', gymId)
-        .eq('program_id', programId)
-        .eq('status', 'scheduled')
-        .order('starts_at', ascending: true);
-
-    String localDateIso(DateTime value) {
-      final local = value.toLocal();
-      final y = local.year.toString().padLeft(4, '0');
-      final m = local.month.toString().padLeft(2, '0');
-      final d = local.day.toString().padLeft(2, '0');
-      return '$y-$m-$d';
-    }
-
-    var assigned = 0;
-
-    for (final raw in classes) {
-      final item = Map<String, dynamic>.from(raw);
-      final classId = (item['id'] ?? '').toString().trim();
-      final currentWorkoutId = (item['workout_id'] ?? '').toString().trim();
-      final startsAtRaw = (item['starts_at'] ?? '').toString().trim();
-
-      if (classId.isEmpty) continue;
-      if (currentWorkoutId.isNotEmpty) continue;
-      if (startsAtRaw.isEmpty) continue;
-
-      final startsAt = DateTime.tryParse(startsAtRaw);
-      if (startsAt == null) continue;
-
-      if (localDateIso(startsAt) != workoutDate.trim()) continue;
-
-      await assignWorkoutToClass(classId: classId, workoutId: workoutId);
-      assigned++;
-    }
-
-    return assigned;
-  }
-
   Future<String> createWorkout({
     required String gymId,
     String? programId,
@@ -336,15 +288,5 @@ class WorkoutRepository {
     required String id,
   }) async {
     await sb.from('workouts').delete().eq('id', id).eq('gym_id', gymId);
-  }
-
-  Future<void> assignWorkoutToClass({
-    required String classId,
-    required String workoutId,
-  }) async {
-    await sb.rpc(
-      'assign_workout_to_class',
-      params: {'p_class_id': classId, 'p_workout_id': workoutId},
-    );
   }
 }

@@ -162,10 +162,12 @@ class _AthleteHistoryScreenState extends State<AthleteHistoryScreen> {
             else if (filtered.isEmpty)
               AthleteHistoryEmptyState(filter: _filter)
             else
-              ...filtered.map((item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: AthleteHistoryListItem(item: item),
-                  )),
+              ...filtered.map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: AthleteHistoryListItem(item: item),
+                ),
+              ),
           ],
         ),
       ),

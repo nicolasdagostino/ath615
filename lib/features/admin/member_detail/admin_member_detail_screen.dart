@@ -36,8 +36,9 @@ class AdminMemberDetailScreen extends StatefulWidget {
 }
 
 class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
-  bool get _isSpanish =>
-      Localizations.localeOf(context).languageCode.toLowerCase().startsWith('es');
+  bool get _isSpanish => Localizations.localeOf(
+    context,
+  ).languageCode.toLowerCase().startsWith('es');
 
   String _txt(String es, String en) => _isSpanish ? es : en;
 
@@ -52,14 +53,13 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
   String? _error;
   AdminMemberDetailData? _data;
 
-  
   @override
   void dispose() {
     _offboardReasonCtrl.dispose();
     super.dispose();
   }
 
-@override
+  @override
   void initState() {
     super.initState();
     _load();
@@ -81,10 +81,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     );
   }
 
-  void _toast(
-    String message, {
-    IconData icon = Icons.info_outline_rounded,
-  }) {
+  void _toast(String message, {IconData icon = Icons.info_outline_rounded}) {
     if (!mounted) return;
 
     final messenger = ScaffoldMessenger.of(context);
@@ -189,7 +186,10 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     }
 
     for (final membership in activeMemberships) {
-      final type = (membership['plan_type'] ?? '').toString().trim().toLowerCase();
+      final type = (membership['plan_type'] ?? '')
+          .toString()
+          .trim()
+          .toLowerCase();
       if (type == 'unlimited' || type == 'weekly_limit') {
         return true;
       }
@@ -297,7 +297,10 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
             return AdminMemberDetailSheetScaffold(
               sheetContext: sheetContext,
               title: _txt('Vender plan', 'Sell plan'),
-              subtitle: _txt('Selecciona un plan y registra el pago para activar la membresía.', 'Select a plan and register payment to activate the membership.'),
+              subtitle: _txt(
+                'Selecciona un plan y registra el pago para activar la membresía.',
+                'Select a plan and register payment to activate the membership.',
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -322,8 +325,9 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                             : () {
                                 setLocalState(() {
                                   selectedPlanId = planId;
-                                  amountCtrl.text =
-                                      (plan['price'] ?? '').toString().trim();
+                                  amountCtrl.text = (plan['price'] ?? '')
+                                      .toString()
+                                      .trim();
                                 });
                               },
                         child: AnimatedContainer(
@@ -430,7 +434,9 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                                 color: selectedPaymentMethod == 'cash'
                                     ? const Color(0xFFB59B6A)
                                     : const Color(0xFFE2E8F0),
-                                width: selectedPaymentMethod == 'cash' ? 1.3 : 1,
+                                width: selectedPaymentMethod == 'cash'
+                                    ? 1.3
+                                    : 1,
                               ),
                             ),
                             child: Row(
@@ -485,7 +491,9 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                                 color: selectedPaymentMethod == 'card'
                                     ? const Color(0xFFB59B6A)
                                     : const Color(0xFFE2E8F0),
-                                width: selectedPaymentMethod == 'card' ? 1.3 : 1,
+                                width: selectedPaymentMethod == 'card'
+                                    ? 1.3
+                                    : 1,
                               ),
                             ),
                             child: Row(
@@ -519,10 +527,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   if (selectedPaymentMethod == 'card') ...[
                     const SizedBox(height: 8),
                     Text(
-                      _txt(
-                        'Stripe próximamente.',
-                        'Stripe coming soon.',
-                      ),
+                      _txt('Stripe próximamente.', 'Stripe coming soon.'),
                       style: memberDetailSheetFont(
                         12,
                         weight: FontWeight.w600,
@@ -535,7 +540,9 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                     controller: amountCtrl,
                     label: _txt('Importe', 'Amount'),
                     hint: '49',
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     textInputAction: TextInputAction.next,
                   ),
                   const SizedBox(height: 10),
@@ -565,7 +572,10 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                       if (amount == null || amount < 0) {
                         _toastInSheet(
                           sheetContext,
-                          _txt('Introduce un importe válido', 'Enter a valid amount'),
+                          _txt(
+                            'Introduce un importe válido',
+                            'Enter a valid amount',
+                          ),
                         );
                         return;
                       }
@@ -578,29 +588,28 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                         });
 
                         try {
-                          final cardPayload =
-                              await _stripePaymentsRepo
-                                  .createMembershipPaymentIntent(
-                                    memberId: memberId,
-                                    planId: selectedPlanId.trim(),
-                                    amount: amount,
-                                    currency: 'EUR',
-                                    notes: notesCtrl.text,
-                                  );
+                          final cardPayload = await _stripePaymentsRepo
+                              .createMembershipPaymentIntent(
+                                memberId: memberId,
+                                planId: selectedPlanId.trim(),
+                                amount: amount,
+                                currency: 'EUR',
+                                notes: notesCtrl.text,
+                              );
 
                           final clientSecret =
                               (cardPayload['clientSecret'] ?? '')
                                   .toString()
                                   .trim();
-                          final paymentId =
-                              (cardPayload['paymentId'] ?? '')
-                                  .toString()
-                                  .trim();
+                          final paymentId = (cardPayload['paymentId'] ?? '')
+                              .toString()
+                              .trim();
 
-                          await _stripePaymentsRepo.presentMembershipPaymentSheet(
-                            clientSecret: clientSecret,
-                            merchantDisplayName: 'Athlete Lab',
-                          );
+                          await _stripePaymentsRepo
+                              .presentMembershipPaymentSheet(
+                                clientSecret: clientSecret,
+                                merchantDisplayName: 'Athlete Lab',
+                              );
 
                           if (!sheetContext.mounted) return;
 
@@ -619,12 +628,13 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                           );
                         } on StripeException catch (e) {
                           final errorMessage =
-                              e.error.localizedMessage?.trim().isNotEmpty == true
-                                  ? e.error.localizedMessage!.trim()
-                                  : _txt(
-                                      'Pago con tarjeta cancelado',
-                                      'Card payment cancelled',
-                                    );
+                              e.error.localizedMessage?.trim().isNotEmpty ==
+                                  true
+                              ? e.error.localizedMessage!.trim()
+                              : _txt(
+                                  'Pago con tarjeta cancelado',
+                                  'Card payment cancelled',
+                                );
                           _toast(errorMessage);
                         } catch (e) {
                           _toast(e.toString().replaceFirst('Exception: ', ''));
@@ -652,10 +662,12 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                           orElse: () => <String, dynamic>{},
                         );
 
-                        final selectedPlanType = _normalizedPlanType(selectedPlan);
+                        final selectedPlanType = _normalizedPlanType(
+                          selectedPlan,
+                        );
 
-                        final activeMemberships =
-                            await _membershipRepo.listActiveMemberMemberships(
+                        final activeMemberships = await _membershipRepo
+                            .listActiveMemberMemberships(
                               memberId,
                               gymId: gymId,
                             );
@@ -691,8 +703,8 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                           return;
                         }
 
-                        final alreadyPaidToday =
-                            await _paymentsRepo.hasPaidPlanToday(
+                        final alreadyPaidToday = await _paymentsRepo
+                            .hasPaidPlanToday(
                               memberId: memberId,
                               planId: selectedPlanId.trim(),
                             );
@@ -717,16 +729,18 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                           notes: notesCtrl.text,
                         );
 
-                        final membership = await _membershipRepo.assignPlanToMember(
-                          memberId: memberId,
-                          planId: selectedPlanId.trim(),
-                          status: 'active',
-                          startDate: todayIso,
-                          autoRenew: false,
-                        );
+                        final membership = await _membershipRepo
+                            .assignPlanToMember(
+                              memberId: memberId,
+                              planId: selectedPlanId.trim(),
+                              status: 'active',
+                              startDate: todayIso,
+                              autoRenew: false,
+                            );
 
-                        final membershipId =
-                            (membership['id'] ?? '').toString().trim();
+                        final membershipId = (membership['id'] ?? '')
+                            .toString()
+                            .trim();
                         if (membershipId.isNotEmpty) {
                           await _paymentsRepo.attachMembershipToPayment(
                             paymentId: paymentId,
@@ -766,7 +780,6 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     );
   }
 
-
   Future<void> _showRegisterPaymentSheet() async {
     final data = _data;
     if (data == null) return;
@@ -792,7 +805,9 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     }
 
     if (plans.isEmpty) {
-      _toast(_txt('No hay planes activos disponibles', 'No active plans available'));
+      _toast(
+        _txt('No hay planes activos disponibles', 'No active plans available'),
+      );
       return;
     }
 
@@ -801,8 +816,12 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     final notesCtrl = TextEditingController();
 
     String formatPlanSubtitle(Map<String, dynamic> plan) {
-      final type = ((plan['plan_type'] ?? '').toString().trim()).replaceAll('_', ' ');
-      final billing = ((plan['billing_period'] ?? '').toString().trim()).replaceAll('_', ' ');
+      final type = ((plan['plan_type'] ?? '').toString().trim()).replaceAll(
+        '_',
+        ' ',
+      );
+      final billing = ((plan['billing_period'] ?? '').toString().trim())
+          .replaceAll('_', ' ');
       final price = (plan['price'] ?? '').toString().trim();
 
       final pieces = <String>[];
@@ -854,7 +873,9 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                             : () {
                                 setLocalState(() {
                                   selectedPlanId = planId;
-                                  amountCtrl.text = (plan['price'] ?? '').toString().trim();
+                                  amountCtrl.text = (plan['price'] ?? '')
+                                      .toString()
+                                      .trim();
                                 });
                               },
                         child: AnimatedContainer(
@@ -992,7 +1013,9 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                                 color: selectedPaymentMethod == 'cash'
                                     ? const Color(0xFFB59B6A)
                                     : const Color(0xFFE2E8F0),
-                                width: selectedPaymentMethod == 'cash' ? 1.3 : 1,
+                                width: selectedPaymentMethod == 'cash'
+                                    ? 1.3
+                                    : 1,
                               ),
                             ),
                             child: Row(
@@ -1047,7 +1070,9 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                                 color: selectedPaymentMethod == 'card'
                                     ? const Color(0xFFB59B6A)
                                     : const Color(0xFFE2E8F0),
-                                width: selectedPaymentMethod == 'card' ? 1.3 : 1,
+                                width: selectedPaymentMethod == 'card'
+                                    ? 1.3
+                                    : 1,
                               ),
                             ),
                             child: Row(
@@ -1081,10 +1106,7 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   if (selectedPaymentMethod == 'card') ...[
                     const SizedBox(height: 8),
                     Text(
-                      _txt(
-                        'Stripe próximamente.',
-                        'Stripe coming soon.',
-                      ),
+                      _txt('Stripe próximamente.', 'Stripe coming soon.'),
                       style: memberDetailSheetFont(
                         12,
                         weight: FontWeight.w600,
@@ -1097,14 +1119,19 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                     controller: amountCtrl,
                     label: _txt('Importe', 'Amount'),
                     hint: '49',
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     textInputAction: TextInputAction.next,
                   ),
                   const SizedBox(height: 10),
                   AdminMemberDetailSheetTextField(
                     controller: notesCtrl,
                     label: _txt('Notas', 'Notes'),
-                    hint: _txt('Pago en efectivo en recepción', 'Cash payment at front desk'),
+                    hint: _txt(
+                      'Pago en efectivo en recepción',
+                      'Cash payment at front desk',
+                    ),
                     minLines: 2,
                     maxLines: 3,
                     textInputAction: TextInputAction.done,
@@ -1125,16 +1152,18 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                         amountCtrl.text.trim().replaceAll(',', '.'),
                       );
                       if (amount == null || amount <= 0) {
-                        _toast(_txt('Introduce un importe válido', 'Enter a valid amount'));
+                        _toast(
+                          _txt(
+                            'Introduce un importe válido',
+                            'Enter a valid amount',
+                          ),
+                        );
                         return;
                       }
 
                       if (selectedPaymentMethod == 'card') {
                         _toast(
-                          _txt(
-                            'Stripe próximamente',
-                            'Stripe coming soon',
-                          ),
+                          _txt('Stripe próximamente', 'Stripe coming soon'),
                         );
                         return;
                       }
@@ -1153,10 +1182,12 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                           orElse: () => <String, dynamic>{},
                         );
 
-                        final selectedPlanType = _normalizedPlanType(selectedPlan);
+                        final selectedPlanType = _normalizedPlanType(
+                          selectedPlan,
+                        );
 
-                        final activeMemberships =
-                            await _membershipRepo.listActiveMemberMemberships(
+                        final activeMemberships = await _membershipRepo
+                            .listActiveMemberMemberships(
                               memberId,
                               gymId: gymId,
                             );
@@ -1165,16 +1196,15 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                           selectedPlanType: selectedPlanType,
                           activeMemberships: activeMemberships,
                         )) {
-                          final activeBlockingMembership = activeMemberships.firstWhere(
-                            (m) {
-                              final type = (m['plan_type'] ?? '')
-                                  .toString()
-                                  .trim()
-                                  .toLowerCase();
-                              return type == 'unlimited' || type == 'weekly_limit';
-                            },
-                            orElse: () => <String, dynamic>{},
-                          );
+                          final activeBlockingMembership = activeMemberships
+                              .firstWhere((m) {
+                                final type = (m['plan_type'] ?? '')
+                                    .toString()
+                                    .trim()
+                                    .toLowerCase();
+                                return type == 'unlimited' ||
+                                    type == 'weekly_limit';
+                              }, orElse: () => <String, dynamic>{});
 
                           final planName =
                               (activeBlockingMembership['plan_name'] ??
@@ -1295,7 +1325,12 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     try {
       final classItem = await _loadClassItemForAttendance(item.classId);
       if (classItem == null) {
-        _toast(_txt('No se pudo cargar la asistencia de la clase', 'Could not load class attendance'));
+        _toast(
+          _txt(
+            'No se pudo cargar la asistencia de la clase',
+            'Could not load class attendance',
+          ),
+        );
         return;
       }
 
@@ -1323,7 +1358,12 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
         .trim();
 
     if (memberId.isEmpty || gymId.isEmpty) {
-      _toast(_txt('La notificación del miembro no está disponible', 'Member notification is not available'));
+      _toast(
+        _txt(
+          'La notificación del miembro no está disponible',
+          'Member notification is not available',
+        ),
+      );
       return;
     }
 
@@ -1343,8 +1383,14 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
               sheetContext: sheetContext,
               title: _txt('Notificar miembro', 'Notify member'),
               subtitle: memberName.isEmpty
-                  ? _txt('Enviar una notificación push directa solo a este miembro.', 'Send a direct push notification only to this member.')
-                  : _txt('Enviar una notificación push directa solo a $memberName.', 'Send a direct push notification only to $memberName.'),
+                  ? _txt(
+                      'Enviar una notificación push directa solo a este miembro.',
+                      'Send a direct push notification only to this member.',
+                    )
+                  : _txt(
+                      'Enviar una notificación push directa solo a $memberName.',
+                      'Send a direct push notification only to $memberName.',
+                    ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1360,7 +1406,10 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   AdminMemberDetailSheetTextField(
                     controller: messageCtrl,
                     label: _txt('Mensaje', 'Message'),
-                    hint: _txt('Escribe un mensaje corto', 'Write a short message'),
+                    hint: _txt(
+                      'Escribe un mensaje corto',
+                      'Write a short message',
+                    ),
                     minLines: 4,
                     maxLines: 5,
                     textInputAction: TextInputAction.done,
@@ -1370,7 +1419,10 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   const SizedBox(height: 18),
                   AdminMemberDetailSheetActions(
                     busy: sending,
-                    primaryText: _txt('Enviar notificación', 'Send notification'),
+                    primaryText: _txt(
+                      'Enviar notificación',
+                      'Send notification',
+                    ),
                     busyText: _txt('Enviando...', 'Sending...'),
                     onCancel: () => Navigator.of(sheetContext).pop(),
                     onPrimary: () async {
@@ -1378,7 +1430,12 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                       final message = messageCtrl.text.trim();
 
                       if (title.isEmpty || message.isEmpty) {
-                        _toast(_txt('El título y el mensaje son obligatorios', 'Title and message are required'));
+                        _toast(
+                          _txt(
+                            'El título y el mensaje son obligatorios',
+                            'Title and message are required',
+                          ),
+                        );
                         return;
                       }
 
@@ -1410,7 +1467,9 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                         if (sheetContext.mounted) {
                           Navigator.of(sheetContext).pop();
                         }
-                        _toast(_txt('Notificación enviada', 'Notification sent'));
+                        _toast(
+                          _txt('Notificación enviada', 'Notification sent'),
+                        );
                       } catch (e) {
                         _toast(e.toString().replaceFirst('Exception: ', ''));
                       } finally {
@@ -1435,7 +1494,12 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
     final data = _data;
     final membership = data?.activeMembership;
     if (data == null || membership == null) {
-      _toast(_txt('No hay una membresía activa para editar', 'No active membership to edit'));
+      _toast(
+        _txt(
+          'No hay una membresía activa para editar',
+          'No active membership to edit',
+        ),
+      );
       return;
     }
 
@@ -1461,7 +1525,10 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
             return AdminMemberDetailSheetScaffold(
               sheetContext: sheetContext,
               title: _txt('Membresía', 'Membership'),
-              subtitle: _txt('Ajusta la configuración de la membresía.', 'Adjust membership settings.'),
+              subtitle: _txt(
+                'Ajusta la configuración de la membresía.',
+                'Adjust membership settings.',
+              ),
               child: Column(
                 children: [
                   AdminMemberDetailSheetTextField(
@@ -1476,7 +1543,10 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   const SizedBox(height: 12),
                   AdminMemberDetailSheetSwitchCard(
                     title: _txt('Renovación automática', 'Auto-renew'),
-                    subtitle: _txt('Renovar automáticamente', 'Renew automatically'),
+                    subtitle: _txt(
+                      'Renovar automáticamente',
+                      'Renew automatically',
+                    ),
                     value: autoRenew,
                     onChanged: saving
                         ? null
@@ -1552,7 +1622,10 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
             return AdminMemberDetailSheetScaffold(
               sheetContext: sheetContext,
               title: _txt('Editar miembro', 'Edit member'),
-              subtitle: _txt('Actualiza los datos del perfil del miembro.', 'Update member profile details.'),
+              subtitle: _txt(
+                'Actualiza los datos del perfil del miembro.',
+                'Update member profile details.',
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1584,7 +1657,10 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                   const SizedBox(height: 12),
                   AdminMemberDetailSheetSwitchCard(
                     title: _txt('Miembro activo', 'Active member'),
-                    subtitle: _txt('Permitir acceso a la app después de configurar la contraseña', 'Allow access to the app after password setup'),
+                    subtitle: _txt(
+                      'Permitir acceso a la app después de configurar la contraseña',
+                      'Allow access to the app after password setup',
+                    ),
                     value: isActive,
                     onChanged: saving
                         ? null
@@ -1602,7 +1678,12 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
                     onCancel: () => Navigator.of(sheetContext).pop(),
                     onPrimary: () async {
                       if (fullNameCtrl.text.trim().isEmpty) {
-                        _toast(_txt('El nombre completo es obligatorio', 'Full name is required'));
+                        _toast(
+                          _txt(
+                            'El nombre completo es obligatorio',
+                            'Full name is required',
+                          ),
+                        );
                         return;
                       }
 
@@ -1648,8 +1729,6 @@ class _AdminMemberDetailScreenState extends State<AdminMemberDetailScreen> {
       },
     );
   }
-
-
 
   Future<void> _showOffboardMemberSheet() async {
     final data = _data;

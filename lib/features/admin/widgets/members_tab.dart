@@ -1,13 +1,9 @@
-
 import 'package:flutter/material.dart';
 
 class MembersTab extends StatelessWidget {
   final List<Map<String, dynamic>> members;
 
-  const MembersTab({
-    super.key,
-    required this.members,
-  });
+  const MembersTab({super.key, required this.members});
 
   @override
   Widget build(BuildContext context) {

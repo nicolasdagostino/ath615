@@ -238,8 +238,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _topHeader(String gymName) {
     final t = context.appText;
-    final brandName =
-        gymName.trim().isEmpty ? 'ATHLETE LAB' : gymName.trim().toUpperCase();
+    final brandName = gymName.trim().isEmpty
+        ? 'ATHLETE LAB'
+        : gymName.trim().toUpperCase();
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
@@ -348,19 +349,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     BuildContext context,
     Map<String, dynamic>? activeMembership,
   ) {
-    final activePlanName = ((activeMembership?['plan_name'] ??
-                activeMembership?['name'] ??
-                '')
-            .toString())
-        .trim();
+    final activePlanName =
+        ((activeMembership?['plan_name'] ?? activeMembership?['name'] ?? '')
+                .toString())
+            .trim();
 
     if (activePlanName.isNotEmpty) {
       return activePlanName;
     }
 
-    return Localizations.localeOf(context).languageCode
-            .toLowerCase()
-            .startsWith('es')
+    return Localizations.localeOf(
+          context,
+        ).languageCode.toLowerCase().startsWith('es')
         ? 'Sin membresía activa'
         : 'No active membership';
   }
@@ -391,13 +391,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ? '-'
               : profile['email'].toString().trim();
 
-          final gymName = (data['gymName'] ??
-                  profile['gym_name'] ??
-                  profile['gym_label'] ??
-                  profile['gym'] ??
-                  '')
-              .toString()
-              .trim();
+          final gymName =
+              (data['gymName'] ??
+                      profile['gym_name'] ??
+                      profile['gym_label'] ??
+                      profile['gym'] ??
+                      '')
+                  .toString()
+                  .trim();
 
           final initials = _initialsFromName(
             fullName.isEmpty ? t.athlete : fullName,
@@ -488,7 +489,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 borderRadius: BorderRadius.circular(999),
                               ),
                               child: Text(
-                                gymName.isNotEmpty ? gymName.toUpperCase() : 'ATHLETE',
+                                gymName.isNotEmpty
+                                    ? gymName.toUpperCase()
+                                    : 'ATHLETE',
                                 style: _font(
                                   11,
                                   weight: FontWeight.w800,
@@ -602,10 +605,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           _PrimaryActionRow(
                             icon: Icons.card_membership_rounded,
-                            title: Localizations.localeOf(context)
-                                    .languageCode
-                                    .toLowerCase()
-                                    .startsWith('es')
+                            title:
+                                Localizations.localeOf(
+                                  context,
+                                ).languageCode.toLowerCase().startsWith('es')
                                 ? 'Membresía'
                                 : 'Membership',
                             subtitle: _membershipSummaryText(

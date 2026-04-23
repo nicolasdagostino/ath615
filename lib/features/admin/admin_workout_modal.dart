@@ -30,8 +30,13 @@ extension _AdminScreenWorkoutModal on _AdminScreenState {
       String? title,
       String? subtitle,
     }) async {
-      final resolvedTitle = title ?? (t.isSpanish ? 'Fecha del entrenamiento' : 'Workout Date');
-      final resolvedSubtitle = subtitle ?? (t.isSpanish ? 'Elige la fecha del entrenamiento.' : 'Choose the workout date.');
+      final resolvedTitle =
+          title ?? (t.isSpanish ? 'Fecha del entrenamiento' : 'Workout Date');
+      final resolvedSubtitle =
+          subtitle ??
+          (t.isSpanish
+              ? 'Elige la fecha del entrenamiento.'
+              : 'Choose the workout date.');
       final now = DateTime.now();
       DateTime selectedDate = DateTime.tryParse(controller.text.trim()) ?? now;
 

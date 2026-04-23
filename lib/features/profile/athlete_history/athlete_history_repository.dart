@@ -62,7 +62,8 @@ class AthleteHistoryRepository {
         final classId = (rawView['id'] ?? '').toString().trim();
         final programName = (rawView['program_name'] ?? '').toString().trim();
         if (classId.isEmpty) continue;
-        if (programName.isEmpty || programName.toLowerCase() == 'null') continue;
+        if (programName.isEmpty || programName.toLowerCase() == 'null')
+          continue;
         programNamesByClassId[classId] = programName;
       }
     }
@@ -93,17 +94,22 @@ class AthleteHistoryRepository {
       final classEndsAt = startsAt.add(Duration(minutes: durationMinutes));
       if (!classEndsAt.isBefore(now)) continue;
 
-      final classId = (raw['class_id'] ?? classData['id'] ?? '').toString().trim();
+      final classId = (raw['class_id'] ?? classData['id'] ?? '')
+          .toString()
+          .trim();
       if (classId.isEmpty) continue;
 
       final rawTitle = (classData['title'] ?? '').toString().trim();
-      final rawProgramName = (programNamesByClassId[classId] ?? '').toString().trim();
+      final rawProgramName = (programNamesByClassId[classId] ?? '')
+          .toString()
+          .trim();
 
-      final normalizedTitle = rawTitle.isNotEmpty && rawTitle.toLowerCase() != 'null'
+      final normalizedTitle =
+          rawTitle.isNotEmpty && rawTitle.toLowerCase() != 'null'
           ? rawTitle
           : rawProgramName.isNotEmpty && rawProgramName.toLowerCase() != 'null'
-              ? rawProgramName
-              : 'Class';
+          ? rawProgramName
+          : 'Class';
 
       final entry = AthleteHistoryEntry(
         bookingId: (raw['id'] ?? '').toString(),

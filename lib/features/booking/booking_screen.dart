@@ -9,9 +9,13 @@ import '../../core/supabase/class_attendance_repository.dart';
 import '../../core/supabase/class_repository.dart';
 import '../../core/supabase/gym_repository.dart';
 import '../../core/supabase/membership_repository.dart';
+import '../../core/supabase/program_repository.dart';
+import '../../core/supabase/profile_repository.dart';
 import '../../core/supabase/supabase_bootstrap.dart';
 import '../admin/class_attendance_screen.dart';
+import 'widgets/create_class_sheet.dart';
 import '../../shared/widgets/app_card.dart';
+import 'widgets/create_recurring_classes_sheet.dart';
 
 class BookingScreen extends StatefulWidget {
   const BookingScreen({super.key});
@@ -30,6 +34,8 @@ class _BookingScreenState extends State<BookingScreen> {
   final _bookingRepo = BookingRepository();
   final _attendanceRepo = ClassAttendanceRepository();
   final _membershipRepo = MembershipRepository();
+  final _programRepo = ProgramRepository();
+  final _profileRepo = ProfileRepository();
 
   bool _loading = true;
   String? _error;
@@ -38,10 +44,13 @@ class _BookingScreenState extends State<BookingScreen> {
   final ScrollController _daysScrollController = ScrollController();
   List<Map<String, dynamic>> _classes = [];
   List<Map<String, dynamic>> _myBookings = [];
+  List<Map<String, dynamic>> _programs = [];
+  List<Map<String, dynamic>> _coaches = [];
   Map<String, dynamic>? _activeMembership;
   String? _busyClassId;
   bool _canManageAttendance = false;
   String _gymName = '';
+  String? _gymId;
 
   @override
   void initState() {
@@ -99,28 +108,6 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  Color _programColor(String programName) {
-    final value = programName.trim().toLowerCase();
-
-    if (value.contains('crossfit') || value.contains('wod')) {
-      return const Color(0xFF245BEB);
-    }
-    if (value.contains('hyrox') || value.contains('engine')) {
-      return const Color(0xFF16A34A);
-    }
-    if (value.contains('strength') || value.contains('barbell')) {
-      return const Color(0xFFB54708);
-    }
-    if (value.contains('gymnastics')) {
-      return const Color(0xFF7A5AF8);
-    }
-    if (value.contains('conditioning')) {
-      return const Color(0xFF0891B2);
-    }
-
-    return const Color(0xFF667085);
-  }
-
   void _showToast(String message, {bool isError = false}) {
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
@@ -137,6 +124,593 @@ class _BookingScreenState extends State<BookingScreen> {
         ),
       ),
     );
+  }
+
+  String _buildUtcIsoFromDateAndTime(String date, String time) {
+    final dateParts = date.trim().split('-');
+    final timeParts = time.trim().split(':');
+
+    final local = DateTime(
+      int.parse(dateParts[0]),
+      int.parse(dateParts[1]),
+      int.parse(dateParts[2]),
+      int.parse(timeParts[0]),
+      int.parse(timeParts[1]),
+    );
+
+    return local.toUtc().toIso8601String();
+  }
+
+  Future<void> _updateClass(String id, Map<String, dynamic> data) async {
+    await _classRepo.updateClass(
+      gymId: _gymId!,
+      id: id,
+      programId: (data['programId'] ?? '').toString(),
+      coachId: (data['coachId'] ?? '').toString().trim().isEmpty
+          ? null
+          : (data['coachId'] ?? '').toString(),
+      startsAtIso: _buildUtcIsoFromDateAndTime(
+        (data['date'] ?? '').toString(),
+        (data['time'] ?? '').toString(),
+      ),
+      durationMinutes: int.parse((data['duration'] ?? '0').toString()),
+      maxSpots: int.parse((data['maxSpots'] ?? '0').toString()),
+      status: 'scheduled',
+    );
+  }
+
+  Future<void> _deleteClass(Map<String, dynamic> item) async {
+    final classId = (item['id'] ?? '').toString().trim();
+    final gymId = (_gymId ?? '').trim();
+
+    if (classId.isEmpty || gymId.isEmpty) {
+      _showToast('Error', isError: true);
+      return;
+    }
+
+    try {
+      await _classRepo.deleteClass(gymId: gymId, id: classId);
+      if (!mounted) return;
+      final isSpanish = Localizations.localeOf(
+        context,
+      ).languageCode.toLowerCase().startsWith('es');
+      _showToast(isSpanish ? 'Clase eliminada' : 'Class deleted');
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      _showToast(e.toString().replaceFirst('Exception: ', ''), isError: true);
+    }
+  }
+
+  Future<void> _deleteThisAndFutureClasses(Map<String, dynamic> item) async {
+    final classId = (item['id'] ?? '').toString().trim();
+    if (classId.isEmpty) {
+      _showToast('Error', isError: true);
+      return;
+    }
+
+    try {
+      final deleted = await _classRepo.deleteFutureClassesForProgramSlot(
+        classId,
+      );
+      if (!mounted) return;
+      final isSpanish = Localizations.localeOf(
+        context,
+      ).languageCode.toLowerCase().startsWith('es');
+      _showToast(
+        isSpanish
+            ? 'Se eliminaron $deleted clases'
+            : '$deleted classes deleted',
+      );
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      _showToast(e.toString().replaceFirst('Exception: ', ''), isError: true);
+    }
+  }
+
+  Future<void> _confirmDeleteThisAndFuture(Map<String, dynamic> item) async {
+    final isSpanish = Localizations.localeOf(
+      context,
+    ).languageCode.toLowerCase().startsWith('es');
+
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return SafeArea(
+          top: false,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFF6F7F9),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 42,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD7DBE1),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  isSpanish
+                      ? 'Eliminar esta y futuras'
+                      : 'Delete this and future',
+                  style: _font(
+                    22,
+                    weight: FontWeight.w800,
+                    color: const Color(0xFF111318),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  isSpanish
+                      ? 'Esto eliminará esta clase y las próximas del mismo slot.'
+                      : 'This will delete this class and the upcoming classes in the same slot.',
+                  style: _font(
+                    13,
+                    weight: FontWeight.w500,
+                    color: const Color(0xFF667085),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _actionButton(
+                        text: isSpanish ? 'Cancelar' : 'Cancel',
+                        onPressed: () => Navigator.pop(sheetContext, false),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _actionButton(
+                        text: isSpanish ? 'Eliminar' : 'Delete',
+                        filled: true,
+                        fillColor: const Color(0xFFB42318),
+                        onPressed: () => Navigator.pop(sheetContext, true),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await _deleteThisAndFutureClasses(item);
+    }
+  }
+
+  Future<void> _confirmDeleteClass(Map<String, dynamic> item) async {
+    final isSpanish = Localizations.localeOf(
+      context,
+    ).languageCode.toLowerCase().startsWith('es');
+
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return SafeArea(
+          top: false,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFF6F7F9),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 42,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD7DBE1),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  isSpanish ? 'Eliminar clase' : 'Delete class',
+                  style: _font(
+                    22,
+                    weight: FontWeight.w800,
+                    color: const Color(0xFF111318),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  isSpanish
+                      ? '¿Seguro que quieres eliminar esta clase?'
+                      : 'Are you sure you want to delete this class?',
+                  style: _font(
+                    13,
+                    weight: FontWeight.w500,
+                    color: const Color(0xFF667085),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _actionButton(
+                        text: isSpanish ? 'Cancelar' : 'Cancel',
+                        onPressed: () => Navigator.pop(sheetContext, false),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _actionButton(
+                        text: isSpanish ? 'Eliminar' : 'Delete',
+                        filled: true,
+                        fillColor: const Color(0xFFB42318),
+                        onPressed: () => Navigator.pop(sheetContext, true),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await _deleteClass(item);
+    }
+  }
+
+  Future<void> _openClassActions(Map<String, dynamic> item) async {
+    final isSpanish = Localizations.localeOf(
+      context,
+    ).languageCode.toLowerCase().startsWith('es');
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        Widget actionTile({
+          required IconData icon,
+          required String title,
+          required VoidCallback onTap,
+          Color iconBg = const Color(0xFFF3F4F6),
+          Color iconColor = const Color(0xFF111318),
+          Color titleColor = const Color(0xFF111318),
+        }) {
+          return InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: onTap,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFFEAECEF)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: iconBg,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(icon, size: 18, color: iconColor),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: _font(
+                        15,
+                        weight: FontWeight.w700,
+                        color: titleColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return SafeArea(
+          top: false,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFF6F7F9),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    width: 42,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD7DBE1),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                actionTile(
+                  icon: Icons.edit_rounded,
+                  title: isSpanish ? 'Editar clase' : 'Edit class',
+                  iconBg: const Color(0xFFF7F3EA),
+                  iconColor: const Color(0xFFB59B6A),
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    final result = await showCreateClassSheet(
+                      context: context,
+                      programs: _programs,
+                      coaches: _coaches,
+                      initialData: item,
+                    );
+                    if (result != null) {
+                      await _updateClass(item['id'].toString(), result);
+                      if (!mounted) return;
+                      _showToast(
+                        isSpanish ? 'Clase actualizada' : 'Class updated',
+                      );
+                      await _load();
+                    }
+                  },
+                ),
+                const SizedBox(height: 10),
+                actionTile(
+                  icon: Icons.delete_outline_rounded,
+                  title: isSpanish ? 'Eliminar clase' : 'Delete class',
+                  iconBg: const Color(0xFFFEE4E2),
+                  iconColor: const Color(0xFFB42318),
+                  titleColor: const Color(0xFFB42318),
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    await _confirmDeleteClass(item);
+                  },
+                ),
+                const SizedBox(height: 10),
+                actionTile(
+                  icon: Icons.delete_sweep_rounded,
+                  title: isSpanish
+                      ? 'Eliminar esta y futuras'
+                      : 'Delete this and future',
+                  iconBg: const Color(0xFFFEE4E2),
+                  iconColor: const Color(0xFFB42318),
+                  titleColor: const Color(0xFFB42318),
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    await _confirmDeleteThisAndFuture(item);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _openCreateRecurringClassesSheet() async {
+    final gymId = (_gymId ?? '').trim();
+    if (gymId.isEmpty) {
+      _showToast('Error', isError: true);
+      return;
+    }
+
+    final result = await showCreateRecurringClassesSheet(
+      context: context,
+      programs: _programs,
+      coaches: _coaches,
+    );
+
+    if (result == null) return;
+
+    try {
+      await _classRepo.createRecurringClasses(
+        gymId: gymId,
+        programId: (result['programId'] ?? '').toString(),
+        coachId: (result['coachId'] ?? '').toString().trim().isEmpty
+            ? null
+            : (result['coachId'] ?? '').toString(),
+        weekdays: List<int>.from(result['weekdays'] ?? const []),
+        times: List<String>.from(result['times'] ?? const []),
+        startDate: (result['startDate'] ?? '').toString(),
+        endDate: (result['endDate'] ?? '').toString(),
+        durationMinutes: int.parse((result['duration'] ?? '0').toString()),
+        maxSpots: int.parse((result['maxSpots'] ?? '0').toString()),
+      );
+      if (!mounted) return;
+      final isSpanish = Localizations.localeOf(
+        context,
+      ).languageCode.toLowerCase().startsWith('es');
+      _showToast(isSpanish ? 'Agenda creada' : 'Schedule created');
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      _showToast(e.toString().replaceFirst('Exception: ', ''), isError: true);
+    }
+  }
+
+  Future<void> _openCreateClassFlow() async {
+    final isSpanish = Localizations.localeOf(
+      context,
+    ).languageCode.toLowerCase().startsWith('es');
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        Widget actionTile({
+          required IconData icon,
+          required String title,
+          required VoidCallback onTap,
+          Color iconBg = const Color(0xFFF3F4F6),
+          Color iconColor = const Color(0xFF111318),
+        }) {
+          return InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: onTap,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFFEAECEF)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: iconBg,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(icon, size: 18, color: iconColor),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: _font(
+                        15,
+                        weight: FontWeight.w700,
+                        color: const Color(0xFF111318),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return SafeArea(
+          top: false,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFF6F7F9),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    width: 42,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD7DBE1),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                actionTile(
+                  icon: Icons.add_circle_outline_rounded,
+                  title: isSpanish ? 'Clase individual' : 'Single class',
+                  iconBg: const Color(0xFFF7F3EA),
+                  iconColor: const Color(0xFFB59B6A),
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    await _openCreateClassSheet();
+                  },
+                ),
+                const SizedBox(height: 10),
+                actionTile(
+                  icon: Icons.event_repeat_rounded,
+                  title: isSpanish
+                      ? 'Clases recurrentes'
+                      : 'Recurring schedule',
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    await _openCreateRecurringClassesSheet();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _openCreateClassSheet() async {
+    final gymId = (_gymId ?? '').trim();
+
+    if (gymId.isEmpty) {
+      _showToast(context.appText.gymIdRequiredError, isError: true);
+      return;
+    }
+
+    if (_programs.isEmpty) {
+      final isSpanish = Localizations.localeOf(
+        context,
+      ).languageCode.toLowerCase().startsWith('es');
+      _showToast(
+        isSpanish
+            ? 'Primero crea al menos un programa.'
+            : 'Create at least one program first.',
+        isError: true,
+      );
+      return;
+    }
+
+    final result = await showCreateClassSheet(
+      context: context,
+      programs: _programs,
+      coaches: _coaches,
+    );
+
+    if (result == null) return;
+
+    try {
+      await _classRepo.createClass(
+        gymId: gymId,
+        programId: (result['programId'] ?? '').toString(),
+        coachId: (result['coachId'] ?? '').toString().trim().isEmpty
+            ? null
+            : (result['coachId'] ?? '').toString(),
+        startsAtIso: _buildUtcIsoFromDateAndTime(
+          (result['date'] ?? '').toString(),
+          (result['time'] ?? '').toString(),
+        ),
+        durationMinutes: int.parse((result['duration'] ?? '0').toString()),
+        maxSpots: int.parse((result['maxSpots'] ?? '0').toString()),
+      );
+
+      if (!mounted) return;
+      final isSpanish = Localizations.localeOf(
+        context,
+      ).languageCode.toLowerCase().startsWith('es');
+      _showToast(isSpanish ? 'Clase creada' : 'Class created');
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      _showToast(e.toString().replaceFirst('Exception: ', ''), isError: true);
+    }
   }
 
   Future<void> _load() async {
@@ -159,6 +733,16 @@ class _BookingScreenState extends State<BookingScreen> {
         canManageAttendance = role == 'admin' || role == 'coach';
       }
 
+      final resolvedGymId = canManageAttendance
+          ? (await _gymRepo.resolveGymId() ?? '').trim()
+          : '';
+      final programs = canManageAttendance && resolvedGymId.isNotEmpty
+          ? await _programRepo.listPrograms(resolvedGymId)
+          : <Map<String, dynamic>>[];
+      final coaches = canManageAttendance && resolvedGymId.isNotEmpty
+          ? await _profileRepo.listCoaches(resolvedGymId)
+          : <Map<String, dynamic>>[];
+
       final classes = await _classRepo.listClassesForDate(
         _dateIso(_selectedDay),
         includePast: canManageAttendance,
@@ -171,9 +755,12 @@ class _BookingScreenState extends State<BookingScreen> {
       setState(() {
         _classes = classes;
         _myBookings = bookings;
+        _programs = programs;
+        _coaches = coaches;
         _activeMembership = activeMembership;
         _canManageAttendance = canManageAttendance;
         _gymName = gymName;
+        _gymId = resolvedGymId.isEmpty ? null : resolvedGymId;
       });
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -668,10 +1255,12 @@ class _BookingScreenState extends State<BookingScreen> {
 
   String _capitalizeDateLabel(String raw) {
     final parts = raw.split(' ');
-    final normalized = parts.map((part) {
-      if (part.isEmpty) return part;
-      return part[0].toUpperCase() + part.substring(1);
-    }).join(' ');
+    final normalized = parts
+        .map((part) {
+          if (part.isEmpty) return part;
+          return part[0].toUpperCase() + part.substring(1);
+        })
+        .join(' ');
     return normalized.replaceAllMapped(RegExp(r'(^|\s)([a-záéíóúñ])'), (m) {
       return '${m.group(1)}${m.group(2)!.toUpperCase()}';
     });
@@ -756,7 +1345,10 @@ class _BookingScreenState extends State<BookingScreen> {
                         const SizedBox(height: 2),
                         Text(
                           _capitalizeDateLabel(
-                            DateFormat('EEEE, MMMM d', localeTag).format(_selectedDay),
+                            DateFormat(
+                              'EEEE, MMMM d',
+                              localeTag,
+                            ).format(_selectedDay),
                           ),
                           style: _font(
                             12,
@@ -822,7 +1414,6 @@ class _BookingScreenState extends State<BookingScreen> {
       ),
     );
   }
-
 
   Widget _restDayState() {
     final t = context.appText;
@@ -906,16 +1497,10 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Widget _classCard(Map<String, dynamic> item) {
     final t = context.appText;
-    final titleRaw = (item['title'] ?? '').toString().trim();
     final programRaw = (item['program_name'] ?? t.classLabel).toString().trim();
     final remaining = _asInt(item['remaining_spots'], 0);
     final total = _asInt(item['max_spots'], 0);
     final booking = _bookingForClass(item['id'].toString());
-
-    final sameTitleAndProgram =
-        titleRaw.isEmpty || titleRaw.toLowerCase() == programRaw.toLowerCase();
-
-    final overline = sameTitleAndProgram ? null : programRaw.toUpperCase();
 
     String timeLabel = '-';
     try {
@@ -952,6 +1537,26 @@ class _BookingScreenState extends State<BookingScreen> {
                     ),
                   ),
                 ),
+                if (_canManageAttendance) ...[
+                  InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => _openClassActions(item),
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7F8FA),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.more_horiz_rounded,
+                        size: 20,
+                        color: Color(0xFF667085),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 if (topStatus == 'checked_in')
                   _statusPill(t.checkedInUpper, success: true)
                 else if (topStatus == 'booked')
@@ -975,20 +1580,8 @@ class _BookingScreenState extends State<BookingScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (overline != null) ...[
-                        Text(
-                          overline,
-                          style: _font(
-                            18,
-                            weight: FontWeight.w700,
-                            color: _programColor(programRaw),
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                      ],
                       Text(
-                        sameTitleAndProgram ? programRaw : titleRaw,
+                        programRaw,
                         style: _font(
                           24,
                           weight: FontWeight.w800,
@@ -1152,6 +1745,14 @@ class _BookingScreenState extends State<BookingScreen> {
         : t.noActiveMembership;
 
     return Scaffold(
+      floatingActionButton: _canManageAttendance && !_loading && _error == null
+          ? FloatingActionButton(
+              onPressed: _openCreateClassFlow,
+              backgroundColor: const Color(0xFFB59B6A),
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.add_rounded),
+            )
+          : null,
       body: Column(
         children: [
           _topHeader(),
@@ -1181,9 +1782,17 @@ class _BookingScreenState extends State<BookingScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    _skeletonLine(width: 170, height: 16, radius: 8),
+                                    _skeletonLine(
+                                      width: 170,
+                                      height: 16,
+                                      radius: 8,
+                                    ),
                                     const SizedBox(height: 8),
-                                    _skeletonLine(width: 110, height: 12, radius: 8),
+                                    _skeletonLine(
+                                      width: 110,
+                                      height: 12,
+                                      radius: 8,
+                                    ),
                                   ],
                                 ),
                               ),

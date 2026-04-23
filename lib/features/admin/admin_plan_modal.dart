@@ -9,9 +9,7 @@ extension _AdminScreenPlanModal on _AdminScreenState {
     final priceCtrl = TextEditingController(
       text: plan?['price']?.toString() ?? '',
     );
-    final classesCtrl = TextEditingController(
-      text: '',
-    );
+    final classesCtrl = TextEditingController(text: '');
     final creditsCtrl = TextEditingController(
       text: plan?['credits_total']?.toString() ?? '',
     );
@@ -87,7 +85,6 @@ extension _AdminScreenPlanModal on _AdminScreenState {
       }
     }
 
-
     if (!isEdit && nameCtrl.text.trim().isEmpty) {
       nameCtrl.text = suggestedPlanName(selectedType);
     }
@@ -95,10 +92,11 @@ extension _AdminScreenPlanModal on _AdminScreenState {
     if (!isEdit && selectedType == 'trial_class') {
       priceCtrl.text = '0';
       creditsCtrl.text = '1';
-    } else if (!isEdit && selectedType == 'class_pack' && creditsCtrl.text.trim().isEmpty) {
+    } else if (!isEdit &&
+        selectedType == 'class_pack' &&
+        creditsCtrl.text.trim().isEmpty) {
       nameCtrl.text = suggestedPlanName(selectedType);
     }
-
 
     InputDecoration dropdownDecoration(String label) {
       return InputDecoration(
@@ -398,7 +396,9 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                         } else if (value == 'drop_in') {
                                           selectedBilling = 'one_time';
                                           if (priceCtrl.text.trim() == '0' &&
-                                              nameCtrl.text.trim().toLowerCase() ==
+                                              nameCtrl.text
+                                                      .trim()
+                                                      .toLowerCase() ==
                                                   'trial class') {
                                             priceCtrl.clear();
                                           }
@@ -425,7 +425,12 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                 const SizedBox(height: 12),
                                 Container(
                                   width: double.infinity,
-                                  padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    18,
+                                    16,
+                                    18,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFF8FAFC),
                                     borderRadius: BorderRadius.circular(16),
@@ -434,7 +439,8 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                     ),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Billing Period',
@@ -508,7 +514,9 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                 styledField(
                                   label: 'Price',
                                   controller: priceCtrl,
-                                  hint: selectedType == 'trial_class' ? '0' : '129',
+                                  hint: selectedType == 'trial_class'
+                                      ? '0'
+                                      : '129',
                                   keyboardType: TextInputType.number,
                                   textInputAction: TextInputAction.next,
                                   readOnly: selectedType == 'trial_class',
@@ -518,7 +526,8 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                   styledField(
                                     label: 'Credits Total',
                                     controller: creditsCtrl,
-                                    hint: (selectedType == 'drop_in' ||
+                                    hint:
+                                        (selectedType == 'drop_in' ||
                                             selectedType == 'trial_class')
                                         ? '1'
                                         : '8',
@@ -526,9 +535,14 @@ extension _AdminScreenPlanModal on _AdminScreenState {
                                     textInputAction: TextInputAction.next,
                                     onChanged: (value) {
                                       if (selectedType != 'class_pack') return;
-                                      if (!shouldAutoReplacePlanName(nameCtrl.text)) return;
+                                      if (!shouldAutoReplacePlanName(
+                                        nameCtrl.text,
+                                      ))
+                                        return;
                                       setLocalState(() {
-                                        nameCtrl.text = suggestedPlanName('class_pack');
+                                        nameCtrl.text = suggestedPlanName(
+                                          'class_pack',
+                                        );
                                       });
                                     },
                                   ),

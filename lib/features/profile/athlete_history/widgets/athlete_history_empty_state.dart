@@ -12,31 +12,61 @@ class AthleteHistoryEmptyState extends StatelessWidget {
   String _title(BuildContext context) {
     switch (filter) {
       case AthleteHistoryFilter.all:
-        return _txt(context, 'Todavía no tienes historial de clases.', 'No class history yet');
+        return _txt(
+          context,
+          'Todavía no tienes historial de clases.',
+          'No class history yet',
+        );
       case AthleteHistoryFilter.attended:
-        return _txt(context, 'Todavía no tienes clases asistidas.', 'No attended classes yet');
+        return _txt(
+          context,
+          'Todavía no tienes clases asistidas.',
+          'No attended classes yet',
+        );
       case AthleteHistoryFilter.missed:
         return _txt(context, 'No tienes clases perdidas.', 'No missed classes');
       case AthleteHistoryFilter.cancelled:
-        return _txt(context, 'No tienes reservas canceladas.', 'No cancelled classes');
+        return _txt(
+          context,
+          'No tienes reservas canceladas.',
+          'No cancelled classes',
+        );
     }
   }
 
   String _subtitle(BuildContext context) {
     switch (filter) {
       case AthleteHistoryFilter.all:
-        return _txt(context, 'Aquí aparecerán tus reservas y asistencias pasadas.', 'Your past bookings and attendance will appear here.');
+        return _txt(
+          context,
+          'Aquí aparecerán tus reservas y asistencias pasadas.',
+          'Your past bookings and attendance will appear here.',
+        );
       case AthleteHistoryFilter.attended:
-        return _txt(context, 'Aquí aparecerán tus clases completadas.', 'Completed classes will appear here.');
+        return _txt(
+          context,
+          'Aquí aparecerán tus clases completadas.',
+          'Completed classes will appear here.',
+        );
       case AthleteHistoryFilter.missed:
-        return _txt(context, 'Aquí aparecerán tus no asistencias o reservas ya finalizadas.', 'No-shows or past booked classes will appear here.');
+        return _txt(
+          context,
+          'Aquí aparecerán tus no asistencias o reservas ya finalizadas.',
+          'No-shows or past booked classes will appear here.',
+        );
       case AthleteHistoryFilter.cancelled:
-        return _txt(context, 'Aquí aparecerán tus reservas canceladas.', 'Cancelled bookings will appear here.');
+        return _txt(
+          context,
+          'Aquí aparecerán tus reservas canceladas.',
+          'Cancelled bookings will appear here.',
+        );
     }
   }
 
   String _txt(BuildContext context, String es, String en) {
-    return Localizations.localeOf(context).languageCode.toLowerCase().startsWith('es')
+    return Localizations.localeOf(
+          context,
+        ).languageCode.toLowerCase().startsWith('es')
         ? es
         : en;
   }
@@ -63,11 +93,7 @@ class AthleteHistoryEmptyState extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(18, 22, 18, 22),
       child: Column(
         children: [
-          const Icon(
-            Icons.history_rounded,
-            size: 30,
-            color: Color(0xFF98A2B3),
-          ),
+          const Icon(Icons.history_rounded, size: 30, color: Color(0xFF98A2B3)),
           const SizedBox(height: 12),
           Text(
             _title(context),

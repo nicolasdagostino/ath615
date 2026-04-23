@@ -110,7 +110,9 @@ extension _AdminScreenProgramModal on _AdminScreenState {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    isEdit ? t.editProgram : t.createProgramTitle,
+                                    isEdit
+                                        ? t.editProgram
+                                        : t.createProgramTitle,
                                     style: _font(
                                       24,
                                       weight: FontWeight.w800,

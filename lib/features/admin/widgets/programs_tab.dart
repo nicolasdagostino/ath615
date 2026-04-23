@@ -1,13 +1,9 @@
-
 import 'package:flutter/material.dart';
 
 class ProgramsTab extends StatelessWidget {
   final List<Map<String, dynamic>> programs;
 
-  const ProgramsTab({
-    super.key,
-    required this.programs,
-  });
+  const ProgramsTab({super.key, required this.programs});
 
   @override
   Widget build(BuildContext context) {

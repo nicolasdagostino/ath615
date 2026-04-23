@@ -56,7 +56,10 @@ extension _AdminScreenGymModal on _AdminScreenState {
         }
 
         setLocalState(() => saving = true);
-        final uploaded = await _storageRepo.uploadGymLogo(File(picked.path), gymId);
+        final uploaded = await _storageRepo.uploadGymLogo(
+          File(picked.path),
+          gymId,
+        );
         if (!mounted) return;
 
         setLocalState(() {
@@ -64,10 +67,7 @@ extension _AdminScreenGymModal on _AdminScreenState {
         });
       } catch (e) {
         if (!mounted) return;
-        _toast(
-          e.toString().replaceFirst('Exception: ', ''),
-          isError: true,
-        );
+        _toast(e.toString().replaceFirst('Exception: ', ''), isError: true);
       } finally {
         if (mounted) {
           setLocalState(() => saving = false);
@@ -202,7 +202,9 @@ extension _AdminScreenGymModal on _AdminScreenState {
                               ),
                               const SizedBox(height: 12),
                               TextButton(
-                                onPressed: saving ? null : () => pickLogo(setLocalState),
+                                onPressed: saving
+                                    ? null
+                                    : () => pickLogo(setLocalState),
                                 child: Text(
                                   saving
                                       ? _uiText('Subiendo...', 'Uploading...')
@@ -260,7 +262,8 @@ extension _AdminScreenGymModal on _AdminScreenState {
                                       return;
                                     }
 
-                                    final gymId = await _resolvedGymIdForAdmin();
+                                    final gymId =
+                                        await _resolvedGymIdForAdmin();
                                     if (gymId == null || gymId.isEmpty) {
                                       _toast(
                                         _uiText(

@@ -10,8 +10,9 @@ class AdminMemberRecentHistorySection extends StatelessWidget {
 
   const AdminMemberRecentHistorySection({super.key, required this.items});
 
-  bool _isSpanish(BuildContext context) =>
-      Localizations.localeOf(context).languageCode.toLowerCase().startsWith('es');
+  bool _isSpanish(BuildContext context) => Localizations.localeOf(
+    context,
+  ).languageCode.toLowerCase().startsWith('es');
 
   String _text(BuildContext context, String es, String en) =>
       _isSpanish(context) ? es : en;
@@ -32,7 +33,10 @@ class AdminMemberRecentHistorySection extends StatelessWidget {
     );
   }
 
-  ({Color bg, Color fg, String label}) _statusStyle(BuildContext context, String status) {
+  ({Color bg, Color fg, String label}) _statusStyle(
+    BuildContext context,
+    String status,
+  ) {
     switch (status) {
       case 'attended':
         return (
@@ -80,7 +84,11 @@ class AdminMemberRecentHistorySection extends StatelessWidget {
           const SizedBox(height: 12),
           if (items.isEmpty)
             Text(
-              _text(context, 'Todavía no hay historial reciente de clases.', 'No recent class history yet.'),
+              _text(
+                context,
+                'Todavía no hay historial reciente de clases.',
+                'No recent class history yet.',
+              ),
               style: _font(
                 14,
                 weight: FontWeight.w500,

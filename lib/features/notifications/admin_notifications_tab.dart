@@ -75,19 +75,10 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
     }
   }
 
-  void _toast(
-    String text, {
-    bool isError = false,
-    IconData? icon,
-  }) {
+  void _toast(String text, {bool isError = false, IconData? icon}) {
     if (!mounted) return;
 
-    AppToast.show(
-      context,
-      text,
-      isError: isError,
-      icon: icon,
-    );
+    AppToast.show(context, text, isError: isError, icon: icon);
   }
 
   Future<void> _openNotificationModal({Map<String, dynamic>? item}) async {
@@ -184,12 +175,8 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
                 if (!mounted) return;
                 _toast(
                   publishAfterSave
-                      ? (isEdit
-                            ? t.publishedNow
-                            : t.createdAndPublished)
-                      : (isEdit
-                            ? t.savedDraft
-                            : t.createdDraft),
+                      ? (isEdit ? t.publishedNow : t.createdAndPublished)
+                      : (isEdit ? t.savedDraft : t.createdDraft),
                 );
               } catch (e) {
                 _toast(
@@ -1000,6 +987,3 @@ class _AdminNotificationsTabState extends State<AdminNotificationsTab> {
     );
   }
 }
-
-
-

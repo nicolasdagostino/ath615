@@ -50,9 +50,7 @@ class StripePaymentsRepository {
         'currency': currency,
         'notes': notes,
       },
-      headers: {
-        'X-Client-Authorization': 'Bearer ${session.accessToken}',
-      },
+      headers: {'X-Client-Authorization': 'Bearer ${session.accessToken}'},
     );
 
     final payload = res.data;

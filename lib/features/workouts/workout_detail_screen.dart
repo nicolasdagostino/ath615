@@ -835,8 +835,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
         .toString();
     final author = _gymName.trim().isNotEmpty
         ? _gymName.trim()
-        : context.appText.athlete615
-        .toString();
+        : context.appText.athlete615.toString();
     final dateIso = (workout['workout_date'] ?? '').toString();
     final description = (workout['description'] ?? '').toString().trim();
     final imageUrl = (workout['image_url'] ?? '').toString();

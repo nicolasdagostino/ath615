@@ -99,11 +99,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _showActionMessage(String text) {
-    AppToast.show(
-      context,
-      text,
-      icon: Icons.info_outline_rounded,
-    );
+    AppToast.show(context, text, icon: Icons.info_outline_rounded);
   }
 
   void _showTomorrowRiskSheet(DashboardTomorrowStats tomorrow) {
@@ -264,10 +260,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _topHeader() {
     final localeTag = Localizations.localeOf(context).toLanguageTag();
-    final rawToday = DateFormat('EEEE, MMMM d', localeTag).format(DateTime.now());
+    final rawToday = DateFormat(
+      'EEEE, MMMM d',
+      localeTag,
+    ).format(DateTime.now());
     final words = rawToday.split(' ');
     final todayText = words
-        .map((part) => part.isEmpty ? part : part[0].toUpperCase() + part.substring(1))
+        .map(
+          (part) =>
+              part.isEmpty ? part : part[0].toUpperCase() + part.substring(1),
+        )
         .join(' ');
 
     return Container(
@@ -940,7 +942,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   _topHeader(),
                   Expanded(
-                    child: _errorState(context.appText.noDashboardDataAvailable),
+                    child: _errorState(
+                      context.appText.noDashboardDataAvailable,
+                    ),
                   ),
                 ],
               );
@@ -949,9 +953,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             return Column(
               children: [
                 _topHeader(),
-                Expanded(
-                  child: _content(data),
-                ),
+                Expanded(child: _content(data)),
               ],
             );
           },

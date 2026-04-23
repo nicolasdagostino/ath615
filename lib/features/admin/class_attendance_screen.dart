@@ -158,7 +158,9 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     final t = context.appText;
-    final title = (widget.classItem['title'] ?? '').toString();
+    final title =
+        (widget.classItem['program_name'] ?? widget.classItem['title'] ?? '')
+            .toString();
     final program = (widget.classItem['program_name'] ?? 'Class').toString();
     final coach = (widget.classItem['coach_name'] ?? 'TBD').toString();
     final duration = (widget.classItem['duration_minutes'] ?? 60).toString();
@@ -395,18 +397,19 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
                       final bookingId = item['booking_id'].toString();
                       final status = (item['status'] ?? '').toString();
 
-String statusLabel(String s) {
-  switch (s) {
-    case 'attended':
-      return t.attended;
-    case 'booked':
-      return t.setBooked;
-    case 'cancelled':
-      return t.cancelled;
-    default:
-      return s;
-  }
-}
+                      String statusLabel(String s) {
+                        switch (s) {
+                          case 'attended':
+                            return t.attended;
+                          case 'booked':
+                            return t.setBooked;
+                          case 'cancelled':
+                            return t.cancelled;
+                          default:
+                            return s;
+                        }
+                      }
+
                       final name = (item['member_name'] ?? 'Athlete')
                           .toString();
                       final email = (item['member_email'] ?? '').toString();

@@ -82,54 +82,19 @@ class ClassRepository {
     required String gymId,
     required String programId,
     String? coachId,
-    String? title,
-    String? description,
     required String startsAtIso,
     required int durationMinutes,
     required int maxSpots,
-    String? location,
   }) async {
-    final inserted = await sb
-        .from('classes')
-        .insert({
-          'gym_id': gymId,
-          'program_id': programId,
-          'coach_id': (coachId == null || coachId.isEmpty) ? null : coachId,
-          'title': title,
-          'description': description,
-          'starts_at': startsAtIso,
-          'duration_minutes': durationMinutes,
-          'max_spots': maxSpots,
-          'location': location,
-          'status': 'scheduled',
-        })
-        .select('id, starts_at')
-        .single();
-
-    final classId = inserted['id'].toString();
-    final startsAt = DateTime.parse(inserted['starts_at'].toString()).toLocal();
-
-    final workoutDate =
-        '${startsAt.year.toString().padLeft(4, '0')}-${startsAt.month.toString().padLeft(2, '0')}-${startsAt.day.toString().padLeft(2, '0')}';
-
-    // 🔍 buscar workout existente para ese día + programa
-    final existingWorkout = await sb
-        .from('workouts')
-        .select('id')
-        .eq('gym_id', gymId)
-        .eq('program_id', programId)
-        .eq('workout_date', workoutDate)
-        .maybeSingle();
-
-    if (existingWorkout != null) {
-      final workoutId = existingWorkout['id'].toString();
-
-      await sb
-          .from('classes')
-          .update({'workout_id': workoutId})
-          .eq('id', classId)
-          .eq('gym_id', gymId);
-    }
+    await sb.from('classes').insert({
+      'gym_id': gymId,
+      'program_id': programId,
+      'coach_id': (coachId == null || coachId.isEmpty) ? null : coachId,
+      'starts_at': startsAtIso,
+      'duration_minutes': durationMinutes,
+      'max_spots': maxSpots,
+      'status': 'scheduled',
+    });
   }
 
   Future<void> updateClass({
@@ -137,12 +102,9 @@ class ClassRepository {
     required String id,
     required String programId,
     String? coachId,
-    required String title,
-    required String description,
     required String startsAtIso,
     required int durationMinutes,
     required int maxSpots,
-    required String location,
     required String status,
   }) async {
     await sb
@@ -150,22 +112,16 @@ class ClassRepository {
         .update({
           'program_id': programId,
           'coach_id': (coachId == null || coachId.isEmpty) ? null : coachId,
-          'title': title,
-          'description': description,
           'starts_at': startsAtIso,
           'duration_minutes': durationMinutes,
           'max_spots': maxSpots,
-          'location': location,
           'status': status,
         })
         .eq('id', id)
         .eq('gym_id', gymId);
   }
 
-  Future<void> deleteClass({
-    required String gymId,
-    required String id,
-  }) async {
+  Future<void> deleteClass({required String gymId, required String id}) async {
     await sb.from('classes').delete().eq('id', id).eq('gym_id', gymId);
   }
 

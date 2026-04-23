@@ -10,8 +10,9 @@ class AdminMemberPaymentsCard extends StatelessWidget {
 
   const AdminMemberPaymentsCard({super.key, required this.payments});
 
-  bool _isSpanish(BuildContext context) =>
-      Localizations.localeOf(context).languageCode.toLowerCase().startsWith('es');
+  bool _isSpanish(BuildContext context) => Localizations.localeOf(
+    context,
+  ).languageCode.toLowerCase().startsWith('es');
 
   String _text(BuildContext context, String es, String en) =>
       _isSpanish(context) ? es : en;
@@ -109,7 +110,9 @@ class AdminMemberPaymentsCard extends StatelessWidget {
           else
             ...payments.map((payment) {
               final paidAt = payment.paidAt ?? payment.createdAt;
-              final amount = payment.amountText.isEmpty ? '—' : payment.amountText;
+              final amount = payment.amountText.isEmpty
+                  ? '—'
+                  : payment.amountText;
               final statusText = _pretty(payment.paymentStatus);
               final methodText = _pretty(payment.paymentMethod);
 

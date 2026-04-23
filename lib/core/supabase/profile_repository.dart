@@ -14,8 +14,6 @@ class ProfileRepository {
     return data == null ? null : Map<String, dynamic>.from(data);
   }
 
-
-
   Future<Map<String, dynamic>?> getMyAccessSnapshot() async {
     final user = sb.auth.currentUser;
     if (user == null) return null;
@@ -45,10 +43,7 @@ class ProfileRepository {
       }
     }
 
-    return {
-      'profile': Map<String, dynamic>.from(profile),
-      'gym': gym,
-    };
+    return {'profile': Map<String, dynamic>.from(profile), 'gym': gym};
   }
 
   Future<List<Map<String, dynamic>>> listMembers(String gymId) async {

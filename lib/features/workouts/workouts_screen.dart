@@ -508,10 +508,12 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
 
   String _capitalizeDateLabel(String raw) {
     final parts = raw.split(' ');
-    final normalized = parts.map((part) {
-      if (part.isEmpty) return part;
-      return part[0].toUpperCase() + part.substring(1);
-    }).join(' ');
+    final normalized = parts
+        .map((part) {
+          if (part.isEmpty) return part;
+          return part[0].toUpperCase() + part.substring(1);
+        })
+        .join(' ');
     return normalized.replaceAllMapped(RegExp(r'(^|\s)([a-záéíóúñ])'), (m) {
       return '${m.group(1)}${m.group(2)!.toUpperCase()}';
     });
@@ -558,7 +560,10 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
 
   Widget _topHeader() {
     final localeTag = Localizations.localeOf(context).toLanguageTag();
-    final rawToday = DateFormat('EEEE, MMMM d', localeTag).format(DateTime.now());
+    final rawToday = DateFormat(
+      'EEEE, MMMM d',
+      localeTag,
+    ).format(DateTime.now());
     final todayText = _capitalizeDateLabel(rawToday);
 
     return Container(

@@ -150,17 +150,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     return DateFormat('MMMM d, yyyy').format(parsed);
   }
 
-  void _toast(
-    String message, {
-    bool isError = false,
-    IconData? icon,
-  }) {
-    AppToast.show(
-      context,
-      message,
-      isError: isError,
-      icon: icon,
-    );
+  void _toast(String message, {bool isError = false, IconData? icon}) {
+    AppToast.show(context, message, isError: isError, icon: icon);
   }
 
   String _recordValue(Map<String, dynamic> item) {
@@ -443,11 +434,18 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   }
 
   void _showCreatePrModal() {
-    _showRecordModal(title: context.appText.addRecord, primaryText: context.appText.create);
+    _showRecordModal(
+      title: context.appText.addRecord,
+      primaryText: context.appText.create,
+    );
   }
 
   void _showEditPrModal(Map<String, dynamic> item) {
-    _showRecordModal(title: context.appText.editRecord, primaryText: context.appText.update, item: item);
+    _showRecordModal(
+      title: context.appText.editRecord,
+      primaryText: context.appText.update,
+      item: item,
+    );
   }
 
   void _showPrActions(Map<String, dynamic> item) {
@@ -845,7 +843,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                 children: [
                                   DropdownButtonFormField<String>(
                                     initialValue: selectedCategory,
-                                    decoration: dropDeco(context.appText.category),
+                                    decoration: dropDeco(
+                                      context.appText.category,
+                                    ),
                                     items: _categories
                                         .map(
                                           (c) => DropdownMenuItem<String>(
@@ -1115,10 +1115,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                       }
 
                                       if (achievedOn.isEmpty) {
-                                        _toast(
-                                          t.dateRequired,
-                                          isError: true,
-                                        );
+                                        _toast(t.dateRequired, isError: true);
                                         return;
                                       }
 
@@ -1162,9 +1159,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                                         } else {
                                           final score = scoreCtrl.text.trim();
                                           if (score.isEmpty) {
-                                            throw Exception(
-                                              t.scoreRequired,
-                                            );
+                                            throw Exception(t.scoreRequired);
                                           }
 
                                           if (isEdit) {

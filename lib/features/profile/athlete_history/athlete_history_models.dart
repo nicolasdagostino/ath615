@@ -1,18 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-enum AthleteHistoryStatus {
-  attended,
-  cancelled,
-  noShow,
-  booked,
-}
+enum AthleteHistoryStatus { attended, cancelled, noShow, booked }
 
-enum AthleteHistoryFilter {
-  all,
-  attended,
-  missed,
-  cancelled,
-}
+enum AthleteHistoryFilter { all, attended, missed, cancelled }
 
 @immutable
 class AthleteHistoryEntry {
@@ -60,7 +50,8 @@ class AthleteHistoryEntry {
       case AthleteHistoryFilter.attended:
         return status == AthleteHistoryStatus.attended;
       case AthleteHistoryFilter.missed:
-        return status == AthleteHistoryStatus.noShow || status == AthleteHistoryStatus.booked;
+        return status == AthleteHistoryStatus.noShow ||
+            status == AthleteHistoryStatus.booked;
       case AthleteHistoryFilter.cancelled:
         return status == AthleteHistoryStatus.cancelled;
     }
@@ -81,7 +72,6 @@ class AthleteHistoryEntry {
     }
   }
 }
-
 
 class AthleteHistoryCounts {
   final int total;

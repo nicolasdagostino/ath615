@@ -1210,9 +1210,8 @@ class AppStrings {
       ? '$count créditos totales · $suffix'
       : '$count credits total · $suffix';
 
-  String creditsLabelText(String count) => isSpanish
-      ? '$count clases'
-      : '$count classes';
+  String creditsLabelText(String count) =>
+      isSpanish ? '$count clases' : '$count classes';
 
   String validOneMonthText(String count) => isSpanish
       ? '$count clases · válido 1 mes'
@@ -1381,9 +1380,8 @@ class AppStrings {
       ? 'Desactivar acceso, cerrar membresías activas y cancelar reservas futuras'
       : 'Disable access, end active memberships, and cancel future bookings';
 
-  String get memberOffboarded => isSpanish
-      ? 'Miembro dado de baja'
-      : 'Member offboarded';
+  String get memberOffboarded =>
+      isSpanish ? 'Miembro dado de baja' : 'Member offboarded';
 
   String get makeAthleteTitle => isSpanish ? 'Hacer atleta' : 'Make athlete';
 

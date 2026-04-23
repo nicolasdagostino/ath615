@@ -10,8 +10,9 @@ class AdminMemberActivityCard extends StatelessWidget {
 
   const AdminMemberActivityCard({super.key, required this.activity});
 
-  bool _isSpanish(BuildContext context) =>
-      Localizations.localeOf(context).languageCode.toLowerCase().startsWith('es');
+  bool _isSpanish(BuildContext context) => Localizations.localeOf(
+    context,
+  ).languageCode.toLowerCase().startsWith('es');
 
   String _text(BuildContext context, String es, String en) =>
       _isSpanish(context) ? es : en;
@@ -103,17 +104,29 @@ class AdminMemberActivityCard extends StatelessWidget {
           const SizedBox(height: 14),
           Row(
             children: [
-              _stat('${activity.attendedCount}', _text(context, 'Asistidas', 'Attended')),
+              _stat(
+                '${activity.attendedCount}',
+                _text(context, 'Asistidas', 'Attended'),
+              ),
               const SizedBox(width: 10),
-              _stat('${activity.bookedCount}', _text(context, 'Reservadas', 'Booked')),
+              _stat(
+                '${activity.bookedCount}',
+                _text(context, 'Reservadas', 'Booked'),
+              ),
             ],
           ),
           const SizedBox(height: 10),
           Row(
             children: [
-              _stat('${activity.cancelledCount}', _text(context, 'Canceladas', 'Cancelled')),
+              _stat(
+                '${activity.cancelledCount}',
+                _text(context, 'Canceladas', 'Cancelled'),
+              ),
               const SizedBox(width: 10),
-              _stat('${activity.noShowCount}', _text(context, 'No asistió', 'No-show')),
+              _stat(
+                '${activity.noShowCount}',
+                _text(context, 'No asistió', 'No-show'),
+              ),
             ],
           ),
         ],

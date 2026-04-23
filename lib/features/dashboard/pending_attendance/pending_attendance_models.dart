@@ -44,8 +44,5 @@ class PendingAttendanceDayGroup {
   final DateTime date;
   final List<PendingAttendanceClassItem> classes;
 
-  const PendingAttendanceDayGroup({
-    required this.date,
-    required this.classes,
-  });
+  const PendingAttendanceDayGroup({required this.date, required this.classes});
 }

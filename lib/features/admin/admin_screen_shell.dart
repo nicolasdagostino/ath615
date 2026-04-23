@@ -3,14 +3,12 @@ part of 'admin_screen.dart';
 extension _AdminScreenShell on _AdminScreenState {
   Widget _currentAdminTab() {
     if (tabs[tabIndex] == 'Members') return _membersTab();
-    if (tabs[tabIndex] == 'Classes') return _classesTab();
     if (tabs[tabIndex] == 'Workouts') return _workoutsTab();
     if (tabs[tabIndex] == 'Plans') return _plansTab();
     if (tabs[tabIndex] == 'Notifications') return const AdminNotificationsTab();
     if (tabs[tabIndex] == 'Programs') return _programsTab();
     return const SizedBox.shrink();
   }
-
 
   Widget _adminTabsRow() {
     return SingleChildScrollView(
@@ -19,26 +17,17 @@ extension _AdminScreenShell on _AdminScreenState {
         children: List.generate(tabs.length, (i) {
           return Padding(
             key: _tabChipKeys[i],
-            padding: EdgeInsets.only(
-              right: i == tabs.length - 1 ? 0 : 8,
-            ),
+            padding: EdgeInsets.only(right: i == tabs.length - 1 ? 0 : 8),
             child: _adminTabChip(
               label: _adminTabLabel(tabs[i]),
               selected: i == tabIndex,
-              onTap: () {
-                _setAdminTabIndex(i);
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (!mounted) return;
-                  _scrollToActiveTab();
-                });
-              },
+              onTap: () => _setAdminTab(i),
             ),
           );
         }),
       ),
     );
   }
-
 
   Widget _adminErrorBanner() {
     if (_error == null) return const SizedBox.shrink();
@@ -58,7 +47,6 @@ extension _AdminScreenShell on _AdminScreenState {
       ],
     );
   }
-
 
   Widget _adminBody() {
     return Expanded(

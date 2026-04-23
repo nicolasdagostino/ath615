@@ -12,7 +12,8 @@ class AppToast {
     messenger.clearSnackBars();
     messenger.hideCurrentSnackBar();
 
-    final resolvedIcon = icon ??
+    final resolvedIcon =
+        icon ??
         (isError ? Icons.error_outline_rounded : Icons.info_outline_rounded);
 
     messenger.showSnackBar(
@@ -21,8 +22,9 @@ class AppToast {
         elevation: 0,
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        backgroundColor:
-            isError ? const Color(0xFFB42318) : const Color(0xFF111318),
+        backgroundColor: isError
+            ? const Color(0xFFB42318)
+            : const Color(0xFF111318),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Row(
           crossAxisAlignment: CrossAxisAlignment.center,

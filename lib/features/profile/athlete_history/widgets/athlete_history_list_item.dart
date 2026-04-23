@@ -67,32 +67,32 @@ class AthleteHistoryListItem extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
                   color: colors.bg,
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: Text(
-                  switch (item.statusKey) {
-                          'attended' => t.attended,
-                          'cancelled' => t.cancelled,
-                          'no_show' => t.noShow,
-                          'missed' => t.missed,
-                          _ => item.statusKey,
-                        },
-                  style: _font(
-                    13,
-                    weight: FontWeight.w700,
-                    color: colors.fg,
-                  ),
-                ),
+                child: Text(switch (item.statusKey) {
+                  'attended' => t.attended,
+                  'cancelled' => t.cancelled,
+                  'no_show' => t.noShow,
+                  'missed' => t.missed,
+                  _ => item.statusKey,
+                }, style: _font(13, weight: FontWeight.w700, color: colors.fg)),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF98A2B3)),
+              const Icon(
+                Icons.calendar_today_outlined,
+                size: 16,
+                color: Color(0xFF98A2B3),
+              ),
               const SizedBox(width: 8),
               Text(
                 '$day · $time',
@@ -108,7 +108,11 @@ class AthleteHistoryListItem extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.place_outlined, size: 16, color: Color(0xFF98A2B3)),
+                const Icon(
+                  Icons.place_outlined,
+                  size: 16,
+                  color: Color(0xFF98A2B3),
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(

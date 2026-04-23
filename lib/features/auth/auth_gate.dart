@@ -39,8 +39,6 @@ class _AuthGateState extends State<AuthGate> {
     }
   }
 
-
-
   Future<Map<String, dynamic>> _loadAccessState() async {
     try {
       final snapshot = await _profileRepo.getMyAccessSnapshot();
@@ -72,11 +70,7 @@ class _AuthGateState extends State<AuthGate> {
 
       final gymId = (profile['gym_id'] ?? '').toString().trim();
       if (gymId.isEmpty) {
-        return {
-          'allowed': true,
-          'title': '',
-          'message': '',
-        };
+        return {'allowed': true, 'title': '', 'message': ''};
       }
 
       if (gym == null) {
@@ -116,16 +110,11 @@ class _AuthGateState extends State<AuthGate> {
         return {
           'allowed': false,
           'title': 'Gym unavailable',
-          'message':
-              'This gym is no longer available on the platform.',
+          'message': 'This gym is no longer available on the platform.',
         };
       }
 
-      return {
-        'allowed': true,
-        'title': '',
-        'message': '',
-      };
+      return {'allowed': true, 'title': '', 'message': ''};
     } catch (_) {
       return {
         'allowed': false,
@@ -188,16 +177,18 @@ class _AuthGateState extends State<AuthGate> {
                   );
                 }
 
-                final accessState = accessSnapshot.data ?? const <String, dynamic>{};
+                final accessState =
+                    accessSnapshot.data ?? const <String, dynamic>{};
                 final canAccess = accessState['allowed'] == true;
 
                 if (!canAccess) {
                   return AccessBlockedScreen(
                     title: (accessState['title'] ?? 'Access unavailable')
                         .toString(),
-                    message: (accessState['message'] ??
-                            'We could not verify your account access.')
-                        .toString(),
+                    message:
+                        (accessState['message'] ??
+                                'We could not verify your account access.')
+                            .toString(),
                     onSignOut: _signOutToLogin,
                   );
                 }

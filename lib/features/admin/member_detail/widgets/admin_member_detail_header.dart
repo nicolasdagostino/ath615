@@ -9,8 +9,9 @@ class AdminMemberDetailHeader extends StatelessWidget {
 
   const AdminMemberDetailHeader({super.key, required this.profile});
 
-  bool _isSpanish(BuildContext context) =>
-      Localizations.localeOf(context).languageCode.toLowerCase().startsWith('es');
+  bool _isSpanish(BuildContext context) => Localizations.localeOf(
+    context,
+  ).languageCode.toLowerCase().startsWith('es');
 
   String _text(BuildContext context, String es, String en) =>
       _isSpanish(context) ? es : en;
@@ -113,11 +114,7 @@ class AdminMemberDetailHeader extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: [
-              _infoChip(
-                Icons.mail_outline_rounded,
-                email,
-                emphasized: true,
-              ),
+              _infoChip(Icons.mail_outline_rounded, email, emphasized: true),
               if (phone != '—') _infoChip(Icons.call_outlined, phone),
               _infoChip(
                 Icons.calendar_today_outlined,
@@ -160,7 +157,9 @@ class AdminMemberDetailHeader extends StatelessWidget {
             style: GoogleFonts.barlowCondensed(
               fontSize: emphasized ? 14 : 13,
               fontWeight: emphasized ? FontWeight.w700 : FontWeight.w600,
-              color: subdued ? const Color(0xFF667085) : const Color(0xFF344054),
+              color: subdued
+                  ? const Color(0xFF667085)
+                  : const Color(0xFF344054),
               height: 1.0,
               letterSpacing: emphasized ? 0 : 0.1,
             ),

@@ -306,8 +306,9 @@ class AdminMemberDetailSheetActions extends StatelessWidget {
   final VoidCallback? onCancel;
   final VoidCallback? onPrimary;
 
-  bool _isSpanish(BuildContext context) =>
-      Localizations.localeOf(context).languageCode.toLowerCase().startsWith('es');
+  bool _isSpanish(BuildContext context) => Localizations.localeOf(
+    context,
+  ).languageCode.toLowerCase().startsWith('es');
 
   String _cancelText(BuildContext context) =>
       _isSpanish(context) ? 'Cancelar' : 'Cancel';

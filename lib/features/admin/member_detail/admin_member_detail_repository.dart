@@ -29,18 +29,13 @@ class AdminMemberDetailRepository {
         .eq('gym_id', gymId);
   }
 
-
-
   Future<Map<String, dynamic>> offboardMember({
     required String memberId,
     String? reason,
   }) async {
     final res = await sb.functions.invoke(
       'admin-offboard-member',
-      body: {
-        'memberId': memberId,
-        'reason': reason,
-      },
+      body: {'memberId': memberId, 'reason': reason},
     );
 
     final payload = res.data;

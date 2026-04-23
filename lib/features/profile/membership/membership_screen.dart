@@ -44,9 +44,7 @@ class _MembershipScreenState extends State<MembershipScreen> {
       plans = await membershipRepo.listPublicPlansForAthlete(gymId);
     }
 
-    payments = await _membershipPaymentsRepo.listMyPayments(
-      memberId: memberId,
-    );
+    payments = await _membershipPaymentsRepo.listMyPayments(memberId: memberId);
 
     return {
       'profile': profile,
@@ -80,9 +78,9 @@ class _MembershipScreenState extends State<MembershipScreen> {
   }
 
   String _txt(String es, String en) {
-    return Localizations.localeOf(context).languageCode
-            .toLowerCase()
-            .startsWith('es')
+    return Localizations.localeOf(
+          context,
+        ).languageCode.toLowerCase().startsWith('es')
         ? es
         : en;
   }
@@ -179,35 +177,32 @@ class _MembershipScreenState extends State<MembershipScreen> {
     }
   }
 
-  void _showToast(
-    String message, {
-    bool isError = false,
-    IconData? icon,
-  }) {
+  void _showToast(String message, {bool isError = false, IconData? icon}) {
     if (!mounted) return;
-    AppToast.show(
-      context,
-      message,
-      isError: isError,
-      icon: icon,
-    );
+    AppToast.show(context, message, isError: isError, icon: icon);
   }
 
   Future<bool> _confirmPlanPurchaseIfNeeded({
     required Map<String, dynamic>? activeMembership,
     required Map<String, dynamic> plan,
   }) async {
-    final currentPlanType =
-        (activeMembership?['plan_type'] ?? '').toString().trim().toLowerCase();
-    final nextPlanType =
-        (plan['plan_type'] ?? '').toString().trim().toLowerCase();
-    final creditsRemaining =
-        (activeMembership?['credits_remaining'] ?? '').toString().trim();
-    final currentPlanName = ((activeMembership?['plan_name'] ??
-                activeMembership?['name'] ??
-                'Plan activo')
-            .toString())
+    final currentPlanType = (activeMembership?['plan_type'] ?? '')
+        .toString()
+        .trim()
+        .toLowerCase();
+    final nextPlanType = (plan['plan_type'] ?? '')
+        .toString()
+        .trim()
+        .toLowerCase();
+    final creditsRemaining = (activeMembership?['credits_remaining'] ?? '')
+        .toString()
         .trim();
+    final currentPlanName =
+        ((activeMembership?['plan_name'] ??
+                    activeMembership?['name'] ??
+                    'Plan activo')
+                .toString())
+            .trim();
     final parsedCredits = int.tryParse(creditsRemaining);
 
     final shouldWarn =
@@ -269,11 +264,7 @@ class _MembershipScreenState extends State<MembershipScreen> {
               ),
               child: Text(
                 _txt('Continuar compra', 'Continue purchase'),
-                style: _font(
-                  14,
-                  weight: FontWeight.w800,
-                  color: Colors.white,
-                ),
+                style: _font(14, weight: FontWeight.w800, color: Colors.white),
               ),
             ),
           ],
@@ -290,7 +281,9 @@ class _MembershipScreenState extends State<MembershipScreen> {
   }) async {
     final memberId = (profile['id'] ?? '').toString().trim();
     final planId = (plan['id'] ?? '').toString().trim();
-    final amount = num.tryParse((plan['price'] ?? '').toString().replaceAll(',', '.'));
+    final amount = num.tryParse(
+      (plan['price'] ?? '').toString().replaceAll(',', '.'),
+    );
 
     final couldNotStartPurchase = _txt(
       'No se pudo iniciar la compra',
@@ -345,10 +338,9 @@ class _MembershipScreenState extends State<MembershipScreen> {
       if (!mounted) return;
       await _refresh();
     } on StripeException catch (e) {
-      final errorMessage =
-          e.error.localizedMessage?.trim().isNotEmpty == true
-              ? e.error.localizedMessage!.trim()
-              : cancelledMessage;
+      final errorMessage = e.error.localizedMessage?.trim().isNotEmpty == true
+          ? e.error.localizedMessage!.trim()
+          : cancelledMessage;
       _showToast(errorMessage);
     } catch (e) {
       final msg = e.toString();
@@ -403,10 +395,9 @@ class _MembershipScreenState extends State<MembershipScreen> {
             ..sort((a, b) {
               final aStatus = (a['payment_status'] ?? '').toString();
               final bStatus = (b['payment_status'] ?? '').toString();
-              final byStatus =
-                  _paymentStatusPriority(aStatus).compareTo(
-                    _paymentStatusPriority(bStatus),
-                  );
+              final byStatus = _paymentStatusPriority(
+                aStatus,
+              ).compareTo(_paymentStatusPriority(bStatus));
               if (byStatus != 0) return byStatus;
 
               final aDate = DateTime.tryParse(
@@ -422,23 +413,26 @@ class _MembershipScreenState extends State<MembershipScreen> {
               return bDate.compareTo(aDate);
             });
 
-          final activePlanName = ((activeMembership?['plan_name'] ??
-                      activeMembership?['name'] ??
-                      '')
-                  .toString())
-              .trim();
+          final activePlanName =
+              ((activeMembership?['plan_name'] ??
+                          activeMembership?['name'] ??
+                          '')
+                      .toString())
+                  .trim();
           final activePlanType = _pretty(
             (activeMembership?['plan_type'] ?? '').toString(),
           );
           final activeBilling = _pretty(
             (activeMembership?['billing_period'] ?? '').toString(),
           );
-          final activePlanId =
-              (activeMembership?['plan_id'] ?? '').toString().trim();
+          final activePlanId = (activeMembership?['plan_id'] ?? '')
+              .toString()
+              .trim();
           final creditsRemaining =
               (activeMembership?['credits_remaining'] ?? '').toString().trim();
-          final endDate =
-              (activeMembership?['end_date'] ?? '').toString().trim();
+          final endDate = (activeMembership?['end_date'] ?? '')
+              .toString()
+              .trim();
 
           bool isCurrentPlan(Map<String, dynamic> plan) {
             final planId = (plan['id'] ?? '').toString().trim();
@@ -448,8 +442,10 @@ class _MembershipScreenState extends State<MembershipScreen> {
               return true;
             }
 
-            final planName =
-                (plan['name'] ?? '').toString().trim().toLowerCase();
+            final planName = (plan['name'] ?? '')
+                .toString()
+                .trim()
+                .toLowerCase();
             final normalizedActivePlanName = activePlanName.toLowerCase();
             if (planName.isNotEmpty &&
                 normalizedActivePlanName.isNotEmpty &&
@@ -505,7 +501,9 @@ class _MembershipScreenState extends State<MembershipScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                activePlanName.isEmpty ? 'Plan' : activePlanName,
+                                activePlanName.isEmpty
+                                    ? 'Plan'
+                                    : activePlanName,
                                 style: _font(
                                   20,
                                   weight: FontWeight.w800,
@@ -567,10 +565,7 @@ class _MembershipScreenState extends State<MembershipScreen> {
                         if (endDate.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text(
-                            _txt(
-                              'Vence: $endDate',
-                              'Expires: $endDate',
-                            ),
+                            _txt('Vence: $endDate', 'Expires: $endDate'),
                             style: _font(
                               13,
                               weight: FontWeight.w600,
@@ -615,9 +610,15 @@ class _MembershipScreenState extends State<MembershipScreen> {
                     }
 
                     final amount = (payment['amount'] ?? '').toString().trim();
-                    final currency = (payment['currency'] ?? '').toString().trim();
-                    final status = (payment['payment_status'] ?? '').toString().trim();
-                    final method = (payment['payment_method'] ?? '').toString().trim();
+                    final currency = (payment['currency'] ?? '')
+                        .toString()
+                        .trim();
+                    final status = (payment['payment_status'] ?? '')
+                        .toString()
+                        .trim();
+                    final method = (payment['payment_method'] ?? '')
+                        .toString()
+                        .trim();
                     final paidAt = (payment['paid_at'] ?? '').toString();
                     final createdAt = (payment['created_at'] ?? '').toString();
                     final notes = (payment['notes'] ?? '').toString().trim();
@@ -658,10 +659,12 @@ class _MembershipScreenState extends State<MembershipScreen> {
                                     ? '—'
                                     : (() {
                                         final value = double.tryParse(amount);
-                                        final formatted = (value != null && value % 1 == 0)
+                                        final formatted =
+                                            (value != null && value % 1 == 0)
                                             ? value.toInt().toString()
                                             : amount;
-                                        final symbol = currency.toUpperCase() == 'EUR'
+                                        final symbol =
+                                            currency.toUpperCase() == 'EUR'
                                             ? '€'
                                             : currency;
                                         return '$formatted $symbol';
@@ -791,17 +794,15 @@ class _MembershipScreenState extends State<MembershipScreen> {
                                     );
                                 if (!confirmed) return;
 
-                                await _buyPlan(
-                                  profile: profile,
-                                  plan: plan,
-                                );
+                                await _buyPlan(profile: profile, plan: plan);
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF111318),
                                 foregroundColor: Colors.white,
                                 elevation: 0,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),
