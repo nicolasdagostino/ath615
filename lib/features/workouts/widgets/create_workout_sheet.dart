@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../../../l10n/app_text.dart';
 import '../../../shared/widgets/input_field.dart';
+import '../../../shared/widgets/app_bottom_sheet.dart';
 
 Future<Map<String, dynamic>?> showCreateWorkoutSheet(
   BuildContext context, {
@@ -197,18 +198,11 @@ Future<Map<String, dynamic>?> showCreateWorkoutSheet(
                         style: font(24, weight: FontWeight.w800),
                       ),
                       const SizedBox(height: 18),
-                      DropdownButtonFormField<String>(
-                        initialValue: selectedProgramId.isEmpty
+                      AppSheetDropdown(
+                        value: selectedProgramId.isEmpty
                             ? null
                             : selectedProgramId,
-                        decoration: InputDecoration(
-                          labelText: t.program,
-                          filled: true,
-                          fillColor: const Color(0xFFF8FAFC),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
+                        label: t.program,
                         items: [
                           ...localPrograms.map(
                             (p) => DropdownMenuItem<String>(
@@ -231,13 +225,16 @@ Future<Map<String, dynamic>?> showCreateWorkoutSheet(
                         maxLines: 8,
                       ),
                       const SizedBox(height: 14),
-                      field(
+                      AppSheetTextField(
                         label: t.isSpanish ? 'Fecha' : 'Date',
                         controller: dateCtrl,
                         hint: 'yyyy-mm-dd',
                         readOnly: true,
                         onTap: () => pickDate(sheetContext),
-                        suffixIcon: const Icon(Icons.calendar_month_rounded),
+                        suffixIcon: const Icon(
+                          Icons.calendar_today_rounded,
+                          size: 18,
+                        ),
                       ),
                       const SizedBox(height: 14),
                       InkWell(
