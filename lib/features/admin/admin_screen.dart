@@ -83,13 +83,7 @@ class _AdminScreenState extends State<AdminScreen> {
   List<Map<String, dynamic>> _workouts = [];
   final Map<String, Map<String, dynamic>?> _memberActiveMembership = {};
 
-  final tabs = const [
-    'Members',
-    'Workouts',
-    'Plans',
-    'Notifications',
-    'Programs',
-  ];
+  final tabs = const ['Plans', 'Notifications'];
   late final List<GlobalKey> _tabChipKeys;
 
   AppStrings get t => context.appText;
