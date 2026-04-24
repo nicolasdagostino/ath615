@@ -1,7 +1,20 @@
 import 'supabase_bootstrap.dart';
 
+class AdminMemberCreateResult {
+  final bool resent;
+
+  const AdminMemberCreateResult({required this.resent});
+
+  factory AdminMemberCreateResult.fromMap(dynamic data) {
+    if (data is Map) {
+      return AdminMemberCreateResult(resent: data['resent'] == true);
+    }
+    return const AdminMemberCreateResult(resent: false);
+  }
+}
+
 class AdminMemberRepository {
-  Future<void> createMember({
+  Future<AdminMemberCreateResult> createMember({
     required String fullName,
     required String email,
     required String role,
@@ -36,5 +49,7 @@ class AdminMemberRepository {
       }
       throw Exception('No se pudo crear el miembro.');
     }
+
+    return AdminMemberCreateResult.fromMap(data);
   }
 }

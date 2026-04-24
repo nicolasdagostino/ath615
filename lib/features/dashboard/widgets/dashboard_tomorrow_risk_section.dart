@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../dashboard_models.dart';
-import 'dashboard_alert_tile.dart';
 import 'dashboard_kpi_card.dart';
 import '../../../l10n/app_text.dart';
 
@@ -91,10 +90,58 @@ class DashboardTomorrowRiskSection extends StatelessWidget {
                       tomorrow.riskClasses[i].needsWorkoutAssignment,
                     );
                   },
-                  child: DashboardAlertTile(
-                    icon: Icons.event_available_outlined,
-                    title: tomorrow.riskClasses[i].title,
-                    subtitle: tomorrow.riskClasses[i].subtitle,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0xFFEAECEF)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF4FB),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.event_available_outlined,
+                            size: 20,
+                            color: Color(0xFF064BB3),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                tomorrow.riskClasses[i].title,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF111318),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                tomorrow.riskClasses[i].subtitle,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF667085),
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 if (i != tomorrow.riskClasses.length - 1)

@@ -62,8 +62,9 @@ class AthleteHistoryRepository {
         final classId = (rawView['id'] ?? '').toString().trim();
         final programName = (rawView['program_name'] ?? '').toString().trim();
         if (classId.isEmpty) continue;
-        if (programName.isEmpty || programName.toLowerCase() == 'null')
+        if (programName.isEmpty || programName.toLowerCase() == 'null') {
           continue;
+        }
         programNamesByClassId[classId] = programName;
       }
     }

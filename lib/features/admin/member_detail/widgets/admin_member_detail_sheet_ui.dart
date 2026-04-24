@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../shared/widgets/primary_button.dart';
-import '../../../../shared/widgets/secondary_button.dart';
+import '../../../../shared/widgets/app_bottom_sheet.dart';
 
 TextStyle memberDetailSheetFont(
   double size, {
@@ -11,9 +9,9 @@ TextStyle memberDetailSheetFont(
   double? height,
   double? letterSpacing,
 }) {
-  return GoogleFonts.barlowCondensed(
-    fontSize: size,
-    fontWeight: weight,
+  return appSheetFont(
+    size,
+    weight: weight,
     color: color,
     height: height,
     letterSpacing: letterSpacing,
@@ -25,50 +23,11 @@ InputDecoration memberDetailSheetInputDecoration(
   String? hint,
   Widget? suffixIcon,
 }) {
-  return InputDecoration(
-    labelText: label,
-    hintText: hint,
-    suffixIcon: suffixIcon,
-    labelStyle: memberDetailSheetFont(
-      14,
-      weight: FontWeight.w600,
-      color: const Color(0xFF475467),
-      letterSpacing: -0.08,
-    ),
-    hintStyle: memberDetailSheetFont(
-      13,
-      weight: FontWeight.w500,
-      color: const Color(0xFF98A2B3),
-      letterSpacing: -0.05,
-    ),
-    filled: true,
-    fillColor: const Color(0xFFF8FAFC),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: const BorderSide(color: Color(0xFFB59B6A), width: 1.2),
-    ),
-    errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: const BorderSide(color: Color(0xFFE11D48), width: 1.1),
-    ),
-    focusedErrorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: const BorderSide(color: Color(0xFFE11D48), width: 1.2),
-    ),
-  );
+  return appSheetInputDecoration(label, hint: hint, suffixIcon: suffixIcon);
 }
 
 TextStyle memberDetailSheetFieldTextStyle() {
-  return memberDetailSheetFont(
+  return appSheetFont(
     14,
     weight: FontWeight.w500,
     color: const Color(0xFF111318),
@@ -92,68 +51,10 @@ class AdminMemberDetailSheetScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          0,
-          16,
-          16 + MediaQuery.of(sheetContext).viewInsets.bottom,
-        ),
-        child: Container(
-          width: double.infinity,
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.88,
-          ),
-          padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF6F7F9),
-            borderRadius: BorderRadius.circular(26),
-          ),
-          child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD7DBE1),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  title,
-                  style: memberDetailSheetFont(
-                    22,
-                    weight: FontWeight.w800,
-                    color: const Color(0xFF111318),
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  subtitle,
-                  style: memberDetailSheetFont(
-                    13,
-                    weight: FontWeight.w500,
-                    color: const Color(0xFF667085),
-                    height: 1.35,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                child,
-              ],
-            ),
-          ),
-        ),
-      ),
+    return AppBottomSheetScaffold(
+      title: title,
+      subtitle: subtitle,
+      child: child,
     );
   }
 }
@@ -188,21 +89,18 @@ class AdminMemberDetailSheetTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return AppSheetTextField(
       controller: controller,
+      label: label,
+      hint: hint,
       keyboardType: keyboardType,
       textInputAction: textInputAction,
       minLines: minLines,
       maxLines: maxLines,
       readOnly: readOnly,
       onTap: onTap,
+      suffixIcon: suffixIcon,
       onTapOutside: onTapOutside,
-      style: memberDetailSheetFieldTextStyle(),
-      decoration: memberDetailSheetInputDecoration(
-        label,
-        hint: hint,
-        suffixIcon: suffixIcon,
-      ),
     );
   }
 }
@@ -223,13 +121,9 @@ class AdminMemberDetailSheetDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<String>(
-      initialValue: value,
-      borderRadius: BorderRadius.circular(16),
-      dropdownColor: Colors.white,
-      iconEnabledColor: const Color(0xFF667085),
-      style: memberDetailSheetFieldTextStyle(),
-      decoration: memberDetailSheetInputDecoration(label),
+    return AppSheetDropdown(
+      value: value,
+      label: label,
       items: items,
       onChanged: onChanged,
     );
@@ -267,7 +161,7 @@ class AdminMemberDetailSheetSwitchCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: memberDetailSheetFont(
+                  style: appSheetFont(
                     14,
                     weight: FontWeight.w700,
                     color: const Color(0xFF111318),
@@ -276,7 +170,7 @@ class AdminMemberDetailSheetSwitchCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: memberDetailSheetFont(
+                  style: appSheetFont(
                     12,
                     weight: FontWeight.w500,
                     color: const Color(0xFF8F96A3),
@@ -324,43 +218,13 @@ class AdminMemberDetailSheetActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: SecondaryButton(
-            text: _cancelText(context),
-            compact: true,
-            radius: 16,
-            textStyle: memberDetailSheetFont(
-              16,
-              weight: FontWeight.w700,
-              color: const Color(0xFF344054),
-              letterSpacing: -0.15,
-            ),
-            onPressed: busy ? null : onCancel,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: PrimaryButton(
-            text: busy ? busyText : primaryText,
-            compact: true,
-            radius: 16,
-            backgroundColor: const Color(0xFFB59B6A),
-            pressedColor: const Color(0xFFA88C59),
-            disabledColor: const Color(0xFFC9C9C9),
-            textColor: Colors.white,
-            textStyle: memberDetailSheetFont(
-              16,
-              weight: FontWeight.w700,
-              color: Colors.white,
-              letterSpacing: -0.15,
-            ),
-            boxShadow: const [],
-            onPressed: busy ? null : onPrimary,
-          ),
-        ),
-      ],
+    return AppSheetActions(
+      busy: busy,
+      primaryText: primaryText,
+      busyText: busyText,
+      cancelText: _cancelText(context),
+      onCancel: onCancel,
+      onPrimary: onPrimary,
     );
   }
 }

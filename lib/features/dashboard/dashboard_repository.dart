@@ -57,11 +57,16 @@ class DashboardRepository {
       coachId: coachId,
     );
     final bookings = await _loaders.loadGymBookings(gymId, coachId: coachId);
-    final todayWorkouts = await _loaders.loadTodayWorkouts(gymId);
+    final payments = await _loaders.loadMembershipPayments(gymId);
+    final memberships = await _loaders.loadMemberships(gymId);
 
     final todayStats = dashboardBuildTodayStats(classesToday, bookings);
     final memberStats = dashboardBuildMemberStats(members);
     final engagementStats = dashboardBuildEngagementStats(members, bookings);
+    final revenueStats = dashboardBuildRevenueStats(
+      payments: payments,
+      memberships: memberships,
+    );
     final performanceStats = dashboardBuildPerformanceStats(
       thisWeekClasses: thisWeekClasses,
       lastWeekClasses: lastWeekClasses,
@@ -73,55 +78,21 @@ class DashboardRepository {
       t,
     );
     final memberActivity = dashboardBuildMemberActivity(members, bookings, t);
-    final alerts = dashboardBuildAlerts(
-      members: members,
-      classesToday: classesToday,
-      bookings: bookings,
-      t: t,
-    );
-    final nextClass = dashboardBuildNextClass(
-      classesToday,
-      classesTomorrow,
-      bookings,
-      t,
-    );
-    final workoutStatus = dashboardBuildWorkoutStatus(
-      classesToday: classesToday,
-      todayWorkouts: todayWorkouts,
-      t: t,
-    );
     final pendingAttendance = dashboardBuildPendingAttendance(bookings);
-    final todayHighlights = dashboardBuildTodayHighlights(
-      members: members,
-      workoutStatus: workoutStatus,
-      t: t,
-    );
-    final milestones = dashboardBuildMilestones(members, bookings, t);
-    final recommendedActions = dashboardBuildRecommendedActions(
-      tomorrow: tomorrowStats,
-      memberActivity: memberActivity,
-      nextClass: nextClass,
-      workoutStatus: workoutStatus,
-      pendingAttendance: pendingAttendance,
-      todayHighlights: todayHighlights,
-      today: todayStats,
-      t: t,
-    );
+    final topClasses = dashboardBuildTopClasses(thisWeekClasses, bookings, t);
+    final lowClasses = dashboardBuildLowClasses(thisWeekClasses, bookings, t);
 
     return DashboardData(
       today: todayStats,
       members: memberStats,
       engagement: engagementStats,
+      revenue: revenueStats,
       performance: performanceStats,
       tomorrow: tomorrowStats,
       memberActivity: memberActivity,
-      alerts: alerts,
-      nextClass: nextClass,
-      workoutStatus: workoutStatus,
       pendingAttendance: pendingAttendance,
-      todayHighlights: todayHighlights,
-      milestones: milestones,
-      recommendedActions: recommendedActions,
+      topClasses: topClasses,
+      lowClasses: lowClasses,
       gymId: gymId,
       isCoachView: currentRole == 'coach',
     );

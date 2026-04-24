@@ -118,13 +118,11 @@ class _BottomNavShellState extends State<BottomNavShell> {
     if (_canSeeDashboard(role)) {
       base.add(
         DashboardScreen(
-          onOpenAdmin: () => _goToAdminTab(initialTabIndex: 0),
-          onOpenAdminClasses: () => _goToAdminTab(initialTabIndex: 1),
-          onOpenAdminMembers: () => _goToAdminTab(initialTabIndex: 3),
+          onOpenAdminMembers: () => _goToAdminTab(initialTabIndex: 0),
           onOpenAdminMemberDetail: (memberId) =>
-              _goToAdminTab(initialTabIndex: 3, initialMemberId: memberId),
+              _goToAdminTab(initialTabIndex: 0, initialMemberId: memberId),
           onOpenAdminClassDetail: (classId, openAssignWorkout) => _goToAdminTab(
-            initialTabIndex: 1,
+            initialTabIndex: 0,
             initialClassId: classId,
             openAssignWorkout: openAssignWorkout,
           ),

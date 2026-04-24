@@ -4,27 +4,20 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'dashboard_models.dart';
 import '../../core/supabase/gym_repository.dart';
+import '../../core/supabase/admin_member_repository.dart';
 import 'dashboard_repository.dart';
-import 'widgets/dashboard_alert_tile.dart';
-import 'widgets/dashboard_alerts_section.dart';
 import 'widgets/dashboard_loading_state.dart';
-import 'widgets/dashboard_member_activity_tile.dart';
+import 'widgets/dashboard_kpi_card.dart';
 import 'widgets/dashboard_member_activity_section.dart';
-import 'widgets/dashboard_morning_overview.dart';
-import 'widgets/dashboard_recommended_actions_section.dart';
 import 'widgets/dashboard_section_header.dart';
 import 'widgets/dashboard_tomorrow_risk_section.dart';
 import '../admin/member_detail/admin_member_detail_screen.dart';
-import '../admin/class_attendance_screen.dart';
 import 'pending_attendance/pending_attendance_screen.dart';
-import 'pending_attendance/pending_attendance_repository.dart';
 import '../../l10n/app_text.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/app_toast.dart';
 
 class DashboardScreen extends StatefulWidget {
-  final VoidCallback? onOpenAdmin;
-  final VoidCallback? onOpenAdminClasses;
   final VoidCallback? onOpenAdminMembers;
   final ValueChanged<String>? onOpenAdminMemberDetail;
   final void Function(String classId, bool openAssignWorkout)?
@@ -32,8 +25,6 @@ class DashboardScreen extends StatefulWidget {
 
   const DashboardScreen({
     super.key,
-    this.onOpenAdmin,
-    this.onOpenAdminClasses,
     this.onOpenAdminMembers,
     this.onOpenAdminMemberDetail,
     this.onOpenAdminClassDetail,
@@ -45,10 +36,9 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final _gymRepository = GymRepository();
+  final _adminMemberRepository = AdminMemberRepository();
   final _repo = DashboardRepository();
-  final _pendingAttendanceRepository = PendingAttendanceRepository();
   final _scrollController = ScrollController();
-  final _todaySectionKey = GlobalKey();
 
   String _dashboardFilter = 'today';
   late Future<DashboardData> _future;
@@ -87,133 +77,164 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await next;
   }
 
-  Future<void> _scrollToToday() async {
-    final context = _todaySectionKey.currentContext;
-    if (context == null) return;
-    await Scrollable.ensureVisible(
-      context,
-      duration: const Duration(milliseconds: 350),
-      curve: Curves.easeInOut,
-      alignment: 0.1,
-    );
+  bool _isValidEmail(String value) {
+    final email = value.trim();
+    return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
   }
 
-  void _showActionMessage(String text) {
-    AppToast.show(context, text, icon: Icons.info_outline_rounded);
-  }
+  Future<void> _showQuickAddMemberSheet() async {
+    final fullNameCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    String? localError;
+    bool saving = false;
 
-  void _showTomorrowRiskSheet(DashboardTomorrowStats tomorrow) {
-    showModalBottomSheet<void>(
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       backgroundColor: const Color(0xFFF7F8FA),
-      builder: (context) {
-        return SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                Text(
-                  context.appText.tomorrowRiskTitle,
-                  style: _sheetTitleStyle(),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  context.appText.tomorrowRiskSheetSubtitle,
-                  style: _subtitleStyle(),
-                ),
-                const SizedBox(height: 16),
-                if (tomorrow.riskClasses.isEmpty)
-                  _emptyPanel(context.appText.tomorrowLooksHealthy)
-                else ...[
-                  for (var i = 0; i < tomorrow.riskClasses.length; i++) ...[
-                    DashboardAlertTile(
-                      icon: Icons.event_busy_outlined,
-                      title: tomorrow.riskClasses[i].title,
-                      subtitle: tomorrow.riskClasses[i].subtitle,
-                    ),
-                    if (i != tomorrow.riskClasses.length - 1)
-                      const SizedBox(height: 10),
-                  ],
-                ],
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    if (widget.onOpenAdminClasses != null) {
-                      widget.onOpenAdminClasses!.call();
-                    } else {
-                      _showActionMessage(
-                        context.appText.classesNavigationUnavailable,
-                      );
-                    }
-                  },
-                  child: Text(context.appText.openClasses),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            Future<void> submit() async {
+              final fullName = fullNameCtrl.text.trim();
+              final email = emailCtrl.text.trim().toLowerCase();
 
-  void _showInactiveMembersSheet(List<DashboardMemberActivityItem> items) {
-    final atRisk = items.where((e) => e.isAtRisk).toList();
+              if (fullName.isEmpty) {
+                setModalState(() {
+                  localError = context.appText.fullNameRequiredError;
+                });
+                return;
+              }
 
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      backgroundColor: const Color(0xFFF7F8FA),
-      builder: (context) {
-        return SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                Text(
-                  context.appText.inactiveMembersTitle,
-                  style: _sheetTitleStyle(),
+              if (!_isValidEmail(email)) {
+                setModalState(() {
+                  localError = context.appText.validEmailRequiredError;
+                });
+                return;
+              }
+
+              setModalState(() {
+                localError = null;
+                saving = true;
+              });
+
+              try {
+                final parentContext = this.context;
+
+                await _adminMemberRepository.createMember(
+                  fullName: fullName,
+                  email: email,
+                  role: 'athlete',
+                );
+
+                if (!mounted) return;
+                Navigator.of(sheetContext).pop();
+                AppToast.show(
+                  parentContext,
+                  parentContext.appText.memberCreatedInvitationSent,
+                );
+                await _refresh();
+              } catch (e) {
+                setModalState(() {
+                  localError = e
+                      .toString()
+                      .replaceFirst('Exception: ', '')
+                      .trim();
+                  saving = false;
+                });
+              }
+            }
+
+            final bottomInset = MediaQuery.of(sheetContext).viewInsets.bottom;
+
+            return SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomInset),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _uiText('Añadir miembro', 'Add member'),
+                        style: _titleStyle().copyWith(fontSize: 28),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _uiText(
+                          'Alta rápida con nombre y email. La invitación se enviará automáticamente.',
+                          'Quick signup with name and email. The invitation will be sent automatically.',
+                        ),
+                        style: _subtitleStyle(),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: fullNameCtrl,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: InputDecoration(
+                          labelText: _uiText('Nombre completo', 'Full name'),
+                          hintText: _uiText('John Doe', 'John Doe'),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: emailCtrl,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          labelText: _uiText('Email', 'Email'),
+                          hintText: 'john@email.com',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        onSubmitted: (_) => submit(),
+                      ),
+                      if (localError != null &&
+                          localError!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          localError!,
+                          style: const TextStyle(
+                            color: Color(0xFFB42318),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: saving
+                                  ? null
+                                  : () => Navigator.of(sheetContext).pop(),
+                              child: Text(_uiText('Cancelar', 'Cancel')),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: FilledButton(
+                              onPressed: saving ? null : submit,
+                              child: Text(
+                                saving
+                                    ? _uiText('Creando...', 'Creating...')
+                                    : _uiText('Crear miembro', 'Create member'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  context.appText.inactiveMembersSubtitle,
-                  style: _subtitleStyle(),
-                ),
-                const SizedBox(height: 16),
-                if (atRisk.isEmpty)
-                  _emptyPanel(context.appText.noInactiveMembers)
-                else ...[
-                  for (var i = 0; i < atRisk.length; i++) ...[
-                    DashboardMemberActivityTile(
-                      name: atRisk[i].name,
-                      subtitle: atRisk[i].subtitle,
-                      isAtRisk: atRisk[i].isAtRisk,
-                    ),
-                    if (i != atRisk.length - 1) const SizedBox(height: 10),
-                  ],
-                ],
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    if (widget.onOpenAdminMembers != null) {
-                      widget.onOpenAdminMembers!.call();
-                    } else {
-                      _showActionMessage(context.appText.openMembers);
-                    }
-                  },
-                  child: Text(context.appText.openMembers),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
@@ -357,15 +378,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  TextStyle _sheetTitleStyle() {
-    return GoogleFonts.barlowCondensed(
-      fontSize: 28,
-      fontWeight: FontWeight.w700,
-      color: const Color(0xFF111318),
-      height: 1.0,
-    );
-  }
-
   TextStyle _subtitleStyle() {
     return GoogleFonts.inter(
       fontSize: 14,
@@ -394,48 +406,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         border: Border.all(color: const Color(0xFFEAECEF), width: 1),
       ),
       child: Text(text, style: _subtitleStyle()),
-    );
-  }
-
-  IconData _iconForActionType(String type) {
-    switch (type) {
-      case 'tomorrow_risk':
-        return Icons.campaign_outlined;
-      case 'inactive_members':
-        return Icons.people_alt_outlined;
-      case 'pending_attendance':
-        return Icons.fact_check_outlined;
-      case 'next_class_workout':
-      case 'today_workout_missing':
-        return Icons.fitness_center_outlined;
-      case 'today_bookings':
-        return Icons.today_outlined;
-      case 'birthday':
-        return Icons.cake_outlined;
-      case 'open_admin':
-      default:
-        return Icons.admin_panel_settings_outlined;
-    }
-  }
-
-  IconData _iconForType(String type) {
-    switch (type) {
-      case 'birthday':
-        return Icons.cake_outlined;
-      case 'inactive_member':
-        return Icons.person_search_outlined;
-      case 'low_occupancy':
-        return Icons.warning_amber_rounded;
-      default:
-        return Icons.info_outline;
-    }
-  }
-
-  Widget _softDivider() {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      height: 1,
-      color: const Color(0xFFEAECEF),
     );
   }
 
@@ -503,201 +473,198 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        KeyedSubtree(
-          key: _todaySectionKey,
-          child: DashboardMorningOverview(
-            nextClass: data.nextClass,
-            highlights: data.todayHighlights,
-            milestones: data.milestones,
-            isCoachView: data.isCoachView,
-            pendingAttendanceCount: data.pendingAttendance.pendingClasses,
-            onNextClassTap: () async {
-              final classId = data.nextClass?.id.trim();
-              if (classId == null || classId.isEmpty) return;
-
-              if (data.isCoachView &&
-                  data.pendingAttendance.pendingClasses > 0) {
-                try {
-                  final groups = await _pendingAttendanceRepository
-                      .loadPendingAttendance(gymId: data.gymId);
-
-                  final pendingClasses = <dynamic>[
-                    for (final group in groups) ...group.classes,
-                  ];
-
-                  if (!mounted) return;
-
-                  if (pendingClasses.length == 1) {
-                    final classItem = pendingClasses.first.classItem;
-                    await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            ClassAttendanceScreen(classItem: classItem),
-                      ),
-                    );
-                  } else {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            PendingAttendanceScreen(gymId: data.gymId),
-                      ),
-                    );
-                  }
-
-                  await _refresh();
-                  return;
-                } catch (_) {
-                  if (!mounted) return;
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          PendingAttendanceScreen(gymId: data.gymId),
-                    ),
-                  );
-                  await _refresh();
-                  return;
-                }
-              }
-
-              if (widget.onOpenAdminClassDetail != null) {
-                widget.onOpenAdminClassDetail!.call(
-                  classId,
-                  !(data.nextClass?.hasWorkout ?? true),
-                );
-              } else if (widget.onOpenAdminClasses != null) {
-                widget.onOpenAdminClasses!.call();
-              }
-            },
+        DashboardSectionHeader(
+          title: _uiText('Hoy', 'Today'),
+          subtitle: _uiText(
+            'Métricas principales del gimnasio hoy.',
+            'Main gym metrics for today.',
+          ),
+        ),
+        const SizedBox(height: 14),
+        _twoCards(
+          left: DashboardKpiCard(
+            label: _uiText('CLASES HOY', 'CLASSES TODAY'),
+            value: data.today.classesToday.toString(),
+            helper: _uiText('Programadas hoy', 'Scheduled today'),
+          ),
+          right: DashboardKpiCard(
+            label: _uiText('RESERVAS HOY', 'BOOKINGS TODAY'),
+            value: data.today.bookingsToday.toString(),
+            helper: _uiText('Reservas activas', 'Active bookings'),
+          ),
+        ),
+        const SizedBox(height: 12),
+        _twoCards(
+          left: DashboardKpiCard(
+            label: _uiText('ASISTENCIA', 'ATTENDANCE'),
+            value: data.today.attendanceToday.toString(),
+            helper: _uiText('Check-ins marcados', 'Marked check-ins'),
+          ),
+          right: DashboardKpiCard(
+            label: _uiText('CLASES LLENAS', 'FULL CLASSES'),
+            value: data.today.fullClassesToday.toString(),
+            helper: _uiText('Sin cupos libres', 'No free spots'),
           ),
         ),
         const SizedBox(height: 28),
-        _softDivider(),
-        const SizedBox(height: 22),
         DashboardSectionHeader(
-          title: data.isCoachView
-              ? _uiText('Attendance', 'Attendance')
-              : context.appText.recommendedActionsTitle,
-          subtitle: data.isCoachView
-              ? _uiText(
-                  'Review classes that still need attendance.',
-                  'Review classes that still need attendance.',
-                )
-              : context.appText.recommendedActionsSubtitle,
+          title: _uiText('Ingresos y membresías', 'Revenue and memberships'),
+          subtitle: _uiText(
+            'Resumen comercial del mes en curso.',
+            'Commercial summary for the current month.',
+          ),
         ),
         const SizedBox(height: 14),
-        DashboardRecommendedActionsSection(
-          actions: data.isCoachView
-              ? data.recommendedActions
-                    .where((a) => a.type == 'pending_attendance')
-                    .toList()
-              : data.recommendedActions,
-          iconForActionType: _iconForActionType,
-          onActionTap: (action) async {
-            switch (action.type) {
-              case 'tomorrow_risk':
-                _showTomorrowRiskSheet(data.tomorrow);
-                break;
-              case 'inactive_members':
-                _showInactiveMembersSheet(data.memberActivity);
-                break;
-              case 'pending_attendance':
-                await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => PendingAttendanceScreen(gymId: data.gymId),
-                  ),
-                );
-                await _refresh();
-                break;
-              case 'next_class_workout':
-                final classId = data.nextClass?.id.trim();
-                if (classId != null &&
-                    classId.isNotEmpty &&
-                    widget.onOpenAdminClassDetail != null) {
-                  widget.onOpenAdminClassDetail!.call(classId, true);
-                } else if (widget.onOpenAdminClasses != null) {
-                  widget.onOpenAdminClasses!.call();
-                } else {
-                  _showActionMessage(
-                    context.appText.classesNavigationUnavailable,
-                  );
-                }
-                break;
-              case 'today_workout_missing':
-              case 'today_bookings':
-                await _scrollToToday();
-                if (!mounted) return;
-                final classesNavigationUnavailable =
-                    context.appText.classesNavigationUnavailable;
-                if (widget.onOpenAdminClasses != null) {
-                  widget.onOpenAdminClasses!.call();
-                } else {
-                  _showActionMessage(classesNavigationUnavailable);
-                }
-                break;
-              case 'birthday':
-                _showActionMessage(
-                  context.appText.reviewHighlightsAndCongratulate,
-                );
-                await _scrollToToday();
-                break;
-              case 'open_admin':
-              default:
-                if (widget.onOpenAdmin != null) {
-                  widget.onOpenAdmin!.call();
-                } else {
-                  _showActionMessage(
-                    context.appText.adminNavigationUnavailable,
-                  );
-                }
-                break;
-            }
-          },
+        _twoCards(
+          left: DashboardKpiCard(
+            label: _uiText('INGRESOS MES', 'MONTH REVENUE'),
+            value: data.revenue.revenueThisMonth.toStringAsFixed(0),
+            helper: _uiText(
+              'Pagos del mes: ${data.revenue.paymentsThisMonth}',
+              'Payments this month: ${data.revenue.paymentsThisMonth}',
+            ),
+          ),
+          right: DashboardKpiCard(
+            label: _uiText('MEMBRESÍAS ACTIVAS', 'ACTIVE MEMBERSHIPS'),
+            value: data.revenue.activeMemberships.toString(),
+            helper: _uiText(
+              'Vencidas: ${data.revenue.expiredMemberships}',
+              'Expired: ${data.revenue.expiredMemberships}',
+            ),
+          ),
         ),
-        if (!data.isCoachView) ...[
-          const SizedBox(height: 28),
-          _softDivider(),
-          const SizedBox(height: 22),
-          DashboardSectionHeader(
-            title: context.appText.alertsTitle,
-            subtitle: context.appText.alertsSubtitle,
+        const SizedBox(height: 28),
+        DashboardSectionHeader(
+          title: _uiText('Rendimiento semanal', 'Weekly performance'),
+          subtitle: _uiText(
+            'Comparación rápida contra la semana pasada.',
+            'Quick comparison versus last week.',
           ),
-          const SizedBox(height: 14),
-          DashboardAlertsSection(
-            alerts: data.alerts,
-            iconForType: _iconForType,
-            emptyPanel: _emptyPanel,
+        ),
+        const SizedBox(height: 14),
+        _twoCards(
+          left: DashboardKpiCard(
+            label: _uiText('RESERVAS SEMANA', 'WEEK BOOKINGS'),
+            value: data.performance.bookingsThisWeek.toString(),
+            helper: _uiText(
+              'Semana pasada: ${data.performance.bookingsLastWeek}',
+              'Last week: ${data.performance.bookingsLastWeek}',
+            ),
           ),
-          const SizedBox(height: 28),
-          _softDivider(),
-          const SizedBox(height: 22),
-          DashboardSectionHeader(
-            title: context.appText.tomorrowRiskTitle,
-            subtitle: context.appText.tomorrowRiskSubtitle,
+          right: DashboardKpiCard(
+            label: _uiText('OCUPACIÓN SEM.', 'WEEK OCCUPANCY'),
+            value:
+                '${data.performance.occupancyRateThisWeek.toStringAsFixed(0)}%',
+            helper: _uiText(
+              'Semana pasada: ${data.performance.occupancyRateLastWeek.toStringAsFixed(0)}%',
+              'Last week: ${data.performance.occupancyRateLastWeek.toStringAsFixed(0)}%',
+            ),
           ),
-          const SizedBox(height: 14),
-          DashboardTomorrowRiskSection(
-            tomorrow: data.tomorrow,
-            emptyPanel: _emptyPanel,
-            twoCards: _twoCards,
-            onClassTap: (classId, needsWorkoutAssignment) {
-              if (widget.onOpenAdminClassDetail != null) {
-                widget.onOpenAdminClassDetail!.call(
-                  classId,
-                  needsWorkoutAssignment,
-                );
-              } else if (widget.onOpenAdminClasses != null) {
-                widget.onOpenAdminClasses!.call();
-              } else {
-                _showActionMessage(
-                  context.appText.classesNavigationUnavailable,
-                );
-              }
-            },
-            onUnavailable: () {
-              _showActionMessage(context.appText.classDetailUnavailable);
-            },
+        ),
+        const SizedBox(height: 28),
+        DashboardSectionHeader(
+          title: _uiText('Clases con más demanda', 'Top demand classes'),
+          subtitle: _uiText(
+            'Las sesiones que mejor están funcionando esta semana.',
+            'The best performing sessions this week.',
           ),
-        ],
+        ),
+        const SizedBox(height: 14),
+        if (data.topClasses.isEmpty)
+          _emptyPanel(
+            _uiText('No hay clases para analizar.', 'No classes to analyze.'),
+          )
+        else
+          ...data.topClasses.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: AppCard(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.title,
+                            style: GoogleFonts.barlowCondensed(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF111318),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(item.subtitle, style: _subtitleStyle()),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      '${item.occupancyRate.toStringAsFixed(0)}%',
+                      style: GoogleFonts.barlowCondensed(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF111318),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        const SizedBox(height: 18),
+        DashboardSectionHeader(
+          title: _uiText('Clases más flojas', 'Lowest demand classes'),
+          subtitle: _uiText(
+            'Las sesiones que quizás debas revisar, mover o empujar.',
+            'Sessions you may want to review, move, or promote.',
+          ),
+        ),
+        const SizedBox(height: 14),
+        if (data.lowClasses.isEmpty)
+          _emptyPanel(
+            _uiText('No hay clases para analizar.', 'No classes to analyze.'),
+          )
+        else
+          ...data.lowClasses.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: AppCard(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.title,
+                            style: GoogleFonts.barlowCondensed(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF111318),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(item.subtitle, style: _subtitleStyle()),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      '${item.occupancyRate.toStringAsFixed(0)}%',
+                      style: GoogleFonts.barlowCondensed(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF111318),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -707,15 +674,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DashboardSectionHeader(
-          title: data.isCoachView
-              ? _uiText('Tomorrow', 'Tomorrow')
-              : context.appText.tomorrowRiskTitle,
+          title: _uiText('Mañana', 'Tomorrow'),
           subtitle: data.isCoachView
               ? _uiText(
                   'Your upcoming classes for tomorrow.',
                   'Your upcoming classes for tomorrow.',
                 )
-              : context.appText.tomorrowRiskSubtitle,
+              : _uiText(
+                  'Demand and risk for tomorrow\'s schedule.',
+                  'Demand and risk for tomorrow\'s schedule.',
+                ),
         ),
         const SizedBox(height: 14),
         DashboardTomorrowRiskSection(
@@ -730,14 +698,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 classId,
                 needsWorkoutAssignment,
               );
-            } else if (widget.onOpenAdminClasses != null) {
-              widget.onOpenAdminClasses!.call();
             } else {
-              _showActionMessage(context.appText.classesNavigationUnavailable);
+              AppToast.show(
+                context,
+                context.appText.classesNavigationUnavailable,
+                icon: Icons.info_outline_rounded,
+              );
             }
           },
           onUnavailable: () {
-            _showActionMessage(context.appText.classDetailUnavailable);
+            AppToast.show(
+              context,
+              context.appText.classDetailUnavailable,
+              icon: Icons.info_outline_rounded,
+            );
           },
         ),
       ],
@@ -749,10 +723,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DashboardSectionHeader(
-          title: _uiText('Attendance', 'Attendance'),
+          title: _uiText('Asistencia', 'Attendance'),
           subtitle: _uiText(
             'Open pending classes and review attendance.',
             'Open pending classes and review attendance.',
+          ),
+        ),
+        const SizedBox(height: 14),
+        _twoCards(
+          left: DashboardKpiCard(
+            label: _uiText('Clases pendientes', 'Pending classes'),
+            value: data.pendingAttendance.pendingClasses.toString(),
+            helper: _uiText(
+              'Past classes waiting for review.',
+              'Past classes waiting for review.',
+            ),
+          ),
+          right: DashboardKpiCard(
+            label: _uiText('Reservas pendientes', 'Pending bookings'),
+            value: data.pendingAttendance.pendingBookings.toString(),
+            helper: _uiText(
+              'Booked spots not reviewed yet.',
+              'Booked spots not reviewed yet.',
+            ),
           ),
         ),
         const SizedBox(height: 14),
@@ -763,20 +756,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Text(
                 data.pendingAttendance.pendingClasses > 0
-                    ? _uiText('Pending attendance', 'Pending attendance')
-                    : _uiText('All caught up', 'All caught up'),
+                    ? _uiText('Listo para revisar', 'Ready to review')
+                    : _uiText('Todo al día', 'All caught up'),
                 style: _titleStyle().copyWith(fontSize: 24),
               ),
               const SizedBox(height: 6),
               Text(
                 data.pendingAttendance.pendingClasses > 0
                     ? _uiText(
-                        '${data.pendingAttendance.pendingClasses} classes still need review.',
-                        '${data.pendingAttendance.pendingClasses} classes still need review.',
+                        '${data.pendingAttendance.pendingClasses} classes still need attendance.',
+                        '${data.pendingAttendance.pendingClasses} classes still need attendance.',
                       )
                     : _uiText(
-                        'There are no past classes waiting for attendance review.',
-                        'There are no past classes waiting for attendance review.',
+                        'There are no classes waiting for attendance review.',
+                        'There are no classes waiting for attendance review.',
                       ),
                 style: _subtitleStyle(),
               ),
@@ -791,7 +784,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   );
                   await _refresh();
                 },
-                child: Text(_uiText('Open attendance', 'Open attendance')),
+                child: Text(_uiText('Abrir asistencia', 'Open attendance')),
               ),
             ],
           ),
@@ -805,8 +798,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DashboardSectionHeader(
-          title: context.appText.membersActivityTitle,
-          subtitle: context.appText.membersActivitySubtitle,
+          title: _uiText('Centro de miembros', 'Member center'),
+          subtitle: _uiText(
+            'Gestiona altas, seguimiento y miembros con riesgo.',
+            'Manage signups, follow-up, and at-risk members.',
+          ),
+        ),
+        const SizedBox(height: 14),
+        AppCard(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _uiText('Acciones rápidas', 'Quick actions'),
+                style: _titleStyle().copyWith(fontSize: 24),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                _uiText(
+                  'Da de alta nuevos atletas o abre la gestión completa de miembros.',
+                  'Create new athletes or open full member management.',
+                ),
+                style: _subtitleStyle(),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () async {
+                        await _showQuickAddMemberSheet();
+                      },
+                      icon: const Icon(Icons.person_add_alt_1_rounded),
+                      label: Text(_uiText('Añadir', 'Add member')),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        if (widget.onOpenAdminMembers != null) {
+                          widget.onOpenAdminMembers!.call();
+                          return;
+                        }
+                        AppToast.show(
+                          context,
+                          _uiText(
+                            'La navegación de miembros no está disponible.',
+                            'Members navigation is not available.',
+                          ),
+                          icon: Icons.info_outline_rounded,
+                        );
+                      },
+                      icon: const Icon(Icons.manage_accounts_outlined),
+                      label: Text(_uiText('Gestionar', 'Manage')),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        DashboardSectionHeader(
+          title: _uiText('Miembros a revisar', 'Members to review'),
+          subtitle: _uiText(
+            'Acceso rápido a personas que pueden necesitar seguimiento.',
+            'Quick access to people who may need follow-up.',
+          ),
         ),
         const SizedBox(height: 14),
         DashboardMemberActivitySection(
@@ -835,8 +895,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
             await _refresh();
           },
           onUnavailable: () {
-            _showActionMessage(context.appText.memberDetailUnavailable);
+            AppToast.show(
+              context,
+              context.appText.memberDetailUnavailable,
+              icon: Icons.info_outline_rounded,
+            );
           },
+        ),
+        const SizedBox(height: 24),
+        DashboardSectionHeader(
+          title: _uiText('Estado de miembros', 'Member health'),
+          subtitle: _uiText(
+            'Resumen rápido de crecimiento y riesgo.',
+            'Quick summary of growth and risk.',
+          ),
+        ),
+        const SizedBox(height: 14),
+        _twoCards(
+          left: DashboardKpiCard(
+            label: _uiText('Miembros activos', 'Active members'),
+            value: data.members.activeMembers.toString(),
+            helper: _uiText(
+              'Actualmente activos en el gimnasio.',
+              'Currently active in the gym.',
+            ),
+          ),
+          right: DashboardKpiCard(
+            label: _uiText('Nuevos este mes', 'New this month'),
+            value: data.members.newMembersThisMonth.toString(),
+            helper: _uiText(
+              'Perfiles añadidos este mes.',
+              'Profiles added this month.',
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        _twoCards(
+          left: DashboardKpiCard(
+            label: _uiText('Inactivos 7d', 'Inactive 7d'),
+            value: data.engagement.inactive7Days.toString(),
+            helper: _uiText(
+              'Sin actividad reciente.',
+              'Without recent activity.',
+            ),
+          ),
+          right: DashboardKpiCard(
+            label: _uiText('Inactivos 14d', 'Inactive 14d'),
+            value: data.engagement.inactive14Days.toString(),
+            helper: _uiText('Casos con más riesgo.', 'Higher-risk cases.'),
+          ),
         ),
       ],
     );

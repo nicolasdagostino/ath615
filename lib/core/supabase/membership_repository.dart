@@ -158,8 +158,9 @@ class MembershipRepository {
       payload['end_date'] = endDate.trim().isEmpty ? null : endDate.trim();
     }
     if (autoRenew != null) payload['auto_renew'] = autoRenew;
-    if (creditsRemaining != null)
+    if (creditsRemaining != null) {
       payload['credits_remaining'] = creditsRemaining;
+    }
     if (classesUsedCurrentPeriod != null) {
       payload['classes_used_current_period'] = classesUsedCurrentPeriod;
     }

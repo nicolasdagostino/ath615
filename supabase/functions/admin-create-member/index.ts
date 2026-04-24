@@ -117,10 +117,32 @@ Deno.serve(async (req) => {
     )
 
     if (alreadyExists) {
+      // reenviar acceso
+      const { error: resetError } =
+        await adminClient.auth.admin.generateLink({
+          type: 'recovery',
+          email,
+          options: {
+            redirectTo: 'athletelab://auth',
+          },
+        })
+    
+      if (resetError) {
+        return new Response(
+          JSON.stringify({ error: resetError.message }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } },
+        )
+      }
+    
       return new Response(
-        JSON.stringify({ error: 'Ya existe un usuario con ese email' }),
+        JSON.stringify({
+          ok: true,
+          invited: false,
+          resent: true,
+          email,
+        }),
         {
-          status: 409,
+          status: 200,
           headers: { 'Content-Type': 'application/json' },
         },
       )

@@ -3,10 +3,9 @@ part of 'admin_screen.dart';
 extension _AdminScreenShell on _AdminScreenState {
   Widget _currentAdminTab() {
     if (tabs[tabIndex] == 'Members') return _membersTab();
-    if (tabs[tabIndex] == 'Workouts') return _workoutsTab();
     if (tabs[tabIndex] == 'Plans') return _plansTab();
     if (tabs[tabIndex] == 'Notifications') return const AdminNotificationsTab();
-    if (tabs[tabIndex] == 'Programs') return _programsTab();
+
     return const SizedBox.shrink();
   }
 

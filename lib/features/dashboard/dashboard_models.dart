@@ -3,12 +3,14 @@ class DashboardTodayStats {
   final int bookingsToday;
   final int attendanceToday;
   final int fullClassesToday;
+  final double occupancyRate;
 
   const DashboardTodayStats({
     required this.classesToday,
     required this.bookingsToday,
     required this.attendanceToday,
     required this.fullClassesToday,
+    required this.occupancyRate,
   });
 }
 
@@ -19,6 +21,20 @@ class DashboardMemberStats {
   const DashboardMemberStats({
     required this.activeMembers,
     required this.newMembersThisMonth,
+  });
+}
+
+class DashboardRevenueStats {
+  final double revenueThisMonth;
+  final int paymentsThisMonth;
+  final int activeMemberships;
+  final int expiredMemberships;
+
+  const DashboardRevenueStats({
+    required this.revenueThisMonth,
+    required this.paymentsThisMonth,
+    required this.activeMemberships,
+    required this.expiredMemberships,
   });
 }
 
@@ -39,6 +55,8 @@ class DashboardPerformanceStats {
   final double attendanceRateLastWeek;
   final double avgAthletesPerClass;
   final double avgAthletesPerClassLastWeek;
+  final double occupancyRateThisWeek;
+  final double occupancyRateLastWeek;
 
   const DashboardPerformanceStats({
     required this.bookingsThisWeek,
@@ -47,6 +65,8 @@ class DashboardPerformanceStats {
     required this.attendanceRateLastWeek,
     required this.avgAthletesPerClass,
     required this.avgAthletesPerClassLastWeek,
+    required this.occupancyRateThisWeek,
+    required this.occupancyRateLastWeek,
   });
 }
 
@@ -92,54 +112,6 @@ class DashboardMemberActivityItem {
   });
 }
 
-class DashboardAlertItem {
-  final String id;
-  final String type;
-  final String title;
-  final String subtitle;
-  final int priority;
-
-  const DashboardAlertItem({
-    required this.id,
-    required this.type,
-    required this.title,
-    required this.subtitle,
-    required this.priority,
-  });
-}
-
-class DashboardNextClassItem {
-  final String id;
-  final String title;
-  final String subtitle;
-  final String occupancyLabel;
-  final bool hasWorkout;
-  final bool isToday;
-
-  const DashboardNextClassItem({
-    required this.id,
-    required this.title,
-    required this.subtitle,
-    required this.occupancyLabel,
-    required this.hasWorkout,
-    required this.isToday,
-  });
-}
-
-class DashboardWorkoutStatus {
-  final bool hasWorkoutToday;
-  final int workoutsToday;
-  final int classesMissingWorkoutToday;
-  final String summary;
-
-  const DashboardWorkoutStatus({
-    required this.hasWorkoutToday,
-    required this.workoutsToday,
-    required this.classesMissingWorkoutToday,
-    required this.summary,
-  });
-}
-
 class DashboardPendingAttendanceStats {
   final int pendingClasses;
   final int pendingBookings;
@@ -150,51 +122,23 @@ class DashboardPendingAttendanceStats {
   });
 }
 
-class DashboardTodayHighlightItem {
+class DashboardClassDemandItem {
   final String id;
   final String title;
   final String subtitle;
-  final String type;
+  final int booked;
+  final int capacity;
+  final double occupancyRate;
+  final bool isLow;
 
-  const DashboardTodayHighlightItem({
+  const DashboardClassDemandItem({
     required this.id,
     required this.title,
     required this.subtitle,
-    required this.type,
-  });
-}
-
-class DashboardMilestoneItem {
-  final String id;
-  final String name;
-  final String subtitle;
-  final int classesCount;
-  final int target;
-  final bool reached;
-
-  const DashboardMilestoneItem({
-    required this.id,
-    required this.name,
-    required this.subtitle,
-    required this.classesCount,
-    required this.target,
-    required this.reached,
-  });
-}
-
-class DashboardRecommendedAction {
-  final String id;
-  final String type;
-  final String title;
-  final String subtitle;
-  final int priority;
-
-  const DashboardRecommendedAction({
-    required this.id,
-    required this.type,
-    required this.title,
-    required this.subtitle,
-    required this.priority,
+    required this.booked,
+    required this.capacity,
+    required this.occupancyRate,
+    required this.isLow,
   });
 }
 
@@ -202,16 +146,13 @@ class DashboardData {
   final DashboardTodayStats today;
   final DashboardMemberStats members;
   final DashboardEngagementStats engagement;
+  final DashboardRevenueStats revenue;
   final DashboardPerformanceStats performance;
   final DashboardTomorrowStats tomorrow;
   final List<DashboardMemberActivityItem> memberActivity;
-  final List<DashboardAlertItem> alerts;
-  final DashboardNextClassItem? nextClass;
-  final DashboardWorkoutStatus workoutStatus;
   final DashboardPendingAttendanceStats pendingAttendance;
-  final List<DashboardTodayHighlightItem> todayHighlights;
-  final List<DashboardMilestoneItem> milestones;
-  final List<DashboardRecommendedAction> recommendedActions;
+  final List<DashboardClassDemandItem> topClasses;
+  final List<DashboardClassDemandItem> lowClasses;
   final String? gymId;
   final bool isCoachView;
 
@@ -219,16 +160,13 @@ class DashboardData {
     required this.today,
     required this.members,
     required this.engagement,
+    required this.revenue,
     required this.performance,
     required this.tomorrow,
     required this.memberActivity,
-    required this.alerts,
-    required this.nextClass,
-    required this.workoutStatus,
     required this.pendingAttendance,
-    required this.todayHighlights,
-    required this.milestones,
-    required this.recommendedActions,
+    required this.topClasses,
+    required this.lowClasses,
     required this.gymId,
     required this.isCoachView,
   });

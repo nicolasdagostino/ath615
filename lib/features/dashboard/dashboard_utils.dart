@@ -9,11 +9,13 @@ class DashboardWeekPerformance {
   final int bookings;
   final double attendanceRate;
   final double avgAthletesPerClass;
+  final double occupancyRate;
 
   const DashboardWeekPerformance({
     required this.bookings,
     required this.attendanceRate,
     required this.avgAthletesPerClass,
+    required this.occupancyRate,
   });
 }
 

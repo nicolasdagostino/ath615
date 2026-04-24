@@ -1,6 +1,4 @@
 import 'widgets/members_tab.dart';
-import 'widgets/programs_tab.dart';
-import 'widgets/workouts_tab.dart';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -28,17 +26,13 @@ import '../../shared/widgets/primary_button.dart';
 import '../../shared/widgets/secondary_button.dart';
 import 'class_attendance_screen.dart';
 import '../../shared/widgets/app_toast.dart';
-part 'admin_program_modal.dart';
-part 'admin_workout_modal.dart';
 part 'admin_plan_actions.dart';
 part 'admin_plan_modal.dart';
 part 'admin_gym_modal.dart';
 part 'admin_screen_shell.dart';
 
 part 'admin_members_tab.dart';
-part 'admin_workouts_tab.dart';
 part 'admin_plans_tab.dart';
-part 'admin_programs_tab.dart';
 
 class AdminScreen extends StatefulWidget {
   final int initialTabIndex;
@@ -1388,18 +1382,6 @@ class _AdminScreenState extends State<AdminScreen> {
                       ),
                       const SizedBox(height: 10),
                       actionTile(
-                        icon: Icons.edit_rounded,
-                        title: t.editWorkoutTitle,
-                        subtitle: t.editWorkoutActionSubtitle,
-                        iconBg: const Color(0xFFF7F3EA),
-                        iconColor: const Color(0xFFB59B6A),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _showWorkoutModal(item: item);
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      actionTile(
                         icon: Icons.delete_outline_rounded,
                         title: t.deleteWorkoutTitle,
                         subtitle: t.deleteWorkoutActionSubtitle,
@@ -1884,18 +1866,6 @@ class _AdminScreenState extends State<AdminScreen> {
                           weight: FontWeight.w700,
                           color: const Color(0xFF8F96A3),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      actionTile(
-                        icon: Icons.edit_rounded,
-                        title: t.editProgramTitle,
-                        subtitle: t.editProgramActionSubtitle,
-                        iconBg: const Color(0xFFF7F3EA),
-                        iconColor: const Color(0xFFB59B6A),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _showProgramModal(item: item);
-                        },
                       ),
                       const SizedBox(height: 10),
                       actionTile(

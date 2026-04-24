@@ -97,6 +97,38 @@ class DashboardLoaders {
     return List<Map<String, dynamic>>.from(data);
   }
 
+  Future<List<Map<String, dynamic>>> loadMembershipPayments(
+    String? gymId,
+  ) async {
+    dynamic query = sb
+        .from('membership_payments')
+        .select(
+          'id, amount, payment_status, paid_at, created_at, plan_id, membership_plans!inner(gym_id)',
+        );
+
+    if (gymId != null && gymId.isNotEmpty) {
+      query = query.eq('membership_plans.gym_id', gymId);
+    }
+
+    final data = await query.order('created_at', ascending: false);
+    return List<Map<String, dynamic>>.from(data);
+  }
+
+  Future<List<Map<String, dynamic>>> loadMemberships(String? gymId) async {
+    dynamic query = sb
+        .from('member_memberships')
+        .select(
+          'id, status, start_date, end_date, plan_id, membership_plans!inner(gym_id)',
+        );
+
+    if (gymId != null && gymId.isNotEmpty) {
+      query = query.eq('membership_plans.gym_id', gymId);
+    }
+
+    final data = await query.order('created_at', ascending: false);
+    return List<Map<String, dynamic>>.from(data);
+  }
+
   Future<List<Map<String, dynamic>>> loadTodayWorkouts(String? gymId) async {
     final now = DateTime.now();
     final todayIso =
