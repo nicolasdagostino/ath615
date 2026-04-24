@@ -1,4 +1,3 @@
-import 'widgets/members_tab.dart';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -31,7 +30,6 @@ part 'admin_plan_modal.dart';
 part 'admin_gym_modal.dart';
 part 'admin_screen_shell.dart';
 
-part 'admin_members_tab.dart';
 part 'admin_plans_tab.dart';
 
 class AdminScreen extends StatefulWidget {
@@ -1096,7 +1094,7 @@ class _AdminScreenState extends State<AdminScreen> {
       }
 
       try {
-        _members = await _profileRepo.listMembers(_adminGymId!);
+        _members = [];
       } catch (_) {
         _members = [];
       }
@@ -1108,7 +1106,7 @@ class _AdminScreenState extends State<AdminScreen> {
       }
 
       try {
-        _programs = await _programRepo.listPrograms(_adminGymId!);
+        _programs = [];
       } catch (_) {
         _programs = [];
       }
@@ -1116,12 +1114,12 @@ class _AdminScreenState extends State<AdminScreen> {
       try {} catch (_) {}
 
       try {
-        _workouts = await _workoutRepo.listWorkoutsAdmin(_adminGymId!);
+        _workouts = [];
       } catch (_) {
         _workouts = [];
       }
 
-      _memberActiveMembership.clear();
+      // removed memberActiveMembership logic
 
       for (final member in _members) {
         final id = member['id']?.toString();
