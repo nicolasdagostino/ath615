@@ -1,9 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_text.dart';
-import '../../../shared/widgets/input_field.dart';
-import '../../../shared/widgets/primary_button.dart';
-import '../../../shared/widgets/secondary_button.dart';
+import '../../../shared/widgets/app_bottom_sheet.dart';
 
 Future<Map<String, dynamic>?> showCreateClassSheet({
   required BuildContext context,
@@ -49,7 +48,7 @@ class _CreateClassSheetState extends State<_CreateClassSheet> {
   final _durationCtrl = TextEditingController(text: '60');
   final _spotsCtrl = TextEditingController(text: '15');
 
-  bool _saving = false;
+  final bool _saving = false;
 
   bool get _isSpanish => Localizations.localeOf(
     context,
@@ -102,13 +101,57 @@ class _CreateClassSheetState extends State<_CreateClassSheet> {
   }
 
   Future<void> _pickDate() async {
-    final initial = DateTime.tryParse(_dateCtrl.text.trim()) ?? DateTime.now();
-    final picked = await showDatePicker(
+    DateTime selected =
+        DateTime.tryParse(_dateCtrl.text.trim()) ?? DateTime.now();
+
+    final picked = await showModalBottomSheet<DateTime>(
       context: context,
-      initialDate: initial,
-      firstDate: DateTime.now().subtract(const Duration(days: 1)),
-      lastDate: DateTime(2035, 12, 31),
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return AppBottomSheetScaffold(
+          title: _text('Elegir fecha', 'Choose date'),
+          scrollable: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _text('Selecciona una fecha', 'Select a date'),
+                style: appSheetFont(
+                  13,
+                  weight: FontWeight.w500,
+                  color: const Color(0xFF667085),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: SizedBox(
+                  height: 180,
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.date,
+                    initialDateTime: selected,
+                    minimumDate: DateTime.now().subtract(
+                      const Duration(days: 1),
+                    ),
+                    maximumDate: DateTime(2035, 12, 31),
+                    onDateTimeChanged: (value) => selected = value,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              AppSheetActions(
+                busy: false,
+                primaryText: _text('Guardar', 'Save'),
+                cancelText: context.appText.cancel,
+                onCancel: () => Navigator.pop(sheetContext),
+                onPrimary: () => Navigator.pop(sheetContext, selected),
+              ),
+            ],
+          ),
+        );
+      },
     );
+
     if (picked == null) return;
     _dateCtrl.text =
         '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
@@ -117,18 +160,61 @@ class _CreateClassSheetState extends State<_CreateClassSheet> {
 
   Future<void> _pickTime() async {
     final raw = _timeCtrl.text.trim().split(':');
-    final initial = TimeOfDay(
-      hour: raw.length == 2 ? int.tryParse(raw[0]) ?? 18 : 18,
-      minute: raw.length == 2 ? int.tryParse(raw[1]) ?? 0 : 0,
+    final now = DateTime.now();
+    DateTime selected = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      raw.length == 2 ? int.tryParse(raw[0]) ?? 18 : 18,
+      raw.length == 2 ? int.tryParse(raw[1]) ?? 0 : 0,
     );
-    final picked = await showTimePicker(
+
+    final picked = await showModalBottomSheet<DateTime>(
       context: context,
-      initialTime: initial,
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: child ?? const SizedBox.shrink(),
-      ),
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return AppBottomSheetScaffold(
+          title: _text('Elegir hora', 'Choose time'),
+          subtitle: _text('Selecciona una hora', 'Select a time'),
+          scrollable: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _text('Selecciona una fecha', 'Select a date'),
+                style: appSheetFont(
+                  13,
+                  weight: FontWeight.w500,
+                  color: const Color(0xFF667085),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: SizedBox(
+                  height: 180,
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.time,
+                    use24hFormat: true,
+                    initialDateTime: selected,
+                    onDateTimeChanged: (value) => selected = value,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              AppSheetActions(
+                busy: false,
+                primaryText: _text('Guardar', 'Save'),
+                cancelText: context.appText.cancel,
+                onCancel: () => Navigator.pop(sheetContext),
+                onPrimary: () => Navigator.pop(sheetContext, selected),
+              ),
+            ],
+          ),
+        );
+      },
     );
+
     if (picked == null) return;
     _timeCtrl.text =
         '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
@@ -173,268 +259,150 @@ class _CreateClassSheetState extends State<_CreateClassSheet> {
   @override
   Widget build(BuildContext context) {
     final t = context.appText;
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final isEdit = widget.initialData != null;
 
-    return AnimatedPadding(
-      duration: const Duration(milliseconds: 180),
-      padding: EdgeInsets.only(bottom: bottomInset),
-      child: SafeArea(
-        top: false,
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFFF6F7F9),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+    return AppBottomSheetScaffold(
+      title: isEdit
+          ? _text('Editar clase', 'Edit class')
+          : _text('Crear clase', 'Create class'),
+      subtitle: _text(
+        'Sesión simple sin WOD asignado.',
+        'Simple session with no WOD assigned.',
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppSheetDropdown(
+            value: _selectedProgramId.isEmpty ? null : _selectedProgramId,
+            label: t.program,
+            items: widget.programs
+                .map(
+                  (p) => DropdownMenuItem<String>(
+                    value: p['id'].toString(),
+                    child: Text((p['name'] ?? t.program).toString()),
+                  ),
+                )
+                .toList(),
+            onChanged: _saving
+                ? null
+                : (value) {
+                    setState(() {
+                      _selectedProgramId = value ?? '';
+                    });
+                  },
           ),
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 42,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD7DBE1),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
+          const SizedBox(height: 12),
+          AppSheetDropdown(
+            value: _selectedCoachId.isEmpty ? '' : _selectedCoachId,
+            label: t.coach,
+            items: [
+              DropdownMenuItem<String>(value: '', child: Text(t.noCoach)),
+              ...widget.coaches.map(
+                (c) => DropdownMenuItem<String>(
+                  value: c['id'].toString(),
+                  child: Text((c['full_name'] ?? t.coach).toString()),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  isEdit
-                      ? _text('Editar clase', 'Edit class')
-                      : _text('Crear clase', 'Create class'),
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF111318),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _text(
-                    'Sesión simple sin WOD asignado.',
-                    'Simple session with no WOD assigned.',
-                  ),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF667085),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedProgramId.isEmpty
-                      ? null
-                      : _selectedProgramId,
-                  decoration: const InputDecoration(
-                    labelText: 'Program',
-                    filled: true,
-                    fillColor: Color(0xFFF8FAFC),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(16)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(16)),
-                      borderSide: BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(16)),
-                      borderSide: BorderSide(
-                        color: Color(0xFFB59B6A),
-                        width: 1.2,
-                      ),
-                    ),
-                  ),
-                  items: widget.programs
-                      .map(
-                        (p) => DropdownMenuItem<String>(
-                          value: p['id'].toString(),
-                          child: Text((p['name'] ?? t.program).toString()),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: _saving
-                      ? null
-                      : (value) {
-                          setState(() {
-                            _selectedProgramId = value ?? '';
-                          });
-                        },
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedCoachId.isEmpty
-                      ? ''
-                      : _selectedCoachId,
-                  decoration: InputDecoration(
-                    labelText: t.coach,
-                    filled: true,
-                    fillColor: const Color(0xFFF8FAFC),
-                    border: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(16)),
-                    ),
-                    enabledBorder: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(16)),
-                      borderSide: BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    focusedBorder: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(16)),
-                      borderSide: BorderSide(
-                        color: Color(0xFFB59B6A),
-                        width: 1.2,
-                      ),
-                    ),
-                  ),
-                  items: [
-                    DropdownMenuItem<String>(value: '', child: Text(t.noCoach)),
-                    ...widget.coaches.map(
-                      (c) => DropdownMenuItem<String>(
-                        value: c['id'].toString(),
-                        child: Text((c['full_name'] ?? t.coach).toString()),
-                      ),
-                    ),
-                  ],
-                  onChanged: _saving
-                      ? null
-                      : (value) {
-                          setState(() {
-                            _selectedCoachId = value ?? '';
-                          });
-                        },
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: InputField(
-                        label: t.date,
-                        controller: _dateCtrl,
-                        hint: '2026-04-22',
-                        readOnly: true,
-                        onTap: _saving ? null : _pickDate,
-                        suffixIcon: const Icon(
-                          Icons.calendar_today_rounded,
-                          size: 18,
-                        ),
-                        fillColor: const Color(0xFFF8FAFC),
-                        borderColor: const Color(0xFFE2E8F0),
-                        focusedBorderColor: const Color(0xFFB59B6A),
-                        radius: 16,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: InputField(
-                        label: t.time,
-                        controller: _timeCtrl,
-                        hint: '18:00',
-                        readOnly: true,
-                        onTap: _saving ? null : _pickTime,
-                        suffixIcon: const Icon(
-                          Icons.schedule_rounded,
-                          size: 18,
-                        ),
-                        fillColor: const Color(0xFFF8FAFC),
-                        borderColor: const Color(0xFFE2E8F0),
-                        focusedBorderColor: const Color(0xFFB59B6A),
-                        radius: 16,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: InputField(
-                        label: t.duration,
-                        controller: _durationCtrl,
-                        hint: '60',
-                        keyboardType: TextInputType.number,
-                        fillColor: const Color(0xFFF8FAFC),
-                        borderColor: const Color(0xFFE2E8F0),
-                        focusedBorderColor: const Color(0xFFB59B6A),
-                        radius: 16,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: InputField(
-                        label: t.spots,
-                        controller: _spotsCtrl,
-                        hint: '15',
-                        keyboardType: TextInputType.number,
-                        fillColor: const Color(0xFFF8FAFC),
-                        borderColor: const Color(0xFFE2E8F0),
-                        focusedBorderColor: const Color(0xFFB59B6A),
-                        radius: 16,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                Row(
-                  children: [
-                    Expanded(
-                      child: SecondaryButton(
-                        text: t.cancel,
-                        compact: true,
-                        radius: 16,
-                        onPressed: _saving
-                            ? null
-                            : () => Navigator.pop(context),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: PrimaryButton(
-                        text: _saving
-                            ? _text('Guardando...', 'Saving...')
-                            : (isEdit
-                                  ? _text('Guardar cambios', 'Save changes')
-                                  : t.saveChanges),
-                        compact: true,
-                        radius: 16,
-                        backgroundColor: const Color(0xFFB59B6A),
-                        pressedColor: const Color(0xFFA88C59),
-                        disabledColor: const Color(0xFFC9C9C9),
-                        onPressed: _saving
-                            ? null
-                            : () {
-                                final error = _validate(t);
-                                if (error != null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(error)),
-                                  );
-                                  return;
-                                }
-                                final data = {
-                                  'programId': _selectedProgramId,
-                                  'coachId': _selectedCoachId,
-                                  'date': _dateCtrl.text.trim(),
-                                  'time': _timeCtrl.text.trim(),
-                                  'duration': _durationCtrl.text.trim(),
-                                  'maxSpots': _spotsCtrl.text.trim(),
-                                };
-                                if (isEdit) {
-                                  Navigator.pop(context, {
-                                    ...data,
-                                    'mode': 'edit',
-                                  });
-                                } else {
-                                  Navigator.pop(context, data);
-                                }
-                              },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
+            onChanged: _saving
+                ? null
+                : (value) {
+                    setState(() {
+                      _selectedCoachId = value ?? '';
+                    });
+                  },
           ),
-        ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: AppSheetTextField(
+                  label: t.date,
+                  controller: _dateCtrl,
+                  hint: '2026-04-22',
+                  readOnly: true,
+                  onTap: _saving ? null : _pickDate,
+                  suffixIcon: const Icon(
+                    Icons.calendar_today_rounded,
+                    size: 18,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AppSheetTextField(
+                  label: t.time,
+                  controller: _timeCtrl,
+                  hint: '18:00',
+                  readOnly: true,
+                  onTap: _saving ? null : _pickTime,
+                  suffixIcon: const Icon(
+                    Icons.schedule_rounded,
+                    size: 18,
+                    color: Color(0xFFB59B6A),
+                  ),
+                  suffixIconColor: Color(0xFFB59B6A),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: AppSheetTextField(
+                  label: t.duration,
+                  controller: _durationCtrl,
+                  hint: '60',
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AppSheetTextField(
+                  label: t.spots,
+                  controller: _spotsCtrl,
+                  hint: '15',
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          AppSheetActions(
+            busy: _saving,
+            primaryText: isEdit
+                ? _text('Guardar cambios', 'Save changes')
+                : t.saveChanges,
+            busyText: _text('Guardando...', 'Saving...'),
+            cancelText: t.cancel,
+            onCancel: _saving ? null : () => Navigator.pop(context),
+            onPrimary: _saving
+                ? null
+                : () {
+                    final error = _validate(t);
+                    if (error != null) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(error)));
+                      return;
+                    }
+                    final data = {
+                      'programId': _selectedProgramId,
+                      'coachId': _selectedCoachId,
+                      'date': _dateCtrl.text.trim(),
+                      'time': _timeCtrl.text.trim(),
+                      'duration': _durationCtrl.text.trim(),
+                      'maxSpots': _spotsCtrl.text.trim(),
+                    };
+                    if (isEdit) {
+                      Navigator.pop(context, {...data, 'mode': 'edit'});
+                    } else {
+                      Navigator.pop(context, data);
+                    }
+                  },
+          ),
+        ],
       ),
     );
   }

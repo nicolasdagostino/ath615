@@ -9,10 +9,16 @@ import '../../core/supabase/workout_like_repository.dart';
 import '../../core/supabase/workout_repository.dart';
 import '../../core/supabase/profile_repository.dart';
 import '../../core/supabase/gym_repository.dart';
+import '../../core/supabase/notification_repository.dart';
+import '../../core/supabase/program_repository.dart';
+import '../../core/supabase/storage_repository.dart';
+import '../../core/auth/user_session.dart';
+import 'widgets/create_workout_sheet.dart';
 import '../../l10n/app_text.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/role_guard.dart';
 import '../../shared/widgets/app_toast.dart';
+import '../../shared/widgets/app_bottom_sheet.dart';
 
 class WorkoutsScreen extends StatefulWidget {
   const WorkoutsScreen({super.key});
@@ -27,6 +33,9 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
   final _gymRepo = GymRepository();
   final _commentRepo = WorkoutCommentRepository();
   final _likeRepo = WorkoutLikeRepository();
+  final _notificationRepo = NotificationRepository();
+  final _programRepo = ProgramRepository();
+  final _storageRepo = StorageRepository();
 
   RealtimeChannel? _channel;
 
@@ -36,6 +45,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
   String _gymName = '';
   String _gymLogoUrl = '';
   List<Map<String, dynamic>> _workouts = [];
+  List<Map<String, dynamic>> _programs = [];
   final Map<String, List<Map<String, dynamic>>> _commentsByWorkout = {};
   final Map<String, bool> _likedByWorkout = {};
   final Map<String, TextEditingController> _controllers = {};
@@ -140,6 +150,10 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
       final gym = await _gymRepo.myGymInfo();
       final gymName = (gym?['name'] ?? '').toString().trim();
       final gymLogo = (gym?['logo_url'] ?? '').toString().trim();
+      final gymId = (await _gymRepo.resolveGymId() ?? '').trim();
+      final programs = gymId.isEmpty
+          ? <Map<String, dynamic>>[]
+          : await _programRepo.listPrograms(gymId);
 
       final commentsMap = <String, List<Map<String, dynamic>>>{};
       final likedMap = <String, bool>{};
@@ -159,6 +173,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
 
       setState(() {
         _workouts = items;
+        _programs = programs;
         _gymName = gymName;
         _gymLogoUrl = gymLogo;
         _commentsByWorkout
@@ -238,6 +253,619 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
         SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
       );
     }
+  }
+
+  String _programNameForId(String programId) {
+    for (final program in _programs) {
+      if ((program['id'] ?? '').toString() == programId) {
+        return (program['name'] ?? '').toString().trim();
+      }
+    }
+    return '';
+  }
+
+  Future<void> _showEditWorkoutSheet(Map<String, dynamic> item) async {
+    final result = await showCreateWorkoutSheet(
+      context,
+      programs: _programs,
+      onCreateProgram: _createProgramFromWorkoutSheet,
+      item: item,
+    );
+    if (result == null) return;
+
+    try {
+      final gymId = (await _gymRepo.resolveGymId() ?? '').trim();
+      if (gymId.isEmpty) {
+        throw Exception(context.appText.gymIdRequiredError);
+      }
+
+      final id = item['id'].toString();
+      final programId = (result['programId'] ?? '').toString().trim();
+      final programName = (result['programName'] ?? '').toString().trim();
+      final title = programName.isEmpty
+          ? _programNameForId(programId)
+          : programName;
+      final description = (result['description'] ?? '').toString().trim();
+      final workoutDate = (result['workoutDate'] ?? '').toString().trim();
+      final imageFile = result['imageFile'];
+      String imageUrl = (result['existingImageUrl'] ?? '').toString().trim();
+
+      if (programId.isEmpty || title.isEmpty) {
+        throw Exception(context.appText.programRequiredError);
+      }
+      if (workoutDate.isEmpty) {
+        throw Exception(context.appText.workoutDateRequiredError);
+      }
+
+      if (imageFile != null) {
+        imageUrl = await _storageRepo.uploadWorkoutImage(imageFile);
+      }
+
+      final existing = await _repo.findExistingWorkoutForProgramOnDate(
+        gymId: gymId,
+        programId: programId,
+        workoutDate: workoutDate,
+        excludeWorkoutId: id,
+      );
+      if (existing != null) {
+        final existingTitle = (existing['title'] ?? 'Workout')
+            .toString()
+            .trim();
+        throw Exception(
+          context.appText.duplicateWorkoutForProgramDateError(existingTitle),
+        );
+      }
+
+      await _repo.updateWorkout(
+        gymId: gymId,
+        id: id,
+        programId: programId,
+        title: title,
+        description: description.isEmpty ? null : description,
+        workoutDate: workoutDate,
+        timeCapMinutes: null,
+        workoutType: null,
+        imageUrl: imageUrl,
+      );
+
+      if (!mounted) return;
+      AppToast.show(context, context.appText.workoutUpdated);
+      await _loadToday();
+    } catch (e) {
+      if (!mounted) return;
+      AppToast.show(
+        context,
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
+    }
+  }
+
+  Future<void> _deleteWorkout(Map<String, dynamic> item) async {
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return AppBottomSheetScaffold(
+          title: context.appText.deleteWorkoutTitle,
+          subtitle: context.appText.deleteWorkoutActionSubtitle,
+          scrollable: false,
+          child: AppSheetActions(
+            busy: false,
+            primaryText: context.appText.delete,
+            cancelText: context.appText.cancel,
+            primaryColor: const Color(0xFFB42318),
+            pressedColor: const Color(0xFF912018),
+            onCancel: () => Navigator.pop(sheetContext, false),
+            onPrimary: () => Navigator.pop(sheetContext, true),
+          ),
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final gymId = (await _gymRepo.resolveGymId() ?? '').trim();
+      if (gymId.isEmpty) {
+        throw Exception(context.appText.gymIdRequiredError);
+      }
+
+      await _repo.deleteWorkout(gymId: gymId, id: item['id'].toString());
+
+      if (!mounted) return;
+      AppToast.show(context, context.appText.workoutDeleted);
+      await _loadToday();
+    } catch (e) {
+      if (!mounted) return;
+      AppToast.show(
+        context,
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
+    }
+  }
+
+  void _showWorkoutActions(Map<String, dynamic> item) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return AppBottomSheetScaffold(
+          scrollable: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppSheetActionTile(
+                icon: Icons.edit_rounded,
+                title: context.appText.isSpanish
+                    ? 'Editar workout'
+                    : 'Edit workout',
+                iconBg: const Color(0xFFF7F3EA),
+                iconColor: const Color(0xFFB59B6A),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _showEditWorkoutSheet(item);
+                },
+              ),
+              const SizedBox(height: 10),
+              AppSheetActionTile(
+                icon: Icons.delete_outline_rounded,
+                title: context.appText.deleteWorkoutTitle,
+                iconBg: const Color(0xFFFEE4E2),
+                iconColor: const Color(0xFFB42318),
+                titleColor: const Color(0xFFB42318),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _deleteWorkout(item);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<Map<String, dynamic>?> _createProgramFromWorkoutSheet(
+    String name,
+  ) async {
+    try {
+      final gymId = (await _gymRepo.resolveGymId() ?? '').trim();
+      if (gymId.isEmpty) {
+        throw Exception(context.appText.gymIdRequiredError);
+      }
+
+      await _programRepo.createProgram(gymId: gymId, name: name);
+      final programs = await _programRepo.listPrograms(gymId);
+      final created = programs.cast<Map<String, dynamic>?>().firstWhere(
+        (p) =>
+            (p?['name'] ?? '').toString().trim().toLowerCase() ==
+            name.trim().toLowerCase(),
+        orElse: () => null,
+      );
+
+      if (!mounted) return created;
+      setState(() => _programs = programs);
+      AppToast.show(context, context.appText.programCreated);
+      return created;
+    } catch (e) {
+      if (!mounted) return null;
+      AppToast.show(
+        context,
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
+      return null;
+    }
+  }
+
+  Future<void> _showCreateWorkoutSheet() async {
+    final result = await showCreateWorkoutSheet(
+      context,
+      programs: _programs,
+      onCreateProgram: _createProgramFromWorkoutSheet,
+    );
+    if (result == null) return;
+
+    try {
+      final gymId = (await _gymRepo.resolveGymId() ?? '').trim();
+      if (gymId.isEmpty) {
+        throw Exception(context.appText.gymIdRequiredError);
+      }
+
+      final programId = (result['programId'] ?? '').toString().trim();
+      final programName = (result['programName'] ?? '').toString().trim();
+      final workoutDate = (result['workoutDate'] ?? '').toString().trim();
+      String title = (result['title'] ?? '').toString().trim();
+
+      if (title.isEmpty) {
+        try {
+          final d = DateTime.parse(workoutDate);
+          title =
+              '${d.day.toString().padLeft(2, '0')}${d.month.toString().padLeft(2, '0')}${d.year}';
+        } catch (_) {
+          title = context.appText.workout;
+        }
+      }
+      final description = (result['description'] ?? '').toString().trim();
+      final imageFile = result['imageFile'];
+
+      if (programId.isEmpty || title.isEmpty) {
+        throw Exception(context.appText.programRequiredError);
+      }
+      if (workoutDate.isEmpty) {
+        throw Exception(context.appText.workoutDateRequiredError);
+      }
+
+      String? imageUrl;
+      if (imageFile != null) {
+        imageUrl = await _storageRepo.uploadWorkoutImage(imageFile);
+      }
+
+      final existing = await _repo.findExistingWorkoutForProgramOnDate(
+        gymId: gymId,
+        programId: programId,
+        workoutDate: workoutDate,
+      );
+      if (existing != null) {
+        final existingTitle = (existing['title'] ?? 'Workout')
+            .toString()
+            .trim();
+        throw Exception(
+          context.appText.duplicateWorkoutForProgramDateError(existingTitle),
+        );
+      }
+
+      final workoutId = await _repo.createWorkout(
+        gymId: gymId,
+        programId: programId,
+        title: title,
+        description: description.isEmpty ? null : description,
+        workoutDate: workoutDate,
+        timeCapMinutes: null,
+        workoutType: null,
+        createdBy: null,
+        imageUrl: imageUrl,
+      );
+
+      await _notificationRepo.publishWorkoutNotificationIfNeeded(
+        gymId: gymId,
+        workoutId: workoutId,
+        workoutTitle: title,
+        workoutDate: workoutDate,
+        programId: programId,
+        programName: programName,
+      );
+
+      if (!mounted) return;
+      AppToast.show(
+        context,
+        context.appText.isSpanish
+            ? 'Workout creado correctamente.'
+            : 'Workout created successfully.',
+      );
+      await _loadToday();
+    } catch (e) {
+      if (!mounted) return;
+      AppToast.show(
+        context,
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
+    }
+  }
+
+  Future<void> _editProgram(Map<String, dynamic> program) async {
+    final controller = TextEditingController(
+      text: (program['name'] ?? '').toString().trim(),
+    );
+
+    final name = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => AppBottomSheetScaffold(
+        title: context.appText.editProgram,
+        subtitle: context.appText.isSpanish
+            ? 'Actualiza el nombre del programa.'
+            : 'Update the program name.',
+        scrollable: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppSheetTextField(
+              controller: controller,
+              label: context.appText.programName,
+              textInputAction: TextInputAction.done,
+              onTapOutside: (_) => FocusScope.of(sheetContext).unfocus(),
+            ),
+            const SizedBox(height: 16),
+            AppSheetActions(
+              busy: false,
+              primaryText: context.appText.saveChanges,
+              cancelText: context.appText.cancel,
+              onCancel: () => Navigator.pop(sheetContext),
+              onPrimary: () {
+                final value = controller.text.trim();
+                if (value.isEmpty) return;
+                Navigator.pop(sheetContext, value);
+              },
+            ),
+          ],
+        ),
+      ),
+    ).whenComplete(controller.dispose);
+
+    if (name == null || name.trim().isEmpty) return;
+
+    try {
+      final gymId = (await _gymRepo.resolveGymId() ?? '').trim();
+      if (gymId.isEmpty) throw Exception(context.appText.gymIdRequiredError);
+
+      await _programRepo.updateProgram(
+        gymId: gymId,
+        id: program['id'].toString(),
+        name: name.trim(),
+      );
+
+      await _loadToday();
+      if (!mounted) return;
+      AppToast.show(context, context.appText.programUpdated);
+    } catch (e) {
+      if (!mounted) return;
+      AppToast.show(
+        context,
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
+    }
+  }
+
+  Future<void> _deleteProgram(Map<String, dynamic> program) async {
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => AppBottomSheetScaffold(
+        title: context.appText.isSpanish
+            ? 'Eliminar programa'
+            : 'Delete program',
+        subtitle: context.appText.isSpanish
+            ? 'Si no tiene workouts vinculados, se eliminará definitivamente.'
+            : 'If it has no linked workouts, it will be permanently deleted.',
+        scrollable: false,
+        child: AppSheetActions(
+          busy: false,
+          primaryText: context.appText.delete,
+          cancelText: context.appText.cancel,
+          primaryColor: const Color(0xFFB42318),
+          pressedColor: const Color(0xFF912018),
+          onCancel: () => Navigator.pop(sheetContext, false),
+          onPrimary: () => Navigator.pop(sheetContext, true),
+        ),
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final gymId = (await _gymRepo.resolveGymId() ?? '').trim();
+      if (gymId.isEmpty) throw Exception(context.appText.gymIdRequiredError);
+
+      await _programRepo.deleteProgram(
+        gymId: gymId,
+        id: program['id'].toString(),
+      );
+
+      await _loadToday();
+      if (!mounted) return;
+      AppToast.show(context, context.appText.programDeleted);
+    } catch (e) {
+      if (!mounted) return;
+      final raw = e.toString();
+      AppToast.show(
+        context,
+        raw.contains('PROGRAM_HAS_LINKED_ITEMS')
+            ? context.appText.deleteProgramLinkedError
+            : raw.replaceFirst('Exception: ', ''),
+        isError: true,
+      );
+    }
+  }
+
+  Future<void> _createProgramFromManagePrograms() async {
+    final controller = TextEditingController();
+
+    final name = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => AppBottomSheetScaffold(
+        title: context.appText.createProgramTitle,
+        subtitle: context.appText.isSpanish
+            ? 'Crea un programa para organizar tus workouts.'
+            : 'Create a program to organize your workouts.',
+        scrollable: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppSheetTextField(
+              controller: controller,
+              label: context.appText.programName,
+              hint: 'CrossFit / Strength / Hyrox',
+              textInputAction: TextInputAction.done,
+              onTapOutside: (_) => FocusScope.of(sheetContext).unfocus(),
+            ),
+            const SizedBox(height: 16),
+            AppSheetActions(
+              busy: false,
+              primaryText: context.appText.createProgramTitle,
+              cancelText: context.appText.cancel,
+              onCancel: () => Navigator.pop(sheetContext),
+              onPrimary: () {
+                final value = controller.text.trim();
+                if (value.isEmpty) return;
+                Navigator.pop(sheetContext, value);
+              },
+            ),
+          ],
+        ),
+      ),
+    ).whenComplete(controller.dispose);
+
+    if (name == null || name.trim().isEmpty) return;
+
+    final created = await _createProgramFromWorkoutSheet(name.trim());
+    if (created == null) return;
+
+    await _loadToday();
+  }
+
+  void _showProgramActions(Map<String, dynamic> program) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return AppBottomSheetScaffold(
+          title: (program['name'] ?? '').toString().trim(),
+          subtitle: context.appText.isSpanish
+              ? 'Editar o eliminar este programa.'
+              : 'Edit or delete this program.',
+          scrollable: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppSheetActionTile(
+                icon: Icons.edit_rounded,
+                title: context.appText.editProgram,
+                subtitle: context.appText.isSpanish
+                    ? 'Cambiar el nombre del programa.'
+                    : 'Change the program name.',
+                iconBg: const Color(0xFFF7F3EA),
+                iconColor: const Color(0xFFB59B6A),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _editProgram(program);
+                },
+              ),
+              const SizedBox(height: 10),
+              AppSheetActionTile(
+                icon: Icons.delete_outline_rounded,
+                title: context.appText.delete,
+                subtitle: context.appText.isSpanish
+                    ? 'Eliminar este programa si no tiene contenido vinculado.'
+                    : 'Delete this program if it has no linked content.',
+                iconBg: const Color(0xFFFEE4E2),
+                iconColor: const Color(0xFFB42318),
+                titleColor: const Color(0xFFB42318),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _deleteProgram(program);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showManageProgramsSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => AppBottomSheetScaffold(
+        title: context.appText.programActionsTitle,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppSheetActionTile(
+              icon: Icons.add_rounded,
+              title: context.appText.createProgramTitle,
+              subtitle: context.appText.isSpanish
+                  ? 'Añade un nuevo programa a la lista.'
+                  : 'Add a new program to the list.',
+              iconBg: const Color(0xFFF7F3EA),
+              iconColor: const Color(0xFFB59B6A),
+              onTap: () async {
+                Navigator.pop(sheetContext);
+                await _createProgramFromManagePrograms();
+              },
+            ),
+            const SizedBox(height: 12),
+            ..._programs.map((program) {
+              final name = (program['name'] ?? '').toString().trim();
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFFEAECEF)),
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(18),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      _showProgramActions(program);
+                    },
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF7F3EA),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(
+                            Icons.category_rounded,
+                            size: 22,
+                            color: Color(0xFFB59B6A),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: appSheetFont(
+                                  17,
+                                  weight: FontWeight.w800,
+                                  color: const Color(0xFF111318),
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                context.appText.isSpanish
+                                    ? 'Editar o eliminar programa'
+                                    : 'Edit or delete program',
+                                style: appSheetFont(
+                                  13,
+                                  weight: FontWeight.w500,
+                                  color: const Color(0xFF667085),
+                                  height: 1.25,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _imageSection(Map<String, dynamic> item) {
@@ -621,19 +1249,27 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                       width: 132,
                       child: Align(
                         alignment: Alignment.centerRight,
-                        child: Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF7F3EA),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.fitness_center_rounded,
-                            size: 18,
-                            color: Color(0xFFB59B6A),
-                          ),
-                        ),
+                        child: UserSession().isAdmin
+                            ? IconButton(
+                                onPressed: _showManageProgramsSheet,
+                                icon: const Icon(
+                                  Icons.tune_rounded,
+                                  color: Color(0xFFB59B6A),
+                                ),
+                              )
+                            : Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF7F3EA),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.fitness_center_rounded,
+                                  size: 18,
+                                  color: Color(0xFFB59B6A),
+                                ),
+                              ),
                       ),
                     ),
                   ),
@@ -851,9 +1487,11 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     final workoutId = item['id'].toString();
     final comments = _commentsByWorkout[workoutId] ?? [];
 
-    final program = (item['program_name'] ?? context.appText.workout)
-        .toString()
-        .trim();
+    final rawProgram = (item['program_name'] ?? '').toString().trim();
+    final rawTitle = (item['title'] ?? '').toString().trim();
+    final program = rawProgram.isNotEmpty && rawProgram.toLowerCase() != 'null'
+        ? rawProgram
+        : (rawTitle.isNotEmpty ? rawTitle : context.appText.workout);
     final author = _gymName.trim().isNotEmpty
         ? _gymName.trim()
         : context.appText.athlete615;
@@ -870,7 +1508,14 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     } catch (_) {}
 
     final description = (item['description'] ?? '').toString().trim();
-    final title = (item['title'] ?? context.appText.workout).toString().trim();
+    String dateFallback = context.appText.workout;
+    try {
+      final d = DateTime.parse(dateIso);
+      dateFallback =
+          '${d.day.toString().padLeft(2, '0')}${d.month.toString().padLeft(2, '0')}${d.year}';
+    } catch (_) {}
+
+    final title = rawTitle.isNotEmpty ? rawTitle : dateFallback;
 
     final likes = (item['likes_count'] ?? 0).toString();
     final commentsCount = comments.length.toString();
@@ -925,11 +1570,14 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
                     ],
                   ),
                 ),
-                const RoleGuard(
-                  child: Icon(
-                    Icons.more_horiz_rounded,
-                    color: Color(0xFF98A2B3),
-                    size: 22,
+                RoleGuard(
+                  child: IconButton(
+                    onPressed: () => _showWorkoutActions(item),
+                    icon: const Icon(
+                      Icons.more_horiz_rounded,
+                      color: Color(0xFF98A2B3),
+                      size: 22,
+                    ),
                   ),
                 ),
               ],
@@ -1130,6 +1778,16 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: UserSession().isAdmin
+          ? FloatingActionButton(
+              heroTag: 'create_workout_fab',
+              backgroundColor: const Color(0xFFB59B6A),
+              foregroundColor: Colors.white,
+              elevation: 3,
+              onPressed: _showCreateWorkoutSheet,
+              child: const Icon(Icons.add_rounded),
+            )
+          : null,
       body: Column(
         children: [
           _topHeader(),
@@ -1228,7 +1886,7 @@ class _MiniPostButtonState extends State<_MiniPostButton> {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: const Color(0xFFB59B6A),
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(16),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x12000000),
