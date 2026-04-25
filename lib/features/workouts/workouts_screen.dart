@@ -595,7 +595,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
           ],
         ),
       ),
-    ).whenComplete(controller.dispose);
+    );
 
     if (name == null || name.trim().isEmpty) return;
 
@@ -711,7 +711,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
           ],
         ),
       ),
-    ).whenComplete(controller.dispose);
+    );
 
     if (name == null || name.trim().isEmpty) return;
 
