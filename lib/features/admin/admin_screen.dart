@@ -10,20 +10,16 @@ import '../../l10n/app_strings.dart';
 
 import '../../core/supabase/class_repository.dart';
 import '../../core/supabase/admin_member_repository.dart';
-import '../../core/supabase/notification_repository.dart';
 import '../../core/supabase/auth_repository.dart';
 import '../../core/supabase/gym_repository.dart';
 import '../../core/supabase/membership_repository.dart';
 import '../../core/supabase/profile_repository.dart';
-import '../../core/supabase/program_repository.dart';
 import '../../core/supabase/storage_repository.dart';
-import '../../core/supabase/workout_repository.dart';
 import '../../features/notifications/admin_notifications_tab.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/input_field.dart';
 import '../../shared/widgets/primary_button.dart';
 import '../../shared/widgets/secondary_button.dart';
-import 'class_attendance_screen.dart';
 import '../../shared/widgets/app_toast.dart';
 part 'admin_plan_actions.dart';
 part 'admin_plan_modal.dart';
@@ -54,12 +50,9 @@ class _AdminScreenState extends State<AdminScreen> {
   final _membershipRepo = MembershipRepository();
   final _authRepo = AuthRepository();
   final _adminMemberRepo = AdminMemberRepository();
-  final _notificationRepo = NotificationRepository();
   final _profileRepo = ProfileRepository();
   final _classRepo = ClassRepository();
-  final _programRepo = ProgramRepository();
   final _gymRepo = GymRepository();
-  final _workoutRepo = WorkoutRepository();
   final _storageRepo = StorageRepository();
   final _picker = ImagePicker();
 
@@ -77,8 +70,6 @@ class _AdminScreenState extends State<AdminScreen> {
   List<Map<String, dynamic>> _plans = [];
   List<Map<String, dynamic>> _members = [];
   List<Map<String, dynamic>> _classes = [];
-  List<Map<String, dynamic>> _programs = [];
-  List<Map<String, dynamic>> _workouts = [];
   final Map<String, Map<String, dynamic>?> _memberActiveMembership = {};
 
   final tabs = const ['Plans', 'Notifications'];
@@ -1101,20 +1092,6 @@ class _AdminScreenState extends State<AdminScreen> {
         _classes = await _classRepo.listClassesAdmin(_adminGymId!);
       } catch (_) {
         _classes = [];
-      }
-
-      try {
-        _programs = [];
-      } catch (_) {
-        _programs = [];
-      }
-
-      try {} catch (_) {}
-
-      try {
-        _workouts = [];
-      } catch (_) {
-        _workouts = [];
       }
 
       // removed memberActiveMembership logic
