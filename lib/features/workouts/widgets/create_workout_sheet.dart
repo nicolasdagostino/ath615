@@ -338,8 +338,5 @@ Future<Map<String, dynamic>?> showCreateWorkoutSheet(
         },
       );
     },
-  ).whenComplete(() {
-    descriptionCtrl.dispose();
-    dateCtrl.dispose();
-  });
+  ).whenComplete(() {});
 }

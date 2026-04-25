@@ -420,7 +420,7 @@ class _WorkoutDetailScreenState extends State<WorkoutDetailScreen> {
         Expanded(
           child: Material(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(16),
             child: Container(
               height: 52,
               padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -1094,7 +1094,7 @@ class _MiniPostButtonState extends State<_MiniPostButton> {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: const Color(0xFFB59B6A),
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(16),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x12000000),
