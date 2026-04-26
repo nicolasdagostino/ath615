@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'dashboard_models.dart';
 import '../../core/supabase/gym_repository.dart';
 import '../../core/supabase/admin_member_repository.dart';
+import '../../core/supabase/storage_repository.dart';
 import 'dashboard_repository.dart';
 import 'widgets/dashboard_loading_state.dart';
 import 'widgets/dashboard_kpi_card.dart';
@@ -36,6 +40,8 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final _gymRepository = GymRepository();
   final _adminMemberRepository = AdminMemberRepository();
+  final _storageRepository = StorageRepository();
+  final _picker = ImagePicker();
   final _repo = DashboardRepository();
   final _scrollController = ScrollController();
 
@@ -43,7 +49,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _memberSearch = '';
   late Future<DashboardData> _future;
   String _gymName = '';
+  String _gymLogoUrl = '';
   int _pendingAttendanceClasses = 0;
+  bool _dashboardActionBusy = false;
 
   bool _didLoadInitial = false;
 
@@ -67,12 +75,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
+  Future<void> _loadGymBrand() async {
+    final gym = await _gymRepository.myGymInfo();
+    if (!mounted) return;
+    setState(() {
+      _gymName = (gym?['name'] ?? '').toString().trim();
+      _gymLogoUrl = (gym?['logo_url'] ?? '').toString().trim();
+    });
+  }
+
   Future<void> _refresh() async {
     final next = _repo.loadDashboard(t: context.appText);
-    final gymName = (await _gymRepository.myGymName() ?? '').trim();
+    await _loadGymBrand();
     setState(() {
       _future = next;
-      _gymName = gymName;
     });
     await next;
   }
@@ -240,6 +256,323 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  TextStyle _dashFont(
+    double size, {
+    FontWeight weight = FontWeight.w500,
+    Color color = const Color(0xFF111318),
+    double? height,
+    double? letterSpacing,
+  }) {
+    return GoogleFonts.barlowCondensed(
+      fontSize: size,
+      fontWeight: weight,
+      color: color,
+      height: height,
+      letterSpacing: letterSpacing,
+    );
+  }
+
+  Future<void> _runDashboardAction(
+    Future<void> Function() action, {
+    String? successMessage,
+  }) async {
+    if (_dashboardActionBusy) return;
+
+    setState(() => _dashboardActionBusy = true);
+
+    try {
+      await action();
+      if (!mounted) return;
+      if (successMessage != null && successMessage.isNotEmpty) {
+        AppToast.show(context, successMessage);
+      }
+      await _refresh();
+    } catch (e) {
+      if (!mounted) return;
+      AppToast.show(
+        context,
+        e.toString().replaceFirst('Exception: ', ''),
+        isError: true,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _dashboardActionBusy = false);
+      }
+    }
+  }
+
+  Future<void> _showGymModal() async {
+    final nameCtrl = TextEditingController(text: _gymName);
+    String logoUrl = _gymLogoUrl;
+    bool saving = false;
+
+    Future<void> pickLogo(StateSetter setLocalState) async {
+      try {
+        final picked = await _picker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 85,
+          maxWidth: 1200,
+        );
+        if (picked == null) return;
+
+        final gymId = (await _gymRepository.resolveGymId() ?? '').trim();
+        if (gymId.isEmpty) {
+          throw Exception(_uiText('No se encontró el gym.', 'Gym not found.'));
+        }
+
+        setLocalState(() => saving = true);
+        final uploaded = await _storageRepository.uploadGymLogo(
+          File(picked.path),
+          gymId,
+        );
+        if (!mounted) return;
+        setLocalState(() => logoUrl = uploaded);
+      } catch (e) {
+        if (!mounted) return;
+        AppToast.show(
+          context,
+          e.toString().replaceFirst('Exception: ', ''),
+          isError: true,
+        );
+      } finally {
+        if (mounted) setLocalState(() => saving = false);
+      }
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setLocalState) {
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  0,
+                  16,
+                  16 + MediaQuery.of(sheetContext).viewInsets.bottom,
+                ),
+                child: Container(
+                  width: double.infinity,
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(sheetContext).size.height * 0.88,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Container(
+                            width: 42,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD7DBE1),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Container(
+                              width: 46,
+                              height: 46,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF7F3EA),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(
+                                Icons.storefront_rounded,
+                                color: Color(0xFFB59B6A),
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _uiText('Configurar gym', 'Gym settings'),
+                                    style: _dashFont(
+                                      24,
+                                      weight: FontWeight.w800,
+                                      color: const Color(0xFF111318),
+                                      letterSpacing: -0.3,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _uiText(
+                                      'Nombre y logo que verá el atleta.',
+                                      'Name and logo athletes will see.',
+                                    ),
+                                    style: _dashFont(
+                                      13,
+                                      color: const Color(0xFF8F96A3),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => Navigator.pop(sheetContext),
+                              icon: const Icon(Icons.close_rounded),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 22),
+                        Center(
+                          child: Column(
+                            children: [
+                              CircleAvatar(
+                                radius: 44,
+                                backgroundColor: const Color(0xFFF3F4F6),
+                                backgroundImage: logoUrl.trim().isNotEmpty
+                                    ? NetworkImage(logoUrl.trim())
+                                    : null,
+                                child: logoUrl.trim().isEmpty
+                                    ? const Icon(
+                                        Icons.fitness_center,
+                                        size: 28,
+                                        color: Color(0xFF8A90A0),
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(height: 12),
+                              TextButton(
+                                onPressed: saving
+                                    ? null
+                                    : () => pickLogo(setLocalState),
+                                child: Text(
+                                  saving
+                                      ? _uiText('Subiendo...', 'Uploading...')
+                                      : _uiText('Cambiar logo', 'Change logo'),
+                                  style: _dashFont(
+                                    15,
+                                    weight: FontWeight.w700,
+                                    color: const Color(0xFFB59B6A),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _uiText('Nombre del gym', 'Gym name'),
+                          style: _dashFont(
+                            15,
+                            weight: FontWeight.w800,
+                            letterSpacing: -0.1,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: nameCtrl,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: InputDecoration(
+                            labelText: _uiText('Nombre', 'Name'),
+                            hintText: _uiText('Athlete 615', 'Athlete 615'),
+                            filled: true,
+                            fillColor: const Color(0xFFF8FAFC),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          style: _dashFont(16, weight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: saving
+                                ? null
+                                : () async {
+                                    final cleanName = nameCtrl.text.trim();
+                                    if (cleanName.isEmpty) {
+                                      AppToast.show(
+                                        context,
+                                        _uiText(
+                                          'El nombre del gym es obligatorio.',
+                                          'Gym name is required.',
+                                        ),
+                                        isError: true,
+                                      );
+                                      return;
+                                    }
+
+                                    final gymId =
+                                        (await _gymRepository.resolveGymId() ??
+                                                '')
+                                            .trim();
+                                    if (gymId.isEmpty) {
+                                      AppToast.show(
+                                        context,
+                                        _uiText(
+                                          'No se encontró el gym.',
+                                          'Gym not found.',
+                                        ),
+                                        isError: true,
+                                      );
+                                      return;
+                                    }
+
+                                    if (!sheetContext.mounted) return;
+                                    Navigator.of(sheetContext).pop();
+
+                                    await _runDashboardAction(
+                                      () => _gymRepository.updateGym(
+                                        gymId: gymId,
+                                        name: cleanName,
+                                        logoUrl: logoUrl,
+                                      ),
+                                      successMessage: _uiText(
+                                        'Gym actualizado correctamente.',
+                                        'Gym updated successfully.',
+                                      ),
+                                    );
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              elevation: 0,
+                              backgroundColor: const Color(0xFFB59B6A),
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size.fromHeight(52),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: Text(
+                              _uiText('Guardar cambios', 'Save changes'),
+                              style: _dashFont(
+                                16,
+                                weight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: -0.15,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _brandLogo() {
     final gymName = _gymName.trim().isEmpty ? 'ATHLETE LAB' : _gymName.trim();
 
@@ -346,17 +679,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   width: 132,
                   child: Align(
                     alignment: Alignment.centerRight,
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF7F3EA),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.space_dashboard_rounded,
-                        size: 19,
-                        color: Color(0xFFB59B6A),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: _dashboardActionBusy ? null : _showGymModal,
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF7F3EA),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.storefront_rounded,
+                          size: 19,
+                          color: Color(0xFFB59B6A),
+                        ),
                       ),
                     ),
                   ),

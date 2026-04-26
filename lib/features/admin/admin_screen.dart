@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_text.dart';
@@ -14,7 +11,6 @@ import '../../core/supabase/auth_repository.dart';
 import '../../core/supabase/gym_repository.dart';
 import '../../core/supabase/membership_repository.dart';
 import '../../core/supabase/profile_repository.dart';
-import '../../core/supabase/storage_repository.dart';
 import '../../features/notifications/admin_notifications_tab.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/input_field.dart';
@@ -23,7 +19,6 @@ import '../../shared/widgets/secondary_button.dart';
 import '../../shared/widgets/app_toast.dart';
 part 'admin_plan_actions.dart';
 part 'admin_plan_modal.dart';
-part 'admin_gym_modal.dart';
 part 'admin_screen_shell.dart';
 
 part 'admin_plans_tab.dart';
@@ -53,8 +48,6 @@ class _AdminScreenState extends State<AdminScreen> {
   final _profileRepo = ProfileRepository();
   final _classRepo = ClassRepository();
   final _gymRepo = GymRepository();
-  final _storageRepo = StorageRepository();
-  final _picker = ImagePicker();
 
   late int tabIndex;
   String? _pendingOpenMemberId;
@@ -65,7 +58,6 @@ class _AdminScreenState extends State<AdminScreen> {
   String? _error;
   String? _adminGymId;
   String _adminGymName = '';
-  String _adminGymLogoUrl = '';
 
   List<Map<String, dynamic>> _plans = [];
   List<Map<String, dynamic>> _members = [];
@@ -318,34 +310,6 @@ class _AdminScreenState extends State<AdminScreen> {
                     weight: FontWeight.w800,
                     color: const Color(0xFF0E0E11),
                     letterSpacing: -0.2,
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 0,
-                top: 0,
-                bottom: 0,
-                child: SizedBox(
-                  width: 132,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(10),
-                      onTap: _adminActionBusy ? null : _showGymModal,
-                      child: Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF7F3EA),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.admin_panel_settings_outlined,
-                          size: 19,
-                          color: Color(0xFFB59B6A),
-                        ),
-                      ),
-                    ),
                   ),
                 ),
               ),
@@ -1074,7 +1038,6 @@ class _AdminScreenState extends State<AdminScreen> {
       _adminGymId = resolvedGymId;
       final gymInfo = await _gymRepo.myGymInfo();
       _adminGymName = (gymInfo?['name'] ?? '').toString().trim();
-      _adminGymLogoUrl = (gymInfo?['logo_url'] ?? '').toString().trim();
 
       try {
         _plans = await _membershipRepo.listPlans(_adminGymId!);
