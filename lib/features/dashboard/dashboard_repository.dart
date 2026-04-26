@@ -95,6 +95,7 @@ class DashboardRepository {
       lowClasses: lowClasses,
       gymId: gymId,
       isCoachView: currentRole == 'coach',
+      memberRows: members,
     );
   }
 }

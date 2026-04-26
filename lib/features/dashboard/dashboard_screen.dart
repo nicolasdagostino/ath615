@@ -8,7 +8,6 @@ import '../../core/supabase/admin_member_repository.dart';
 import 'dashboard_repository.dart';
 import 'widgets/dashboard_loading_state.dart';
 import 'widgets/dashboard_kpi_card.dart';
-import 'widgets/dashboard_member_activity_section.dart';
 import 'widgets/dashboard_section_header.dart';
 import 'widgets/dashboard_tomorrow_risk_section.dart';
 import '../admin/member_detail/admin_member_detail_screen.dart';
@@ -41,6 +40,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final _scrollController = ScrollController();
 
   String _dashboardFilter = 'today';
+  String _memberSearch = '';
   late Future<DashboardData> _future;
   String _gymName = '';
   int _pendingAttendanceClasses = 0;
@@ -270,7 +270,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               fontSize: 10,
               fontWeight: FontWeight.w700,
               color: const Color(0xFF8F96A3),
-              letterSpacing: 0.7,
+              letterSpacing: 0.6,
               height: 1.0,
             ),
           ),
@@ -329,7 +329,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Text(
                       todayText,
                       style: GoogleFonts.barlowCondensed(
-                        fontSize: 11,
+                        fontSize: 10,
                         fontWeight: FontWeight.w500,
                         color: const Color(0xFF8F96A3),
                         letterSpacing: 0.5,
@@ -391,7 +391,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Row(
       children: [
         Expanded(child: left),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Expanded(child: right),
       ],
     );
@@ -437,7 +437,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Text(
               label,
               style: GoogleFonts.barlowCondensed(
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: FontWeight.w800,
                 color: selected ? Colors.white : const Color(0xFF111318),
                 letterSpacing: 0.1,
@@ -589,7 +589,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Text(
                             item.title,
                             style: GoogleFonts.barlowCondensed(
-                              fontSize: 20,
+                              fontSize: 17,
                               fontWeight: FontWeight.w800,
                               color: const Color(0xFF111318),
                             ),
@@ -599,7 +599,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Text(
                       '${item.occupancyRate.toStringAsFixed(0)}%',
                       style: GoogleFonts.barlowCondensed(
@@ -641,7 +641,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Text(
                             item.title,
                             style: GoogleFonts.barlowCondensed(
-                              fontSize: 20,
+                              fontSize: 17,
                               fontWeight: FontWeight.w800,
                               color: const Color(0xFF111318),
                             ),
@@ -651,7 +651,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Text(
                       '${item.occupancyRate.toStringAsFixed(0)}%',
                       style: GoogleFonts.barlowCondensed(
@@ -798,61 +798,88 @@ class _DashboardScreenState extends State<DashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DashboardSectionHeader(
-          title: _uiText('Centro de miembros', 'Member center'),
+          title: _uiText('Miembros', 'Members'),
           subtitle: _uiText(
-            'Gestiona altas, seguimiento y miembros con riesgo.',
-            'Manage signups, follow-up, and at-risk members.',
+            'Busca clientes, abre su ficha o añade nuevos atletas.',
+            'Search clients, open their profile, or add new athletes.',
           ),
         ),
         const SizedBox(height: 14),
         AppCard(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                _uiText('Acciones rápidas', 'Quick actions'),
-                style: _titleStyle().copyWith(fontSize: 24),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                _uiText(
-                  'Da de alta nuevos atletas o abre la gestión completa de miembros.',
-                  'Create new athletes or open full member management.',
-                ),
-                style: _subtitleStyle(),
-              ),
-              const SizedBox(height: 14),
               Row(
                 children: [
                   Expanded(
-                    child: FilledButton.icon(
-                      onPressed: () async {
-                        await _showQuickAddMemberSheet();
-                      },
-                      icon: const Icon(Icons.person_add_alt_1_rounded),
-                      label: Text(_uiText('Añadir', 'Add member')),
+                    child: Container(
+                      height: 54,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(
+                          color: const Color(0xFFE3E7ED),
+                          width: 1.2,
+                        ),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.search,
+                            color: Color(0xFF8F96A3),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              onChanged: (value) {
+                                setState(() => _memberSearch = value);
+                              },
+                              decoration: InputDecoration(
+                                hintText: _uiText(
+                                  'Buscar miembro...',
+                                  'Search member...',
+                                ),
+                                hintStyle: _subtitleStyle().copyWith(
+                                  fontSize: 13,
+                                  color: const Color(0xFF98A2B3),
+                                ),
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                disabledBorder: InputBorder.none,
+                                contentPadding: EdgeInsets.zero,
+                                isDense: true,
+                              ),
+                              style: _subtitleStyle().copyWith(
+                                fontSize: 13,
+                                color: const Color(0xFF111318),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        if (widget.onOpenAdminMembers != null) {
-                          widget.onOpenAdminMembers!.call();
-                          return;
-                        }
-                        AppToast.show(
-                          context,
-                          _uiText(
-                            'La navegación de miembros no está disponible.',
-                            'Members navigation is not available.',
-                          ),
-                          icon: Icons.info_outline_rounded,
-                        );
+                  SizedBox(
+                    height: 40,
+                    child: FilledButton(
+                      onPressed: () async {
+                        await _showQuickAddMemberSheet();
                       },
-                      icon: const Icon(Icons.manage_accounts_outlined),
-                      label: Text(_uiText('Gestionar', 'Manage')),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFFB59B6A),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.person_add_alt_1_rounded,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ],
@@ -860,45 +887,136 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 24),
-        DashboardSectionHeader(
-          title: _uiText('Miembros a revisar', 'Members to review'),
-          subtitle: _uiText(
-            'Acceso rápido a personas que pueden necesitar seguimiento.',
-            'Quick access to people who may need follow-up.',
-          ),
-        ),
-        const SizedBox(height: 14),
-        DashboardMemberActivitySection(
-          items: data.memberActivity,
-          emptyPanel: _emptyPanel,
-          onMemberTap: (memberId) async {
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => FutureBuilder<String?>(
-                  future: _gymRepository.resolveGymId(),
-                  builder: (context, snapshot) {
-                    final gymId = (snapshot.data ?? '').trim();
-                    if (gymId.isEmpty) {
-                      return Scaffold(
-                        body: Center(child: Text(context.appText.gymNotFound)),
+        const SizedBox(height: 18),
+        Builder(
+          builder: (context) {
+            final query = _memberSearch.trim().toLowerCase();
+            final members = data.memberRows.where((m) {
+              final name = (m['full_name'] ?? '').toString().toLowerCase();
+              final email = (m['email'] ?? '').toString().toLowerCase();
+              return query.isEmpty ||
+                  name.contains(query) ||
+                  email.contains(query);
+            }).toList();
+
+            if (members.isEmpty) {
+              return _emptyPanel(
+                _uiText('No hay miembros para mostrar.', 'No members to show.'),
+              );
+            }
+
+            return Column(
+              children: members.map((m) {
+                final name = (m['full_name'] ?? 'Member').toString().trim();
+                final email = (m['email'] ?? '').toString().trim();
+                final active = m['is_active'] == true;
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: GestureDetector(
+                    onTap: () async {
+                      final gymId = (data.gymId ?? '').trim();
+                      if (gymId.isEmpty) return;
+
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AdminMemberDetailScreen(
+                            gymId: gymId,
+                            memberId: m['id'].toString(),
+                          ),
+                        ),
                       );
-                    }
-                    return AdminMemberDetailScreen(
-                      gymId: gymId,
-                      memberId: memberId,
-                    );
-                  },
-                ),
-              ),
-            );
-            await _refresh();
-          },
-          onUnavailable: () {
-            AppToast.show(
-              context,
-              context.appText.memberDetailUnavailable,
-              icon: Icons.info_outline_rounded,
+
+                      await _refresh();
+                    },
+                    child: AppCard(
+                      padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: active
+                                  ? const Color(0xFFEAF7EE)
+                                  : const Color(0xFFF2F4F7),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Icon(
+                              Icons.person_rounded,
+                              color: active
+                                  ? const Color(0xFF16A34A)
+                                  : const Color(0xFF98A2B3),
+                              size: 23,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name.isEmpty ? 'Member' : name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: _titleStyle().copyWith(
+                                    fontSize: 17,
+                                    height: 1.0,
+                                    letterSpacing: -0.2,
+                                  ),
+                                ),
+                                if (email.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    email,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: _subtitleStyle().copyWith(
+                                      fontSize: 12,
+                                      height: 1.15,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: active
+                                  ? const Color(0xFFEAF7EE)
+                                  : const Color(0xFFF2F4F7),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              active ? 'ACTIVE' : 'INACTIVE',
+                              style: GoogleFonts.barlowCondensed(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.6,
+                                color: active
+                                    ? const Color(0xFF16A34A)
+                                    : const Color(0xFF667085),
+                                height: 1,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: Color(0xFF98A2B3),
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
             );
           },
         ),

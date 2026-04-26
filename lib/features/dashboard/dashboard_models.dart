@@ -155,6 +155,7 @@ class DashboardData {
   final List<DashboardClassDemandItem> lowClasses;
   final String? gymId;
   final bool isCoachView;
+  final List<Map<String, dynamic>> memberRows;
 
   const DashboardData({
     required this.today,
@@ -169,5 +170,6 @@ class DashboardData {
     required this.lowClasses,
     required this.gymId,
     required this.isCoachView,
+    required this.memberRows,
   });
 }

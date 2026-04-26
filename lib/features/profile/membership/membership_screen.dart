@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -7,7 +6,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/supabase/membership_payments_repository.dart';
 import '../../../core/supabase/membership_repository.dart';
 import '../../../core/supabase/profile_repository.dart';
-import '../../../core/supabase/stripe_payments_repository.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/app_toast.dart';
 
@@ -20,7 +18,6 @@ class MembershipScreen extends StatefulWidget {
 
 class _MembershipScreenState extends State<MembershipScreen> {
   late Future<Map<String, dynamic>> _future;
-  final _stripePaymentsRepo = StripePaymentsRepository();
   final _membershipPaymentsRepo = MembershipPaymentsRepository();
 
   @override
@@ -41,7 +38,8 @@ class _MembershipScreenState extends State<MembershipScreen> {
     if (gymId.isNotEmpty) {
       final membershipRepo = MembershipRepository();
       activeMembership = await membershipRepo.myActiveMembership();
-      plans = await membershipRepo.listPublicPlansForAthlete(gymId);
+      // Self-serve card purchases are disabled for MVP cash payments.
+      plans = const [];
     }
 
     payments = await _membershipPaymentsRepo.listMyPayments(memberId: memberId);
@@ -182,181 +180,16 @@ class _MembershipScreenState extends State<MembershipScreen> {
     AppToast.show(context, message, isError: isError, icon: icon);
   }
 
-  Future<bool> _confirmPlanPurchaseIfNeeded({
-    required Map<String, dynamic>? activeMembership,
-    required Map<String, dynamic> plan,
-  }) async {
-    final currentPlanType = (activeMembership?['plan_type'] ?? '')
-        .toString()
-        .trim()
-        .toLowerCase();
-    final nextPlanType = (plan['plan_type'] ?? '')
-        .toString()
-        .trim()
-        .toLowerCase();
-    final creditsRemaining = (activeMembership?['credits_remaining'] ?? '')
-        .toString()
-        .trim();
-    final currentPlanName =
-        ((activeMembership?['plan_name'] ??
-                    activeMembership?['name'] ??
-                    'Plan activo')
-                .toString())
-            .trim();
-    final parsedCredits = int.tryParse(creditsRemaining);
-
-    final shouldWarn =
-        currentPlanType == 'class_pack' &&
-        nextPlanType == 'class_pack' &&
-        parsedCredits != null &&
-        parsedCredits > 0;
-
-    if (!shouldWarn) return true;
-
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Text(
-            _txt('Atención', 'Heads up'),
-            style: _font(
-              20,
-              weight: FontWeight.w800,
-              color: const Color(0xFF111318),
-            ),
-          ),
-          content: Text(
-            _txt(
-              'Ya tienes "$currentPlanName" activo y todavía te quedan $parsedCredits créditos. Si compras otro pack ahora, se añadirá como una nueva membresía/pago. ¿Quieres continuar?',
-              'You already have "$currentPlanName" active and still have $parsedCredits credits left. If you buy another pack now, it will be added as a new membership/payment. Do you want to continue?',
-            ),
-            style: _font(
-              14,
-              weight: FontWeight.w600,
-              color: const Color(0xFF475467),
-              height: 1.35,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(
-                _txt('Cancelar', 'Cancel'),
-                style: _font(
-                  14,
-                  weight: FontWeight.w700,
-                  color: const Color(0xFF667085),
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF111318),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                _txt('Continuar compra', 'Continue purchase'),
-                style: _font(14, weight: FontWeight.w800, color: Colors.white),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    return result == true;
-  }
-
   Future<void> _buyPlan({
     required Map<String, dynamic> profile,
     required Map<String, dynamic> plan,
   }) async {
-    final memberId = (profile['id'] ?? '').toString().trim();
-    final planId = (plan['id'] ?? '').toString().trim();
-    final amount = num.tryParse(
-      (plan['price'] ?? '').toString().replaceAll(',', '.'),
+    _showToast(
+      _txt(
+        'Los pagos con tarjeta están desactivados por ahora. Paga en el gimnasio para activar tu membresía.',
+        'Card payments are disabled for now. Pay at the gym to activate your membership.',
+      ),
     );
-
-    final couldNotStartPurchase = _txt(
-      'No se pudo iniciar la compra',
-      'Could not start purchase',
-    );
-    final invalidPriceMessage = _txt(
-      'Este plan no tiene un precio válido',
-      'This plan does not have a valid price',
-    );
-    final activatedMessage = _txt(
-      'Procesando pago...',
-      'Processing payment...',
-    );
-    final cancelledMessage = _txt(
-      'Pago con tarjeta cancelado',
-      'Card payment cancelled',
-    );
-
-    if (memberId.isEmpty || planId.isEmpty) {
-      _showToast(couldNotStartPurchase);
-      return;
-    }
-
-    if (amount == null || amount <= 0) {
-      _showToast(invalidPriceMessage);
-      return;
-    }
-
-    try {
-      final payload = await _stripePaymentsRepo.createMyMembershipPaymentIntent(
-        planId: planId,
-        amount: amount,
-        currency: 'EUR',
-        notes: 'Athlete self-serve purchase',
-      );
-
-      final clientSecret = (payload['clientSecret'] ?? '').toString().trim();
-
-      await _stripePaymentsRepo.presentMembershipPaymentSheet(
-        clientSecret: clientSecret,
-        merchantDisplayName: 'Athlete Lab',
-      );
-
-      if (!mounted) return;
-      _showToast(activatedMessage);
-
-      await Future<void>.delayed(const Duration(seconds: 2));
-      if (!mounted) return;
-      await _refresh();
-
-      await Future<void>.delayed(const Duration(milliseconds: 1200));
-      if (!mounted) return;
-      await _refresh();
-    } on StripeException catch (e) {
-      final errorMessage = e.error.localizedMessage?.trim().isNotEmpty == true
-          ? e.error.localizedMessage!.trim()
-          : cancelledMessage;
-      _showToast(errorMessage);
-    } catch (e) {
-      final msg = e.toString();
-
-      if (msg.contains('already registered today')) {
-        _showToast(
-          _txt(
-            'Ya has comprado este mismo plan hoy. Si necesitas otro, contacta con el gimnasio.',
-            'You already purchased this plan today. If you need another one, please contact the gym.',
-          ),
-        );
-        return;
-      }
-
-      _showToast(msg.replaceFirst('Exception: ', ''));
-    }
   }
 
   @override
@@ -486,8 +319,8 @@ class _MembershipScreenState extends State<MembershipScreen> {
                         const SizedBox(height: 6),
                         Text(
                           _txt(
-                            'Compra un plan para empezar a reservar.',
-                            'Buy a plan to start booking.',
+                            'Habla con el coach o recepción para activar tu membresía.',
+                            'Talk to your coach or front desk to activate your membership.',
                           ),
                           style: _font(
                             13,
@@ -739,89 +572,6 @@ class _MembershipScreenState extends State<MembershipScreen> {
                       ),
                     );
                   }),
-                if (availablePlans.isNotEmpty) ...[
-                  const SizedBox(height: 22),
-                  Text(
-                    _txt('Planes disponibles', 'Available plans'),
-                    style: _font(
-                      16,
-                      weight: FontWeight.w800,
-                      color: const Color(0xFF111318),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ...availablePlans.take(6).map((plan) {
-                    final planName = (plan['name'] ?? 'Plan').toString().trim();
-
-                    return Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE7EBF0)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            planName,
-                            style: _font(
-                              16,
-                              weight: FontWeight.w800,
-                              color: const Color(0xFF111318),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _planMeta(plan),
-                            style: _font(
-                              13,
-                              weight: FontWeight.w600,
-                              color: const Color(0xFF667085),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                final confirmed =
-                                    await _confirmPlanPurchaseIfNeeded(
-                                      activeMembership: activeMembership,
-                                      plan: plan,
-                                    );
-                                if (!confirmed) return;
-
-                                await _buyPlan(profile: profile, plan: plan);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF111318),
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                              ),
-                              child: Text(
-                                _txt('Comprar plan', 'Buy plan'),
-                                style: _font(
-                                  14,
-                                  weight: FontWeight.w800,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                ],
               ],
             ),
           );
